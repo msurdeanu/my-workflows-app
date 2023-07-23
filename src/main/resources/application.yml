@@ -1,0 +1,19 @@
+server:
+  port: 8080
+
+registry:
+  users:
+    -
+      username: "user"
+      password: "$2a$10$LEPDrW3rJp98sJ96Rb2KgOaGwDJcMdGz0BPcDTRBgM9PhY2g2KmA2"
+  admins:
+    -
+      username: "admin"
+      password: "$2a$10$omNibHqZ1p6kx4/bLMNWJ.82c30oAdg0asgGWr9jB9o2zwhim3G7O"
+
+settings:
+  test-scenario-scheduler:
+    # Number of threads part of test scenario scheduling pool
+    pool-size: 2
+    # A thread prefix to easily identify threads from scheduling pool
+    thread-name-prefix: "test-scenario-pool-"
