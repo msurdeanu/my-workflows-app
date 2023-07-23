@@ -1,0 +1,67 @@
+vaadin-scroller[slot="drawer"] {
+    padding: var(--lumo-space-s);
+}
+
+[slot="drawer"]:is(header, footer) {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-s);
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    min-height: var(--lumo-size-xl);
+    box-sizing: border-box;
+}
+
+[slot="drawer"]:is(header, footer):is(:empty) {
+    display: none;
+}
+
+.app-layout-icon-button {
+    margin: -5px 0 -5px 0;
+}
+
+.ace-editor {
+    min-height: 150px;
+    max-height: 180px;
+}
+
+.passed {
+    color: var(--lumo-primary-text-color);
+}
+
+.failed {
+    color: var(--lumo-error-text-color);;
+    text-decoration: underline;
+}
+
+.disabled {
+    color: var(--lumo-tertiary-text-color);
+    text-decoration: line-through;
+}
+
+.chat-messages {
+    width: 100%;
+    height: 500px;
+}
+
+.chat-field {
+    width: 95%;
+}
+
+.chat-button {
+    width: 5%;
+}
+
+.editable-field {
+    width: 250px;
+}
+
+.small-suffix {
+    font-size: 10px;
+}
+
+footer > span {
+    width: 100%;
+    text-align: center;
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-contrast-50pct);
+}
