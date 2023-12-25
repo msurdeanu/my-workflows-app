@@ -1,5 +1,8 @@
 package org.myworkflows.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.ValidationMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.EventBroadcaster;
@@ -11,9 +14,12 @@ import org.myworkflows.domain.event.WorkflowScheduleEvent;
 import org.myworkflows.domain.event.WorkflowSubmitEvent;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static java.util.Optional.ofNullable;
+import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
+import static org.myworkflows.serializer.JsonFactory.fromJsonToSchema;
 
 /**
  * @author Mihai Surdeanu
@@ -24,26 +30,49 @@ import static java.util.Optional.ofNullable;
 @RequiredArgsConstructor
 public class WorkflowService implements EventListener<WorkflowSubmitEvent> {
 
+    private static final JsonSchema WORKFLOW_SCHEMA;
+
     private final EventBroadcaster eventBroadcaster;
 
     private final ThreadPoolExecutor threadPoolExecutor;
 
+    static {
+        final var schemaNode = fromJsonToObject("""
+                {
+                "$schema": "http://json-schema.org/draft-06/schema#",
+                "properties": { "id": {"type": "number"}}
+                }
+                """, JsonNode.class);
+        WORKFLOW_SCHEMA = fromJsonToSchema(schemaNode);
+        WORKFLOW_SCHEMA.initializeValidators();
+    }
+
     @Override
     public void onEventReceived(WorkflowSubmitEvent event) {
-        final var workflow = event.getWorkflow();
-        final var executionContext = ofNullable(event.getExecutionContext())
-            .orElseGet(ExecutionContext::new);
-        final var contextFuture = threadPoolExecutor.submit(() -> {
-            runSynchronously(workflow, executionContext);
-            eventBroadcaster.broadcast(WorkflowResultEvent.builder().executionContext(executionContext).build());
-            return executionContext;
-        });
-        eventBroadcaster.broadcast(WorkflowScheduleEvent.builder().executionContextFuture(contextFuture).build());
+        final var workflowAsString = event.getWorkflowAsString();
+        final var validationMessages = validateWorkflow(workflowAsString);
+        final var workflowScheduleEventBuilder = WorkflowScheduleEvent.builder();
+        workflowScheduleEventBuilder.validationMessages(validationMessages);
+        if (validationMessages.isEmpty()) {
+            final var executionContext = ofNullable(event.getExecutionContext())
+                    .orElseGet(ExecutionContext::new);
+            final var contextFuture = threadPoolExecutor.submit(() -> {
+                runSynchronously(fromJsonToObject(workflowAsString, Workflow.class), executionContext);
+                eventBroadcaster.broadcast(WorkflowResultEvent.builder().executionContext(executionContext).build());
+                return executionContext;
+            });
+            workflowScheduleEventBuilder.executionContextFuture(contextFuture);
+        }
+        eventBroadcaster.broadcast(workflowScheduleEventBuilder.build());
     }
 
     @Override
     public Class<WorkflowSubmitEvent> getEventType() {
         return WorkflowSubmitEvent.class;
+    }
+
+    private Set<ValidationMessage> validateWorkflow(final String wokflowAsString) {
+        return WORKFLOW_SCHEMA.validate(fromJsonToObject(wokflowAsString, JsonNode.class));
     }
 
     private void runSynchronously(final Workflow workflow,
