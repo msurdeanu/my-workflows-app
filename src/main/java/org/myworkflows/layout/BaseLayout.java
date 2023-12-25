@@ -3,16 +3,22 @@ package org.myworkflows.layout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.html.Footer;
-import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.router.RouterLink;
-import org.apache.commons.lang3.StringUtils;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.theme.lumo.LumoUtility;
+import org.myworkflows.service.SecurityService;
 import org.myworkflows.view.LoginView;
-import org.myworkflows.view.TestScenarioView;
+import org.myworkflows.view.LogoutView;
 import org.myworkflows.view.WorkflowSubmitView;
 
 import java.util.List;
@@ -23,64 +29,59 @@ import java.util.List;
  */
 public class BaseLayout extends AppLayout {
 
-    private static final boolean IS_OPTIMIZED_FOR_MOBILE = true;
+    private final SecurityService securityService;
 
-    public BaseLayout() {
-        setPrimarySection(Section.DRAWER);
+    public BaseLayout(final SecurityService securityService) {
+        this.securityService = securityService;
 
+        createHeader();
+        createDrawer(List.of(
+                securityService.getAuthenticatedUser()
+                        .map(user -> new SideNavItem("Logout", LogoutView.class, VaadinIcon.SIGN_OUT.create()))
+                        .orElseGet(() -> new SideNavItem("Login", LoginView.class, VaadinIcon.SIGN_IN.create())),
+                new SideNavItem("Workflow Submit", WorkflowSubmitView.class, VaadinIcon.PAPERPLANE.create())
+        ));
+    }
+
+    private void createHeader() {
+        final var logoLayout = new HorizontalLayout();
         final var logo = new Image(getTranslation("app.logo.src"), getTranslation("app.logo.alt"));
         logo.setHeight("44px");
-        addToNavbar(IS_OPTIMIZED_FOR_MOBILE, new DrawerToggle(), logo);
+        logoLayout.add(logo);
 
-        addToDrawer(createDrawerContent(List.of(
-            createRouterLink("Login", "la la-file", LoginView.class),
-            createRouterLink("Workflow Submit", "la la-file", WorkflowSubmitView.class),
-            createRouterLink("Test scenario", "la la-file", TestScenarioView.class)
-        )));
+        var header = new HorizontalLayout(new DrawerToggle(), logoLayout);
+        securityService.getAuthenticatedUser()
+                .map(user -> {
+                    final var avatar = new Avatar(user.getUsername());
+                    avatar.setTooltipEnabled(true);
+                    return avatar;
+                })
+                .ifPresent(header::add);
+        header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        header.expand(logoLayout);
+        header.setWidthFull();
+
+        addToNavbar(header);
     }
 
-    private RouterLink createRouterLink(final String label, final String icon, final Class<? extends Component> target) {
-        final var routerLink = new RouterLink();
-        routerLink.addClassNames("flex", "mx-s", "p-s", "relative", "text-secondary");
-        routerLink.setRoute(target);
-
-        final var span = new Span();
-        span.addClassNames("me-s", "text-l");
-        if (StringUtils.isNotEmpty(icon)) {
-            span.addClassNames(icon);
-        }
-
-        final var text = new Span(routerLink.getTranslation(label));
-        text.addClassNames("font-medium", "text-s");
-
-        routerLink.add(span, text);
-        return routerLink;
+    private void createDrawer(final List<SideNavItem> routerLinks) {
+        final var appName = new H1(getTranslation("app.name"));
+        appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
+        final var header = new Header(appName);
+        final var scroller = new Scroller(createNavigation(routerLinks));
+        addToDrawer(header, scroller, createFooter());
     }
 
-    private Component createDrawerContent(final List<RouterLink> routerLinks) {
-        final var appName = new H2(getTranslation("app.name"));
-        appName.addClassNames("flex", "items-center", "h-xl", "m-0", "px-m", "text-m");
-
-        final var mainMenu = new H3(getTranslation("menu.main"));
-        mainMenu.addClassNames("flex", "h-m", "items-center", "mx-m", "my-0", "text-s", "text-tertiary");
-
-        final var section = new com.vaadin.flow.component.html.Section(appName, mainMenu, createNavigation(routerLinks), createFooter());
-        section.addClassNames("flex", "flex-col", "items-stretch", "max-h-full", "min-h-full");
-        return section;
+    private SideNav createNavigation(final List<SideNavItem> routerLinks) {
+        final var appNav = new SideNav();
+        routerLinks.forEach(appNav::addItem);
+        return appNav;
     }
 
-    private Nav createNavigation(final List<RouterLink> routerLinks) {
-        final var nav = new Nav();
-        nav.addClassNames("border-b", "border-contrast-10", "flex-grow", "overflow-auto");
-
-        routerLinks.forEach(nav::add);
-        return nav;
-    }
-
-    private Footer createFooter() {
+    private Component createFooter() {
         final var layout = new Footer();
         layout.addClassNames("flex", "items-center", "my-s", "px-m", "py-xs");
-        layout.add(new Span("v1.0"));
+        layout.add(new Span("v1.0")); // TODO: Use version from settings table
         return layout;
     }
 

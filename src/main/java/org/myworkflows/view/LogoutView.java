@@ -4,8 +4,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.VaadinService;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.myworkflows.service.SecurityService;
 
 import jakarta.annotation.security.PermitAll;
 
@@ -19,10 +18,15 @@ public class LogoutView extends Div implements BeforeEnterObserver {
 
     public static final String ROUTE = "logout";
 
+    private final SecurityService securityService;
+
+    public LogoutView(final SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
     @Override
-    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
-        SecurityContextHolder.clearContext();
-        VaadinService.getCurrentRequest().getWrappedSession().invalidate();
+    public void beforeEnter(final BeforeEnterEvent beforeEnterEvent) {
+        securityService.logout();
     }
 
 }

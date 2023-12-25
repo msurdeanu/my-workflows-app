@@ -1,5 +1,6 @@
 package org.myworkflows.view;
 
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
@@ -7,6 +8,8 @@ import de.f0rce.ace.AceEditor;
 import de.f0rce.ace.enums.AceMode;
 import de.f0rce.ace.enums.AceTheme;
 import lombok.extern.slf4j.Slf4j;
+import org.myworkflows.ApplicationManager;
+import org.myworkflows.domain.event.WorkflowSubmitEvent;
 import org.myworkflows.layout.BaseLayout;
 import org.myworkflows.layout.ResponsiveLayout;
 
@@ -21,16 +24,20 @@ public class WorkflowSubmitView extends ResponsiveLayout implements HasDynamicTi
 
     public static final String ROUTE = "workflows/submit";
 
-    public WorkflowSubmitView() {
+    public WorkflowSubmitView(final ApplicationManager applicationManager) {
         super();
 
         final var editor = new AceEditor();
         editor.setWidthFull();
         editor.setTheme(AceTheme.terminal);
         editor.setMode(AceMode.json);
+        final var submitButton = new Button(getTranslation("workflow-submit.submit.button"));
+        submitButton.addClickListener(event -> applicationManager.getEventBroadcaster().broadcast(WorkflowSubmitEvent.builder()
+                .workflowAsString(editor.getValue())
+                .build()));
 
         add(createHeader(getTranslation("workflow-submit.page.subtitle")));
-        add(createContent(editor));
+        add(createContent(editor, submitButton));
         add(createFooter());
     }
 

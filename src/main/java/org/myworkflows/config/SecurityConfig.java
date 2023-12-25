@@ -26,6 +26,8 @@ import static java.util.Optional.ofNullable;
 @RequiredArgsConstructor
 public class SecurityConfig extends VaadinWebSecurity {
 
+    public static final String REMEMBER_ME = "remember-me";
+
     public static final String USER = "USER";
 
     public static final String ADMIN = "ADMIN";
@@ -33,16 +35,18 @@ public class SecurityConfig extends VaadinWebSecurity {
     private final RegistryConfig registryConfig;
 
     @Override
-    @SuppressWarnings("removal")
-    public void configure(HttpSecurity http) throws Exception {
+    public void configure(final HttpSecurity http) throws Exception {
+        http.rememberMe().alwaysRemember(true).key(REMEMBER_ME).rememberMeCookieName(REMEMBER_ME);
         http.authorizeHttpRequests().requestMatchers(new AntPathRequestMatcher("/logo.png")).permitAll();
+        http.logout().logoutUrl("/logout").invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID", REMEMBER_ME);
         super.configure(http);
 
         setLoginView(http, LoginView.class);
     }
 
     @Override
-    public void configure(WebSecurity web) throws Exception {
+    public void configure(final WebSecurity web) throws Exception {
         super.configure(web);
     }
 

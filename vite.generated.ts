@@ -191,7 +191,9 @@ function buildSWPlugin(opts): PluginOption {
       }
     },
     async closeBundle() {
-      await build('write', [injectManifestToSWPlugin(), brotli()]);
+      if (!devMode) {
+        await build('write', [injectManifestToSWPlugin(), brotli()]);
+      }
     }
   };
 }
@@ -294,12 +296,17 @@ function statsExtracterPlugin(): PluginOption {
 
       const projectFileExtensions = ['.js', '.js.map', '.ts', '.ts.map', '.tsx', '.tsx.map', '.css', '.css.map'];
 
+      const isThemeComponentsResource = (id: string) =>
+          id.startsWith(themeOptions.frontendGeneratedFolder.replace(/\\/g, '/'))
+              && id.match(/.*\/jar-resources\/themes\/[^\/]+\/components\//);
+
       // collects project's frontend resources in frontend folder, excluding
-      // 'generated' sub-folder
+      // 'generated' sub-folder, except for legacy shadow DOM stylesheets
+      // packaged in `theme/components/` folder.
       modules
         .map((id) => id.replace(/\\/g, '/'))
         .filter((id) => id.startsWith(frontendFolder.replace(/\\/g, '/')))
-        .filter((id) => !id.startsWith(themeOptions.frontendGeneratedFolder.replace(/\\/g, '/')))
+        .filter((id) => !id.startsWith(themeOptions.frontendGeneratedFolder.replace(/\\/g, '/')) || isThemeComponentsResource(id))
         .map((id) => id.substring(frontendFolder.length + 1))
         .map((line: string) => (line.includes('?') ? line.substring(0, line.lastIndexOf('?')) : line))
         .forEach((line: string) => {
@@ -652,6 +659,7 @@ function preserveUsageStats() {
 
 export const vaadinConfig: UserConfigFn = (env) => {
   const devMode = env.mode === 'development';
+  const productionMode = !devMode && !devBundle
 
   if (devMode && process.env.watchDogPort) {
     // Open a connection with the Java dev-mode handler in order to finish
@@ -662,6 +670,7 @@ export const vaadinConfig: UserConfigFn = (env) => {
   return {
     root: frontendFolder,
     base: '',
+    publicDir: false,
     resolve: {
       alias: {
         '@vaadin/flow-frontend': jarResourcesFolder,
@@ -719,7 +728,7 @@ export const vaadinConfig: UserConfigFn = (env) => {
       ]
     },
     plugins: [
-      !devMode && !devBundle && brotli(),
+      productionMode && brotli(),
       devMode && vaadinBundlesPlugin(),
       devMode && showRecompileReason(),
       settings.offlineEnabled && buildSWPlugin({ devMode }),
@@ -800,7 +809,7 @@ export const vaadinConfig: UserConfigFn = (env) => {
       checker({
         typescript: true
       }),
-      !devMode && visualizer({ brotliSize: true, filename: bundleSizeFile })
+      productionMode && visualizer({ brotliSize: true, filename: bundleSizeFile })
     ]
   };
 };

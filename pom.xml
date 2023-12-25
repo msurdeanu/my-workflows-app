@@ -22,14 +22,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <vaadin.version>24.1.0</vaadin.version>
+        <vaadin.version>24.3.2</vaadin.version>
         <grid-pagination.version>4.0.0</grid-pagination.version>
         <ace.version>3.4.2</ace.version>
         <lombok.version>1.18.24</lombok.version>
         <jool.version>0.9.14</jool.version>
         <prettytime.version>5.0.2.Final</prettytime.version>
-        <flyway-core.version>9.19.1</flyway-core.version>
-        <pf4j-spring.version>0.8.0</pf4j-spring.version>
         <groovy.version>4.0.9</groovy.version>
         <junit.version>5.8.1</junit.version>
     </properties>
@@ -116,6 +114,17 @@
             <groupId>com.sshtools</groupId>
             <artifactId>maverick-synergy-client</artifactId>
             <version>3.0.10</version>
+        </dependency>
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>1.0.86</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
