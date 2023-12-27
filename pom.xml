@@ -7,7 +7,7 @@
     <artifactId>myworkflows-app</artifactId>
 
     <name>My Workflows</name>
-    <description>TO DO</description>
+    <description>My Workflows is an automation tool based on Java as programming language and Vaadin as UI framework.</description>
     <version>1.0.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
@@ -15,7 +15,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.7</version>
+        <version>3.1.4</version>
     </parent>
 
     <properties>
@@ -31,6 +31,21 @@
         <groovy.version>4.0.9</groovy.version>
         <junit.version>5.8.1</junit.version>
     </properties>
+
+    <scm>
+        <connection>scm:git:https://github.com/msurdeanu/my-workflows-app.git</connection>
+        <url>https://github.com/msurdeanu/my-workflows-app</url>
+        <developerConnection>scm:git:https://github.com/msurdeanu/my-workflows-app.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>MyWorkflows App Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/msurdeanu/my-workflows-app</url>
+        </repository>
+    </distributionManagement>
 
     <repositories>
         <repository>

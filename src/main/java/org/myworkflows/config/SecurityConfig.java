@@ -38,8 +38,6 @@ public class SecurityConfig extends VaadinWebSecurity {
     public void configure(final HttpSecurity http) throws Exception {
         http.rememberMe().alwaysRemember(true).key(REMEMBER_ME).rememberMeCookieName(REMEMBER_ME);
         http.authorizeHttpRequests().requestMatchers(new AntPathRequestMatcher("/logo.png")).permitAll();
-        http.logout().logoutUrl("/logout").invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID", REMEMBER_ME);
         super.configure(http);
 
         setLoginView(http, LoginView.class);
