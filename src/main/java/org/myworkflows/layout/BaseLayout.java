@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.html.Footer;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Header;
@@ -15,12 +16,13 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import org.myworkflows.service.SecurityService;
 import org.myworkflows.view.LoginView;
-import org.myworkflows.view.LogoutView;
 import org.myworkflows.view.WorkflowSubmitView;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,31 +31,25 @@ import java.util.List;
  */
 public class BaseLayout extends AppLayout {
 
-    private final SecurityService securityService;
-
-    public BaseLayout(final SecurityService securityService) {
-        this.securityService = securityService;
-
-        createHeader();
-        createDrawer(List.of(
-                securityService.getAuthenticatedUser()
-                        .map(user -> new SideNavItem("Logout", LogoutView.class, VaadinIcon.SIGN_OUT.create()))
-                        .orElseGet(() -> new SideNavItem("Login", LoginView.class, VaadinIcon.SIGN_IN.create())),
-                new SideNavItem("Workflow Submit", WorkflowSubmitView.class, VaadinIcon.PAPERPLANE.create())
-        ));
+    public BaseLayout(final AuthenticationContext authContext) {
+        createHeader(authContext);
+        createDrawer(createNavItems(authContext.isAuthenticated()));
     }
 
-    private void createHeader() {
+    private void createHeader(final AuthenticationContext authContext) {
         final var logoLayout = new HorizontalLayout();
         final var logo = new Image(getTranslation("app.logo.src"), getTranslation("app.logo.alt"));
         logo.setHeight("44px");
         logoLayout.add(logo);
 
         var header = new HorizontalLayout(new DrawerToggle(), logoLayout);
-        securityService.getAuthenticatedUser()
+        authContext.getAuthenticatedUser(UserDetails.class)
                 .map(user -> {
                     final var avatar = new Avatar(user.getUsername());
                     avatar.setTooltipEnabled(true);
+                    final var contextMenu = new ContextMenu(avatar);
+                    contextMenu.setOpenOnClick(true);
+                    contextMenu.addItem(getTranslation("menu.main.logout"), event -> authContext.logout());
                     return avatar;
                 })
                 .ifPresent(header::add);
@@ -72,9 +68,9 @@ public class BaseLayout extends AppLayout {
         addToDrawer(header, scroller, createFooter());
     }
 
-    private SideNav createNavigation(final List<SideNavItem> routerLinks) {
+    private SideNav createNavigation(final List<SideNavItem> sideNavItems) {
         final var appNav = new SideNav();
-        routerLinks.forEach(appNav::addItem);
+        sideNavItems.forEach(appNav::addItem);
         return appNav;
     }
 
@@ -83,6 +79,17 @@ public class BaseLayout extends AppLayout {
         layout.addClassNames("flex", "items-center", "my-s", "px-m", "py-xs");
         layout.add(new Span("v1.0")); // TODO: Use version from settings table
         return layout;
+    }
+
+    private List<SideNavItem> createNavItems(final boolean isAuthenticated) {
+        final var sideNavItems = new ArrayList<SideNavItem>();
+        sideNavItems.add(new SideNavItem(getTranslation("menu.main.workflow-submit"), WorkflowSubmitView.class, VaadinIcon.PAPERPLANE.create()));
+
+        if (!isAuthenticated) {
+            sideNavItems.add(new SideNavItem(getTranslation("menu.main.login"), LoginView.class, VaadinIcon.SIGN_IN.create()));
+        }
+
+        return sideNavItems;
     }
 
 }

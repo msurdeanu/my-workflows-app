@@ -48,7 +48,7 @@ public class WorkflowService implements EventListener<WorkflowSubmitEvent> {
     }
 
     @Override
-    public void onEventReceived(WorkflowSubmitEvent event) {
+    public void onEventReceived(final WorkflowSubmitEvent event) {
         final var workflowAsString = event.getWorkflowAsString();
         final var validationMessages = validateWorkflow(workflowAsString);
         final var workflowScheduleEventBuilder = WorkflowScheduleEvent.builder();
