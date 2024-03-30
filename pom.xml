@@ -8,7 +8,7 @@
     <description>My Workflows is an automation tool based on Java as programming language and Vaadin as UI framework.</description>
     <version>1.0.1-SNAPSHOT</version>
 
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -20,7 +20,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <vaadin.version>24.3.2</vaadin.version>
+        <vaadin.version>24.3.8</vaadin.version>
+        <flyway-core.version>9.19.1</flyway-core.version>
         <grid-pagination.version>4.0.0</grid-pagination.version>
         <ace.version>3.4.2</ace.version>
         <lombok.version>1.18.24</lombok.version>
@@ -94,6 +95,31 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-community-dialects</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.vaadin.klaudeta</groupId>
             <artifactId>grid-pagination</artifactId>
             <version>${grid-pagination.version}</version>
@@ -102,6 +128,11 @@
             <groupId>de.f0rce</groupId>
             <artifactId>ace</artifactId>
             <version>${ace.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.flowingcode.addons</groupId>
+            <artifactId>granite-alert</artifactId>
+            <version>2.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

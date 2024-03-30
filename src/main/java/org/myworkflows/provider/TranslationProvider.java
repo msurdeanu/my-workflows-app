@@ -4,6 +4,7 @@ import com.vaadin.flow.i18n.I18NProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ocpsoft.prettytime.PrettyTime;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -14,14 +15,13 @@ import java.util.ResourceBundle;
 import static java.lang.String.format;
 import static java.util.Locale.ENGLISH;
 
-/**
- * @author Mihai Surdeanu
- * @since 1.0.0
- */
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class TranslationProvider implements I18NProvider {
+
+    public static final String PRETTY_TIME_FORMAT = "pretty.time.format";
 
     private static final PrettyTime PRETTY_TIME = new PrettyTime();
 
@@ -38,7 +38,7 @@ public class TranslationProvider implements I18NProvider {
             return null;
         }
 
-        if ("pretty.time.format".equals(key) && params.length == 1 && params[1] instanceof Instant instant) {
+        if (PRETTY_TIME_FORMAT.equals(key) && params.length == 1 && params[0] instanceof Instant instant) {
             return PRETTY_TIME.format(instant);
         }
 

@@ -1,6 +1,5 @@
 package org.myworkflows;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -18,8 +17,9 @@ public class ApplicationManager {
 
     private final ApplicationContext applicationContext;
 
-    @Getter
-    private final EventBroadcaster eventBroadcaster;
+    public <T> T getBeanOfType(final Class<T> clazz) {
+        return applicationContext.getBean(clazz);
+    }
 
     public <T> Collection<T> getBeansOfType(final Class<T> clazz) {
         return applicationContext.getBeansOfType(clazz).values();

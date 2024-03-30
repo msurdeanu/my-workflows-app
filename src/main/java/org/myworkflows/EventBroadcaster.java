@@ -1,5 +1,6 @@
 package org.myworkflows;
 
+import com.vaadin.flow.shared.Registration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -33,16 +34,24 @@ public class EventBroadcaster {
             .forEach(consumer -> threadPoolExecutor.execute(() -> consumer.accept(event)));
     }
 
-    public synchronized void register(final Consumer<Event> consumer,
-                                      final Class<? extends Event> acceptedEvent) {
+    public synchronized Registration register(final Consumer<Event> consumer,
+                                              final Class<? extends Event> acceptedEvent) {
         ofNullable(consumersMap.get(acceptedEvent)).ifPresentOrElse(
             consumers -> consumers.add(consumer),
             () -> consumersMap.put(acceptedEvent, new ArrayList<>(List.of(consumer)))
         );
 
-        if (log.isDebugEnabled()) {
-            log.debug("A new broadcast consumer is registered for event type '{}'.", acceptedEvent.getName());
-        }
+        log.debug("A new broadcast consumer is registered for event type '{}'.", acceptedEvent.getName());
+
+        return () -> {
+            synchronized (EventBroadcaster.class) {
+                ofNullable(consumersMap.get(acceptedEvent)).ifPresent(items -> {
+                    items.remove(consumer);
+
+                    log.debug("A new broadcast consumer is de-registered for event type '{}'.", acceptedEvent.getName());
+                });
+            }
+        };
     }
 
 }

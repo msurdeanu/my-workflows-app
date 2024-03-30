@@ -7,15 +7,25 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.ExecutionContext;
+import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.Workflow;
+import org.myworkflows.domain.command.AbstractCommand;
+import org.myworkflows.domain.command.AbstractSubCommand;
 import org.myworkflows.domain.event.EventListener;
-import org.myworkflows.domain.event.WorkflowResultEvent;
-import org.myworkflows.domain.event.WorkflowScheduleEvent;
-import org.myworkflows.domain.event.WorkflowSubmitEvent;
+import org.myworkflows.domain.event.WorkflowOnProgressEvent;
+import org.myworkflows.domain.event.WorkflowOnSubmitEvent;
+import org.myworkflows.domain.event.WorkflowOnSubmittedEvent;
+import org.myworkflows.repository.PlaceholderRepository;
+import org.myworkflows.util.PlaceholderUtil;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
@@ -28,13 +38,15 @@ import static org.myworkflows.serializer.JsonFactory.fromJsonToSchema;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class WorkflowService implements EventListener<WorkflowSubmitEvent> {
+public class WorkflowService implements EventListener<WorkflowOnSubmitEvent> {
 
     private static final JsonSchema WORKFLOW_SCHEMA;
 
     private final EventBroadcaster eventBroadcaster;
 
     private final ThreadPoolExecutor threadPoolExecutor;
+
+    private final PlaceholderRepository placeholderRepository;
 
     static {
         final var schemaNode = fromJsonToObject("""
@@ -48,48 +60,110 @@ public class WorkflowService implements EventListener<WorkflowSubmitEvent> {
     }
 
     @Override
-    public void onEventReceived(final WorkflowSubmitEvent event) {
-        final var workflowAsString = event.getWorkflowAsString();
-        final var validationMessages = validateWorkflow(workflowAsString);
-        final var workflowScheduleEventBuilder = WorkflowScheduleEvent.builder();
-        workflowScheduleEventBuilder.validationMessages(validationMessages);
-        if (validationMessages.isEmpty()) {
-            final var executionContext = ofNullable(event.getExecutionContext())
-                    .orElseGet(ExecutionContext::new);
-            final var contextFuture = threadPoolExecutor.submit(() -> {
-                runSynchronously(fromJsonToObject(workflowAsString, Workflow.class), executionContext);
-                eventBroadcaster.broadcast(WorkflowResultEvent.builder().executionContext(executionContext).build());
-                return executionContext;
-            });
-            workflowScheduleEventBuilder.executionContextFuture(contextFuture);
+    public void onEventReceived(final WorkflowOnSubmitEvent onSubmitEvent) {
+        final var workflowObject = onSubmitEvent.getWorkflow();
+
+        final var onSubmittedEventBuilder = WorkflowOnSubmittedEvent.builder();
+        onSubmittedEventBuilder.token(onSubmitEvent.getToken());
+
+        if (workflowObject instanceof String workflowAsString) {
+            final var validationMessages = validateWorkflow(workflowAsString);
+            onSubmittedEventBuilder.validationMessages(validationMessages);
+            if (!validationMessages.isEmpty()) {
+                eventBroadcaster.broadcast(onSubmittedEventBuilder.build());
+                return;
+            }
+            onSubmittedEventBuilder.executionContextFuture(submit(fromJsonToObject(workflowAsString, Workflow.class),
+                    onSubmitEvent));
+        } else if (workflowObject instanceof Workflow workflow) {
+            onSubmittedEventBuilder.executionContextFuture(submit(workflow, onSubmitEvent));
         }
-        eventBroadcaster.broadcast(workflowScheduleEventBuilder.build());
+
+        eventBroadcaster.broadcast(onSubmittedEventBuilder.build());
     }
 
     @Override
-    public Class<WorkflowSubmitEvent> getEventType() {
-        return WorkflowSubmitEvent.class;
+    public Class<WorkflowOnSubmitEvent> getEventType() {
+        return WorkflowOnSubmitEvent.class;
     }
 
     private Set<ValidationMessage> validateWorkflow(final String wokflowAsString) {
         return WORKFLOW_SCHEMA.validate(fromJsonToObject(wokflowAsString, JsonNode.class));
     }
 
+    private Future<?> submit(final Workflow workflow,
+                             final WorkflowOnSubmitEvent onSubmitEvent) {
+        final var executionContext = ofNullable(onSubmitEvent.getExecutionContext())
+                .orElseGet(() -> new ExecutionContext(workflow));
+        final var onProgressEventBuilder = WorkflowOnProgressEvent.builder();
+        onProgressEventBuilder.token(onSubmitEvent.getToken());
+        onProgressEventBuilder.executionContext(executionContext);
+        return threadPoolExecutor.submit(() -> runSynchronously(workflow, onProgressEventBuilder.build()));
+    }
+
     private void runSynchronously(final Workflow workflow,
-                                  final ExecutionContext executionContext) {
+                                  final WorkflowOnProgressEvent workflowResultEvent) {
+        final var executionContext = workflowResultEvent.getExecutionContext();
         final var startTime = System.currentTimeMillis();
         try {
-            workflow.getCommands().forEach(command -> command.run(executionContext));
+            resolveAllPlaceholders(workflow);
+            workflow.getCommands().forEach(command -> {
+                command.run(executionContext);
+                executionContext.markCommandAsCompleted();
+                eventBroadcaster.broadcast(workflowResultEvent);
+            });
         } catch (Exception exception) {
             executionContext.markCommandAsFailed(exception);
         } finally {
             try {
-                workflow.getFinallyCommands().forEach(command -> command.run(executionContext));
+                workflow.getFinallyCommands().forEach(command -> {
+                    command.run(executionContext);
+                    executionContext.markCommandAsCompleted();
+                    eventBroadcaster.broadcast(workflowResultEvent);
+                });
             } catch (Exception exception) {
                 executionContext.markCommandAsFailed(exception);
             }
             executionContext.markAsCompleted(System.currentTimeMillis() - startTime);
+            eventBroadcaster.broadcast(workflowResultEvent);
         }
+    }
+
+    private void resolveAllPlaceholders(final Workflow workflow) {
+        workflow.getCommands().forEach(this::resolveCommandPlaceholders);
+        workflow.getFinallyCommands().forEach(this::resolveCommandPlaceholders);
+    }
+
+    private void resolveCommandPlaceholders(final AbstractCommand abstractCommand) {
+        resolvePlaceholders(abstractCommand.getInputs());
+        resolvePlaceholders(abstractCommand.getAsserts());
+        resolvePlaceholders(abstractCommand.getOutputs());
+        if (abstractCommand instanceof AbstractSubCommand subCommand) {
+            subCommand.getSubcommands().forEach(this::resolveCommandPlaceholders);
+        }
+    }
+
+    private void resolvePlaceholders(final Collection<ExpressionNameValue> items) {
+        items.forEach(item -> {
+            item.setName((String) resolveValuePlaceholders(item.getName()));
+            item.setValue(resolveValuePlaceholders(item.getValue()));
+        });
+    }
+
+    private Object resolveValuePlaceholders(final Object value) {
+        if (value instanceof String valueAsString) {
+            return PlaceholderUtil.resolvePlaceholders(valueAsString, placeholderRepository.getAllAsMap());
+        } else if (value instanceof List<?> valueAsList) {
+            return valueAsList.stream().map(this::resolveValuePlaceholders).collect(Collectors.toList());
+        } else if (value instanceof Map<?, ?> valueAsMap) {
+            return valueAsMap.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            entry -> resolveValuePlaceholders(entry.getValue())
+                    ));
+        }
+
+        return value;
     }
 
 }

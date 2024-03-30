@@ -55,3 +55,43 @@ Vaadin web applications are full-stack and include both client-side and server-s
 | &nbsp;&nbsp;&nbsp;&nbsp;`provider/`                       | Java package with a set of providers                  |
 | &nbsp;&nbsp;&nbsp;&nbsp;`service/`                        | Contains a set of services exposed by the application |
 | &nbsp;&nbsp;&nbsp;&nbsp;`Application.java`                | Server entrypoint                                     |
+
+```json
+{
+  "name":"Test",
+  "tags":[
+    "tag1",
+    "tag2"
+  ],
+  "commands":[
+    {
+      "name":"Just a sleep",
+      "@type":"sleep",
+      "inputs":[
+        {
+          "name":"sleepTime",
+          "value":5000
+        }
+      ],
+      "outputs":[
+        {
+          "name":"$(TEST)",
+          "value":5000
+        }
+      ]
+    },
+    {
+      "name":"Just a print",
+      "@type":"print",
+      "inputs":[
+        {
+          "name":"keys",
+          "value":[
+            "$(TEST)"
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
