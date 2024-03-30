@@ -1,8 +1,7 @@
-package org.myworkflows;
+package org.myworkflows.domain.command;
 
 import org.junit.jupiter.api.Test;
 import org.myworkflows.domain.ExecutionContext;
-import org.myworkflows.domain.command.SleepCommand;
 import org.myworkflows.exception.WorkflowRuntimeException;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -12,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-public final class SleepTimeTest {
+public final class SleepCommandTest {
 
     @Test
     public void whenMandatoryParameterIsSet_thenNoExceptionIsExpected() {

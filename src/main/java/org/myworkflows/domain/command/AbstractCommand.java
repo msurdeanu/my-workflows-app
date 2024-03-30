@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.Getter;
 import org.myworkflows.domain.ExecutionContext;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.exception.WorkflowRuntimeException;
@@ -27,6 +28,7 @@ import static java.util.stream.IntStream.range;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@Getter
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = GroovyCommand.class, name = "groovy"),
@@ -43,6 +45,10 @@ public abstract class AbstractCommand {
     private static final String EXECUTION_CONTEXT = "executionContext";
 
     private static final String OUTPUT = "output";
+
+    @Getter
+    @JsonProperty
+    private String name;
 
     @JsonProperty("inputs")
     @JsonDeserialize(as = LinkedHashSet.class)

@@ -31,7 +31,7 @@ public class ExpressionNameValue {
     @JsonProperty("value")
     private Object value;
 
-    @JsonProperty("evaluator")
+    @JsonProperty("@type")
     private RuntimeEvaluator runtimeEvaluator = RuntimeEvaluator.PLAIN;
 
     public Object evaluate(final Map<String, Object> variables) {
@@ -39,7 +39,7 @@ public class ExpressionNameValue {
     }
 
     @SuppressWarnings("unchecked")
-    public Object recursiveEvaluation(final Object object, final Map<String, Object> variables) {
+    private Object recursiveEvaluation(final Object object, final Map<String, Object> variables) {
         if (object instanceof String) {
             return runtimeEvaluator.evaluate((String) object, variables);
         } else if (object instanceof List) {

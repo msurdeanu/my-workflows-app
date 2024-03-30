@@ -44,7 +44,7 @@ public abstract class ResponsiveLayout extends FlexLayout {
     protected Component createFooter() {
         final var footerDiv = new Div();
         footerDiv.addClassName("footer");
-        footerDiv.add(new Html("<span>Made with &#x2764; by <a href=\"https://myalerts.org\" target=\"_blank\">MyAlerts.org</a></span>"));
+        footerDiv.add(new Html(getTranslation("footer.copyright")));
         return footerDiv;
     }
 

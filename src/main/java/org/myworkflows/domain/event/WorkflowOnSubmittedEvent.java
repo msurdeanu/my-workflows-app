@@ -3,9 +3,9 @@ package org.myworkflows.domain.event;
 import com.networknt.schema.ValidationMessage;
 import lombok.Builder;
 import lombok.Getter;
-import org.myworkflows.domain.ExecutionContext;
 
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Future;
 
 /**
@@ -14,9 +14,10 @@ import java.util.concurrent.Future;
  */
 @Builder
 @Getter
-public class WorkflowScheduleEvent implements Event {
+public class WorkflowOnSubmittedEvent implements Event {
 
+    private final UUID token;
     private final Set<ValidationMessage> validationMessages;
-    private final Future<ExecutionContext> executionContextFuture;
+    private final Future<?> executionContextFuture;
 
 }

@@ -1,14 +1,14 @@
 package org.myworkflows.domain;
 
 import lombok.Getter;
-import org.jooq.lambda.tuple.Tuple2;
+import org.myworkflows.domain.command.AbstractCommand;
 import org.myworkflows.util.ExceptionUtil;
 
-import java.util.HashSet;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
-
-import static java.util.stream.Collectors.toMap;
+import java.util.stream.Collectors;
 
 /**
  * @author Mihai Surdeanu
@@ -19,11 +19,44 @@ public final class ExecutionContext {
     @Getter
     private final ExecutionCache cache = new ExecutionCache();
 
-    private final Set<String> printedKeys = new HashSet<>();
+    private final Set<String> printedKeys = new LinkedHashSet<>();
 
+    private final int totalCommands;
+
+    private final List<String> commandNames;
+
+    private int completedCommands;
+
+    @Getter
     private String failureMessage;
 
     private long duration;
+
+    public ExecutionContext() {
+        totalCommands = 0;
+        commandNames = List.of();
+    }
+
+    public ExecutionContext(final Workflow workflow) {
+        totalCommands = workflow.getCommands().size() + workflow.getFinallyCommands().size();
+        commandNames = new ArrayList<>(totalCommands);
+        for (AbstractCommand command : workflow.getCommands()) {
+            commandNames.add(command.getName());
+        }
+        for (AbstractCommand command : workflow.getFinallyCommands()) {
+            commandNames.add(command.getName());
+        }
+    }
+
+    public boolean isRunCompleted() {
+        return completedCommands == totalCommands;
+    }
+
+    public List<ExecutionPrint> getAllPrints() {
+        return printedKeys.stream()
+                .flatMap(item -> cache.find(item).map(value -> new ExecutionPrint(item, value)).stream())
+                .collect(Collectors.toList());
+    }
 
     public boolean markKeyAsPrinted(final String key) {
         return cache.find(key)
@@ -31,14 +64,13 @@ public final class ExecutionContext {
                 .orElse(false);
     }
 
-    public Map<String, Object> getAllPrints() {
-        return printedKeys.stream()
-                .flatMap(key -> cache.find(key).map(value -> new Tuple2<>(key, value)).stream())
-                .collect(toMap(Tuple2::v1, Tuple2::v2));
+    public void markCommandAsFailed(final Throwable throwable) {
+        completedCommands = totalCommands;
+        this.failureMessage = ExceptionUtil.getMessageAndCause(throwable);
     }
 
-    public void markCommandAsFailed(final Throwable throwable) {
-        this.failureMessage = ExceptionUtil.getMessageAndCause(throwable);
+    public void markCommandAsCompleted() {
+        completedCommands++;
     }
 
     public void markAsCompleted(final long duration) {
