@@ -1,5 +1,6 @@
 package org.myworkflows.domain.command;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -40,6 +41,7 @@ import static java.util.stream.IntStream.range;
     @JsonSubTypes.Type(value = SshShellCommand.class, name = "sshShell"),
     @JsonSubTypes.Type(value = WaitUntilSubPassesCommand.class, name = "waitUntilSubPasses")
 })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class AbstractCommand {
 
     private static final String EXECUTION_CONTEXT = "executionContext";

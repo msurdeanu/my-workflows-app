@@ -17,7 +17,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
 import de.f0rce.ace.AceEditor;
 import de.f0rce.ace.enums.AceMode;
-import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
@@ -37,7 +37,7 @@ import static java.util.Optional.ofNullable;
  * @since 1.0.0
  */
 @Slf4j
-@PermitAll
+@RolesAllowed("ROLE_USER")
 @Route(value = WorkflowRunView.ROUTE, layout = BaseLayout.class)
 public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle {
 

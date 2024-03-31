@@ -106,7 +106,7 @@ public class WorkflowService implements EventListener<WorkflowOnSubmitEvent> {
         final var executionContext = workflowResultEvent.getExecutionContext();
         final var startTime = System.currentTimeMillis();
         try {
-            resolveAllPlaceholders(workflow);
+            resolveGlobalPlaceholders(workflow);
             workflow.getCommands().forEach(command -> {
                 command.run(executionContext);
                 executionContext.markCommandAsCompleted();
@@ -129,37 +129,37 @@ public class WorkflowService implements EventListener<WorkflowOnSubmitEvent> {
         }
     }
 
-    private void resolveAllPlaceholders(final Workflow workflow) {
-        workflow.getCommands().forEach(this::resolveCommandPlaceholders);
-        workflow.getFinallyCommands().forEach(this::resolveCommandPlaceholders);
+    private void resolveGlobalPlaceholders(final Workflow workflow) {
+        workflow.getCommands().forEach(this::resolveGlobalCommandPlaceholders);
+        workflow.getFinallyCommands().forEach(this::resolveGlobalCommandPlaceholders);
     }
 
-    private void resolveCommandPlaceholders(final AbstractCommand abstractCommand) {
-        resolvePlaceholders(abstractCommand.getInputs());
-        resolvePlaceholders(abstractCommand.getAsserts());
-        resolvePlaceholders(abstractCommand.getOutputs());
+    private void resolveGlobalCommandPlaceholders(final AbstractCommand abstractCommand) {
+        resolveItemPlaceholders(abstractCommand.getInputs());
+        resolveItemPlaceholders(abstractCommand.getAsserts());
+        resolveItemPlaceholders(abstractCommand.getOutputs());
         if (abstractCommand instanceof AbstractSubCommand subCommand) {
-            subCommand.getSubcommands().forEach(this::resolveCommandPlaceholders);
+            subCommand.getSubcommands().forEach(this::resolveGlobalCommandPlaceholders);
         }
     }
 
-    private void resolvePlaceholders(final Collection<ExpressionNameValue> items) {
+    private void resolveItemPlaceholders(final Collection<ExpressionNameValue> items) {
         items.forEach(item -> {
-            item.setName((String) resolveValuePlaceholders(item.getName()));
-            item.setValue(resolveValuePlaceholders(item.getValue()));
+            item.setName((String) resolvePlaceholders(item.getName()));
+            item.setValue(resolvePlaceholders(item.getValue()));
         });
     }
 
-    private Object resolveValuePlaceholders(final Object value) {
+    private Object resolvePlaceholders(final Object value) {
         if (value instanceof String valueAsString) {
             return PlaceholderUtil.resolvePlaceholders(valueAsString, placeholderRepository.getAllAsMap());
         } else if (value instanceof List<?> valueAsList) {
-            return valueAsList.stream().map(this::resolveValuePlaceholders).collect(Collectors.toList());
+            return valueAsList.stream().map(this::resolvePlaceholders).collect(Collectors.toList());
         } else if (value instanceof Map<?, ?> valueAsMap) {
             return valueAsMap.entrySet().stream()
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            entry -> resolveValuePlaceholders(entry.getValue())
+                            entry -> resolvePlaceholders(entry.getValue())
                     ));
         }
 

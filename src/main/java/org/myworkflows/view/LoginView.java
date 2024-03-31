@@ -7,13 +7,11 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-@AnonymousAllowed
 @Route(value = LoginView.ROUTE)
 public class LoginView extends Composite<VerticalLayout> implements BeforeEnterObserver {
 
