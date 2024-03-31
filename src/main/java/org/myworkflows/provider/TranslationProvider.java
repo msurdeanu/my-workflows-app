@@ -4,7 +4,6 @@ import com.vaadin.flow.i18n.I18NProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ocpsoft.prettytime.PrettyTime;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -14,7 +13,6 @@ import java.util.ResourceBundle;
 
 import static java.lang.String.format;
 import static java.util.Locale.ENGLISH;
-
 
 @Slf4j
 @Component
