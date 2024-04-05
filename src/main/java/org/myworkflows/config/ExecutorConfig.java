@@ -1,6 +1,5 @@
 package org.myworkflows.config;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,23 +20,39 @@ import java.util.concurrent.TimeUnit;
 @EnableScheduling
 public class ExecutorConfig {
 
-    @Bean
-    @Qualifier("workflow-scheduler-pool")
+    private int workflowSchedulerPoolSize = 2;
+
+    private int workflowPoolSize = 4;
+    private int workflowPoolCapacity = 1_000;
+
+    private int eventPoolSize = 2;
+    private int eventPoolCapacity = 1_000;
+
+    @Bean(name = "workflow-scheduler-pool")
     public TaskScheduler workflowSchedulerPool() {
         final var threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(2);
+        threadPoolTaskScheduler.setPoolSize(workflowSchedulerPoolSize);
         threadPoolTaskScheduler.setThreadNamePrefix("workflow-scheduler-");
         threadPoolTaskScheduler.initialize();
 
         return threadPoolTaskScheduler;
     }
 
-    @Bean
-    @Qualifier("workflow-event-pool")
-    public ThreadPoolExecutor workflowEventPool() {
-        final var threadPoolExecutor = new ThreadPoolExecutor(2, 2,
+    @Bean(name = "workflow-pool")
+    public ThreadPoolExecutor workflowPool() {
+        final var threadPoolExecutor = new ThreadPoolExecutor(workflowPoolSize, workflowPoolSize,
                 60L, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(100),
+                new ArrayBlockingQueue<>(workflowPoolCapacity),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+        threadPoolExecutor.allowCoreThreadTimeOut(true);
+        return threadPoolExecutor;
+    }
+
+    @Bean(name = "event-pool")
+    public ThreadPoolExecutor eventPool() {
+        final var threadPoolExecutor = new ThreadPoolExecutor(eventPoolSize, eventPoolSize,
+                60L, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(eventPoolCapacity),
                 new ThreadPoolExecutor.CallerRunsPolicy());
         threadPoolExecutor.allowCoreThreadTimeOut(true);
         return threadPoolExecutor;

@@ -1,10 +1,10 @@
 package org.myworkflows.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
-import org.myworkflows.domain.Workflow;
+import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowRunnable;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
@@ -24,6 +24,7 @@ import static java.util.Optional.ofNullable;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public final class WorkflowSchedulerService {
 
     private final Map<String, ScheduledFuture<?>> scheduledFutureMap = new HashMap<>();
@@ -32,37 +33,30 @@ public final class WorkflowSchedulerService {
 
     private final ApplicationManager applicationManager;
 
-    private final TaskScheduler taskScheduler;
-
-    public WorkflowSchedulerService(ApplicationManager applicationManager, @Qualifier("workflow-scheduler-pool") TaskScheduler taskScheduler) {
-        this.applicationManager = applicationManager;
-        this.taskScheduler = taskScheduler;
-    }
-
-    public void schedule(final Workflow workflow) {
-        final var scheduler = workflow.getScheduler();
-        final var scheduledTask = taskScheduler.schedule(new WorkflowRunnable(applicationManager, workflow),
-                new CronTrigger(scheduler, TimeZone.getTimeZone(TimeZone.getDefault().getID())));
+    public void schedule(final WorkflowDefinition workflowDefinition, final String cron) {
+        final var scheduledTask = applicationManager.getBeanOfType(TaskScheduler.class)
+                .schedule(new WorkflowRunnable(applicationManager, workflowDefinition),
+                        new CronTrigger(cron, TimeZone.getTimeZone(TimeZone.getDefault().getID())));
 
         lock.lock();
         try {
-            unschedule(workflow);
-            scheduledFutureMap.put(workflow.getId(), scheduledTask);
+            unschedule(workflowDefinition);
+            scheduledFutureMap.put(workflowDefinition.getId(), scheduledTask);
         } finally {
             lock.unlock();
         }
 
-        log.info("Workflow ID '{}' has been scheduled. Running frequency is '{}'", workflow.getId(), scheduler);
+        log.info("Workflow ID '{}' has been scheduled. Running frequency is '{}'", workflowDefinition.getId(), cron);
     }
 
-    public void unschedule(final Workflow workflow) {
+    public void unschedule(final WorkflowDefinition workflowDefinition) {
         lock.lock();
         try {
-            ofNullable(scheduledFutureMap.get(workflow.getId())).ifPresent(task -> {
+            ofNullable(scheduledFutureMap.get(workflowDefinition.getId())).ifPresent(task -> {
                 task.cancel(true);
-                scheduledFutureMap.remove(workflow.getId());
+                scheduledFutureMap.remove(workflowDefinition.getId());
 
-                log.info("Workflow ID '{}' has been unscheduled.", workflow.getId());
+                log.info("Workflow ID '{}' has been unscheduled.", workflowDefinition.getId());
             });
         } finally {
             lock.unlock();

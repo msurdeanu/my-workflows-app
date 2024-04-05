@@ -16,7 +16,7 @@ public final class WorkflowRunnable implements Runnable {
 
     private final ApplicationManager applicationManager;
 
-    private final Workflow workflow;
+    private final WorkflowDefinition workflowDefinition;
 
     @Override
     public void run() {
@@ -24,7 +24,7 @@ public final class WorkflowRunnable implements Runnable {
                 .broadcast(WorkflowOnSubmitEvent.builder()
                         .isManual(false)
                         .token(UUID.randomUUID())
-                        .workflow(workflow)
+                        .workflow(workflowDefinition)
                         .build());
     }
 

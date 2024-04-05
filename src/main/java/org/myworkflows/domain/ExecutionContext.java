@@ -37,13 +37,13 @@ public final class ExecutionContext {
         commandNames = List.of();
     }
 
-    public ExecutionContext(final Workflow workflow) {
-        totalCommands = workflow.getCommands().size() + workflow.getFinallyCommands().size();
+    public ExecutionContext(final WorkflowDefinition workflowDefinition) {
+        totalCommands = workflowDefinition.getCommands().size() + workflowDefinition.getFinallyCommands().size();
         commandNames = new ArrayList<>(totalCommands);
-        for (AbstractCommand command : workflow.getCommands()) {
+        for (AbstractCommand command : workflowDefinition.getCommands()) {
             commandNames.add(command.getName());
         }
-        for (AbstractCommand command : workflow.getFinallyCommands()) {
+        for (AbstractCommand command : workflowDefinition.getFinallyCommands()) {
             commandNames.add(command.getName());
         }
     }

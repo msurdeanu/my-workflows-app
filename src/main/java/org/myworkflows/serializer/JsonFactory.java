@@ -11,6 +11,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+
 import static com.networknt.schema.JsonSchemaFactory.getInstance;
 import static com.networknt.schema.SpecVersionDetector.detect;
 
@@ -41,6 +43,14 @@ public final class JsonFactory {
 
     public static JsonSchema fromJsonToSchema(final JsonNode jsonNode) {
         return getInstance(detect(jsonNode)).getSchema(jsonNode);
+    }
+
+    public static String toString(final Object object) {
+        try {
+            return MAPPER.writeValueAsString(object);
+        } catch (IOException exception) {
+            return null;
+        }
     }
 
 }

@@ -22,9 +22,10 @@ spring:
   mustache:
     check-template-location: false
 
-settings:
-  test-scenario-scheduler:
-    # Number of threads part of test scenario scheduling pool
-    pool-size: 2
-    # A thread prefix to easily identify threads from scheduling pool
-    thread-name-prefix: "test-scenario-pool-"
+my-workflows:
+  config:
+    executor:
+      # Number of threads part of event pool size
+      event-pool-size: 2
+      # Capacity for event pool queue
+      event-pool-capacity: 1000

@@ -38,14 +38,16 @@ public final class HttpRequestCommand extends AbstractCommand {
                 createHttpEntity(resolvedBody, resolvedHeaders), String.class);
     }
 
-    private RestTemplate createRestTemplate(final long connectionTimeout, final long readTimeout) {
+    private RestTemplate createRestTemplate(final long connectionTimeout,
+                                            final long readTimeout) {
         return new RestTemplateBuilder()
             .setConnectTimeout(ofMillis(connectionTimeout))
             .setReadTimeout(ofMillis(readTimeout))
             .build();
     }
 
-    private HttpEntity<String> createHttpEntity(final String body, final Map<String, String> headers) {
+    private HttpEntity<String> createHttpEntity(final String body,
+                                                final Map<String, String> headers) {
         final var httpHeaders = new HttpHeaders();
         headers.forEach(httpHeaders::set);
         return new HttpEntity<>(body, httpHeaders);

@@ -1,6 +1,7 @@
 package org.myworkflows.service;
 
 import lombok.RequiredArgsConstructor;
+import org.myworkflows.ApplicationManager;
 import org.myworkflows.domain.UserAccountDetails;
 import org.myworkflows.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,11 +15,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 @RequiredArgsConstructor
 public final class ApplicationUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final ApplicationManager applicationManager;
 
     @Override
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
+        return applicationManager.getBeanOfType(UserRepository.class)
+                .findByUsername(username)
                 .map(UserAccountDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("Could not find user with name '" + username + "'."));
     }
