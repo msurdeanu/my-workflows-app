@@ -5,11 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.command.AbstractCommand;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -19,7 +17,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Workflow {
+public class WorkflowDefinition {
 
     @JsonIgnore
     private final String id;
@@ -27,19 +25,13 @@ public class Workflow {
     @JsonProperty("name")
     private String name;
 
-    @JsonProperty("tags")
-    private Set<String> tags = Set.of();
-
-    @JsonProperty("scheduler")
-    private String scheduler = StringUtils.EMPTY;
-
     @JsonProperty("commands")
     private List<AbstractCommand> commands;
 
     @JsonProperty("finallyCommands")
     private List<AbstractCommand> finallyCommands = List.of();
 
-    public Workflow() {
+    public WorkflowDefinition() {
         id = UUID.randomUUID().toString();
     }
 

@@ -1,10 +1,23 @@
+CREATE TABLE workflow_templates
+(
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    enabled    BOOLEAN NOT NULL DEFAULT (1),
+    name       TEXT    NOT NULL UNIQUE,
+    cron       TEXT    NOT NULL,
+    definition TEXT    NOT NULL DEFAULT ''
+);
+
+INSERT INTO workflow_templates ("enabled", "name", "cron", "definition")
+VALUES ('1', 'Simple test', '0 0 0 * * MON-FRI',
+        '{"name":"Test","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":5000}],"outputs":[{"name":"$(TEST)","value":5000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$(TEST)"]}]}]}');
+
 CREATE TABLE users
 (
     id       INTEGER PRIMARY KEY AUTOINCREMENT,
-    enabled  INTEGER (1) NOT NULL DEFAULT (1),
-    username TEXT NOT NULL,
-    password TEXT NOT NULL,
-    role     TEXT DEFAULT 'ROLE_USER'
+    enabled  INTEGER(1) NOT NULL DEFAULT (1),
+    username TEXT       NOT NULL,
+    password TEXT       NOT NULL,
+    role     TEXT                DEFAULT 'ROLE_USER'
 );
 
 INSERT INTO users ("username", "password", "role")

@@ -17,7 +17,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
 import de.f0rce.ace.AceEditor;
 import de.f0rce.ace.enums.AceMode;
-import jakarta.annotation.security.RolesAllowed;
+import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
@@ -37,11 +37,11 @@ import static java.util.Optional.ofNullable;
  * @since 1.0.0
  */
 @Slf4j
-@RolesAllowed("ROLE_USER")
-@Route(value = WorkflowRunView.ROUTE, layout = BaseLayout.class)
-public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle {
+@PermitAll
+@Route(value = WorkflowDevelopmentView.ROUTE, layout = BaseLayout.class)
+public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDynamicTitle {
 
-    public static final String ROUTE = "workflows/run";
+    public static final String ROUTE = "workflow/development";
 
     private final AceEditor editor = new AceEditor();
     private final GraniteAlert currentWorkflowStatus = new GraniteAlert();
@@ -52,7 +52,7 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
     private Registration workflowRegistration;
     private UUID lastSubmittedUuid;
 
-    public WorkflowRunView(final ApplicationManager applicationManager) {
+    public WorkflowDevelopmentView(final ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
 
         editor.setMode(AceMode.json);
@@ -60,14 +60,14 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
         currentWorkflowStatus.setCompact(true);
         currentWorkflowStatus.setVisible(false);
 
-        add(createHeader(getTranslation("workflow-run.page.title")),
+        add(createHeader(getTranslation("workflow-development.page.title")),
                 createContent(createBody()),
                 createFooter());
     }
 
     @Override
     public String getPageTitle() {
-        return getTranslation("site.base.title", getTranslation("menu.main.workflow-run"));
+        return getTranslation("site.base.title", getTranslation("menu.main.workflow-development"));
     }
 
     @Override
@@ -101,11 +101,11 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
         final var layout = new VerticalLayout();
         layout.setDefaultHorizontalComponentAlignment(Alignment.START);
 
-        final var inputDetails = new Details(getTranslation("workflow-run.input.label"), editor);
+        final var inputDetails = new Details(getTranslation("workflow-development.input.label"), editor);
         inputDetails.setOpened(true);
         inputDetails.setWidthFull();
 
-        final var runWorkflowButton = new Button(getTranslation("workflow-run.run.button"),
+        final var runWorkflowButton = new Button(getTranslation("workflow-development.run.button"),
                 new Icon(VaadinIcon.PLAY));
         runWorkflowButton.setIconAfterText(true);
         runWorkflowButton.addClickListener(event -> {
@@ -126,7 +126,7 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
         final var layout = new VerticalLayout();
         layout.setDefaultHorizontalComponentAlignment(Alignment.START);
 
-        final var outputDetails = new Details(getTranslation("workflow-run.output.label"), workflowPrintGrid);
+        final var outputDetails = new Details(getTranslation("workflow-development.output.label"), workflowPrintGrid);
         outputDetails.setOpened(true);
         outputDetails.setWidthFull();
 
@@ -140,15 +140,15 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
         if (executionContext.isRunCompleted()) {
             ofNullable(executionContext.getFailureMessage()).ifPresentOrElse(error -> {
                 currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.ERROR);
-                currentWorkflowStatus.add(new Span(getTranslation("workflow-run.error.message",
+                currentWorkflowStatus.add(new Span(getTranslation("workflow-development.error.message",
                         executionContext.getFailureMessage())));
             }, () -> {
                 currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.SUCCESS);
-                currentWorkflowStatus.add(new Span(getTranslation("workflow-run.success.message")));
+                currentWorkflowStatus.add(new Span(getTranslation("workflow-development.success.message")));
             });
         } else {
             currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.INFO);
-            currentWorkflowStatus.add(new Span(getTranslation("workflow-run.in-progress.message")));
+            currentWorkflowStatus.add(new Span(getTranslation("workflow-development.in-progress.message")));
         }
 
         currentWorkflowStatus.setVisible(true);

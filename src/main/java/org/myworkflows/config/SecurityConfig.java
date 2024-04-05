@@ -2,7 +2,7 @@ package org.myworkflows.config;
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import lombok.RequiredArgsConstructor;
-import org.myworkflows.repository.UserRepository;
+import org.myworkflows.ApplicationManager;
 import org.myworkflows.service.ApplicationUserDetailsService;
 import org.myworkflows.view.LoginView;
 import org.springframework.context.annotation.Bean;
@@ -25,7 +25,7 @@ public class SecurityConfig extends VaadinWebSecurity {
 
     public static final String REMEMBER_ME = "remember-me";
 
-    private final UserRepository userRepository;
+    private final ApplicationManager applicationManager;
 
     @Override
     public void configure(final HttpSecurity http) throws Exception {
@@ -43,7 +43,7 @@ public class SecurityConfig extends VaadinWebSecurity {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return new ApplicationUserDetailsService(userRepository);
+        return new ApplicationUserDetailsService(applicationManager);
     }
 
 
