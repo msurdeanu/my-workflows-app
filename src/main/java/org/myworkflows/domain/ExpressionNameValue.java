@@ -18,7 +18,6 @@ import static java.util.stream.Collectors.toList;
  * @since 1.0.0
  */
 @Getter
-@Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -26,8 +25,10 @@ public class ExpressionNameValue {
 
     @EqualsAndHashCode.Include
     @JsonProperty("name")
+    @Setter
     private String name;
 
+    @Setter
     @JsonProperty("value")
     private Object value;
 

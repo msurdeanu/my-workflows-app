@@ -3,7 +3,7 @@ package org.myworkflows.domain;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
-import org.myworkflows.domain.event.WorkflowOnSubmitEvent;
+import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 
 import java.util.UUID;
 
@@ -21,7 +21,7 @@ public final class WorkflowRunnable implements Runnable {
     @Override
     public void run() {
         applicationManager.getBeanOfType(EventBroadcaster.class)
-                .broadcast(WorkflowOnSubmitEvent.builder()
+                .broadcast(WorkflowDefinitionOnSubmitEvent.builder()
                         .isManual(false)
                         .token(UUID.randomUUID())
                         .workflow(workflowDefinition)

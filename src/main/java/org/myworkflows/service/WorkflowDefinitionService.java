@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.ValidationMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.ExecutionContext;
 import org.myworkflows.domain.ExpressionNameValue;
@@ -11,9 +12,9 @@ import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.command.AbstractCommand;
 import org.myworkflows.domain.command.AbstractSubCommand;
 import org.myworkflows.domain.event.EventListener;
-import org.myworkflows.domain.event.WorkflowOnProgressEvent;
-import org.myworkflows.domain.event.WorkflowOnSubmitEvent;
-import org.myworkflows.domain.event.WorkflowOnSubmittedEvent;
+import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
+import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
+import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
 import org.myworkflows.repository.PlaceholderRepository;
 import org.myworkflows.util.PlaceholderUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,7 +38,7 @@ import static org.myworkflows.serializer.JsonFactory.fromJsonToSchema;
  */
 @Slf4j
 @Service
-public class WorkflowService implements EventListener<WorkflowOnSubmitEvent> {
+public final class WorkflowDefinitionService implements EventListener<WorkflowDefinitionOnSubmitEvent> {
 
     private static final JsonSchema WORKFLOW_SCHEMA;
 
@@ -45,14 +46,14 @@ public class WorkflowService implements EventListener<WorkflowOnSubmitEvent> {
 
     private final ThreadPoolExecutor threadPoolExecutor;
 
-    private final PlaceholderRepository placeholderRepository;
+    private final ApplicationManager applicationManager;
 
-    public WorkflowService(final EventBroadcaster eventBroadcaster,
-                           final @Qualifier("workflow-pool") ThreadPoolExecutor threadPoolExecutor,
-                           final PlaceholderRepository placeholderRepository) {
+    public WorkflowDefinitionService(final EventBroadcaster eventBroadcaster,
+                                     final @Qualifier("workflow-pool") ThreadPoolExecutor threadPoolExecutor,
+                                     final ApplicationManager applicationManager) {
         this.eventBroadcaster = eventBroadcaster;
         this.threadPoolExecutor = threadPoolExecutor;
-        this.placeholderRepository = placeholderRepository;
+        this.applicationManager = applicationManager;
     }
 
     static {
@@ -67,10 +68,10 @@ public class WorkflowService implements EventListener<WorkflowOnSubmitEvent> {
     }
 
     @Override
-    public void onEventReceived(final WorkflowOnSubmitEvent onSubmitEvent) {
+    public void onEventReceived(final WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var workflowObject = onSubmitEvent.getWorkflow();
 
-        final var onSubmittedEventBuilder = WorkflowOnSubmittedEvent.builder();
+        final var onSubmittedEventBuilder = WorkflowDefinitionOnSubmittedEvent.builder();
         onSubmittedEventBuilder.token(onSubmitEvent.getToken());
 
         if (workflowObject instanceof String workflowAsString) {
@@ -90,8 +91,8 @@ public class WorkflowService implements EventListener<WorkflowOnSubmitEvent> {
     }
 
     @Override
-    public Class<WorkflowOnSubmitEvent> getEventType() {
-        return WorkflowOnSubmitEvent.class;
+    public Class<WorkflowDefinitionOnSubmitEvent> getEventType() {
+        return WorkflowDefinitionOnSubmitEvent.class;
     }
 
     private Set<ValidationMessage> validateWorkflow(final String wokflowAsString) {
@@ -99,22 +100,23 @@ public class WorkflowService implements EventListener<WorkflowOnSubmitEvent> {
     }
 
     private Future<?> submit(final WorkflowDefinition workflowDefinition,
-                             final WorkflowOnSubmitEvent onSubmitEvent) {
+                             final WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var executionContext = ofNullable(onSubmitEvent.getExecutionContext())
                 .orElseGet(() -> new ExecutionContext(workflowDefinition));
-        final var onProgressEventBuilder = WorkflowOnProgressEvent.builder();
+        final var onProgressEventBuilder = WorkflowDefinitionOnProgressEvent.builder();
         onProgressEventBuilder.token(onSubmitEvent.getToken());
         onProgressEventBuilder.executionContext(executionContext);
         return threadPoolExecutor.submit(() -> runSynchronously(workflowDefinition, onProgressEventBuilder.build()));
     }
 
     private void runSynchronously(final WorkflowDefinition workflowDefinition,
-                                  final WorkflowOnProgressEvent workflowResultEvent) {
+                                  final WorkflowDefinitionOnProgressEvent workflowResultEvent) {
         final var executionContext = workflowResultEvent.getExecutionContext();
         final var startTime = System.currentTimeMillis();
+        eventBroadcaster.broadcast(workflowResultEvent);
         try {
-            resolveGlobalPlaceholders(workflowDefinition);
             workflowDefinition.getCommands().forEach(command -> {
+                resolveCommandPlaceholders(command);
                 command.run(executionContext);
                 executionContext.markCommandAsCompleted();
                 eventBroadcaster.broadcast(workflowResultEvent);
@@ -124,6 +126,7 @@ public class WorkflowService implements EventListener<WorkflowOnSubmitEvent> {
         } finally {
             try {
                 workflowDefinition.getFinallyCommands().forEach(command -> {
+                    resolveCommandPlaceholders(command);
                     command.run(executionContext);
                     executionContext.markCommandAsCompleted();
                     eventBroadcaster.broadcast(workflowResultEvent);
@@ -136,17 +139,12 @@ public class WorkflowService implements EventListener<WorkflowOnSubmitEvent> {
         }
     }
 
-    private void resolveGlobalPlaceholders(final WorkflowDefinition workflowDefinition) {
-        workflowDefinition.getCommands().forEach(this::resolveGlobalCommandPlaceholders);
-        workflowDefinition.getFinallyCommands().forEach(this::resolveGlobalCommandPlaceholders);
-    }
-
-    private void resolveGlobalCommandPlaceholders(final AbstractCommand abstractCommand) {
+    private void resolveCommandPlaceholders(final AbstractCommand abstractCommand) {
         resolveItemPlaceholders(abstractCommand.getInputs());
         resolveItemPlaceholders(abstractCommand.getAsserts());
         resolveItemPlaceholders(abstractCommand.getOutputs());
         if (abstractCommand instanceof AbstractSubCommand subCommand) {
-            subCommand.getSubcommands().forEach(this::resolveGlobalCommandPlaceholders);
+            subCommand.getSubcommands().forEach(this::resolveCommandPlaceholders);
         }
     }
 
@@ -159,9 +157,12 @@ public class WorkflowService implements EventListener<WorkflowOnSubmitEvent> {
 
     private Object resolvePlaceholders(final Object value) {
         if (value instanceof String valueAsString) {
-            return PlaceholderUtil.resolvePlaceholders(valueAsString, placeholderRepository.getAllAsMap());
+            return PlaceholderUtil.resolvePlaceholders(valueAsString,
+                    applicationManager.getBeanOfType(PlaceholderRepository.class).getAllAsMap());
         } else if (value instanceof List<?> valueAsList) {
-            return valueAsList.stream().map(this::resolvePlaceholders).collect(Collectors.toList());
+            return valueAsList.stream()
+                    .map(this::resolvePlaceholders)
+                    .collect(Collectors.toList());
         } else if (value instanceof Map<?, ?> valueAsMap) {
             return valueAsMap.entrySet().stream()
                     .collect(Collectors.toMap(

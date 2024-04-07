@@ -21,12 +21,12 @@ import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 public final class HttpRequestCommand extends AbstractCommand {
 
     @ExecutionMethod
-    public ResponseEntity<String> doHttpRequest(@MandatoryParam final String url,
-                                                @OptionalParam final String method,
-                                                @OptionalParam final String body,
-                                                @OptionalParam final Map<String, String> headers,
-                                                @OptionalParam final Long connectionTimeout,
-                                                @OptionalParam final Long readTimeout) {
+    public ResponseEntity<String> httpRequest(@MandatoryParam final String url,
+                                              @OptionalParam final String method,
+                                              @OptionalParam final String body,
+                                              @OptionalParam final Map<String, String> headers,
+                                              @OptionalParam final Long connectionTimeout,
+                                              @OptionalParam final Long readTimeout) {
         final var resolvedMethod = ofNullable(method).map(item -> valueOf(item.toUpperCase())).orElse(GET);
         final var resolvedBody = ofNullable(body).orElse("");
         final var resolvedHeaders = ofNullable(headers).orElse(Map.of());
@@ -34,16 +34,16 @@ public final class HttpRequestCommand extends AbstractCommand {
         final var resolvedReadTimeout = ofNullable(readTimeout).orElse(60_000L);
 
         return createRestTemplate(resolvedConnectionTimeout, resolvedReadTimeout)
-            .exchange(fromUriString(url).build(true).toUri(), resolvedMethod,
-                createHttpEntity(resolvedBody, resolvedHeaders), String.class);
+                .exchange(fromUriString(url).build(true).toUri(), resolvedMethod,
+                        createHttpEntity(resolvedBody, resolvedHeaders), String.class);
     }
 
     private RestTemplate createRestTemplate(final long connectionTimeout,
                                             final long readTimeout) {
         return new RestTemplateBuilder()
-            .setConnectTimeout(ofMillis(connectionTimeout))
-            .setReadTimeout(ofMillis(readTimeout))
-            .build();
+                .setConnectTimeout(ofMillis(connectionTimeout))
+                .setReadTimeout(ofMillis(readTimeout))
+                .build();
     }
 
     private HttpEntity<String> createHttpEntity(final String body,

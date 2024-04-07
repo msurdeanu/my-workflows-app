@@ -45,11 +45,19 @@ public final class JsonFactory {
         return getInstance(detect(jsonNode)).getSchema(jsonNode);
     }
 
-    public static String toString(final Object object) {
+    public static String toString(final Object object, final String defaultValue) {
         try {
             return MAPPER.writeValueAsString(object);
         } catch (IOException exception) {
-            return null;
+            return defaultValue;
+        }
+    }
+
+    public static String toPrettyString(final Object object, final String defaultValue) {
+        try {
+            return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(object);
+        } catch (IOException exception) {
+            return defaultValue;
         }
     }
 

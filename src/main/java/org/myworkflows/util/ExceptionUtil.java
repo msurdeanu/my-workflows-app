@@ -8,7 +8,7 @@ import static java.util.Optional.ofNullable;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-public class ExceptionUtil {
+public final class ExceptionUtil {
 
     private static final String DOT = ".";
 
