@@ -20,7 +20,7 @@ import java.util.UUID;
 public class WorkflowDefinition {
 
     @JsonIgnore
-    private final String id;
+    private final UUID id;
 
     @JsonProperty("name")
     private String name;
@@ -32,7 +32,7 @@ public class WorkflowDefinition {
     private List<AbstractCommand> finallyCommands = List.of();
 
     public WorkflowDefinition() {
-        id = UUID.randomUUID().toString();
+        id = UUID.randomUUID();
     }
 
 }

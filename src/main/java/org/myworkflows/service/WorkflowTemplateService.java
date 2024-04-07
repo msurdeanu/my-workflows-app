@@ -5,9 +5,12 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.ApplicationManager;
+import org.myworkflows.EventBroadcaster;
+import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateFilter;
-import org.myworkflows.repository.WorkflowRepository;
+import org.myworkflows.domain.event.WorkflowTemplateOnUpdateEvent;
+import org.myworkflows.repository.WorkflowTemplateRepository;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
@@ -21,6 +24,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
+import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 
 /**
  * @author Mihai Surdeanu
@@ -41,9 +45,27 @@ public final class WorkflowTemplateService {
     @Order(10)
     @EventListener(ApplicationReadyEvent.class)
     public void loadAll() {
-        applicationManager.getBeanOfType(WorkflowRepository.class)
+        applicationManager.getBeanOfType(WorkflowTemplateRepository.class)
                 .findAll()
                 .forEach(this::loadAndSchedule);
+    }
+
+    public boolean changeDefinition(@NonNull final WorkflowTemplate workflowTemplate, final String newDefinition) {
+        var isOperationPerformed = false;
+
+        lock.lock();
+        try {
+            workflowTemplate.setDefinition(fromJsonToObject(newDefinition, WorkflowDefinition.class));
+            isOperationPerformed = true;
+        } finally {
+            lock.unlock();
+        }
+
+        if (isOperationPerformed) {
+            applicationManager.getBeanOfType(EventBroadcaster.class)
+                    .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
+        }
+        return isOperationPerformed;
     }
 
     public void loadAndSchedule(@NonNull final WorkflowTemplate workflowTemplate) {

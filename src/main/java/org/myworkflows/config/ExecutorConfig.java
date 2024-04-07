@@ -20,13 +20,13 @@ import java.util.concurrent.TimeUnit;
 @EnableScheduling
 public class ExecutorConfig {
 
-    private int workflowSchedulerPoolSize = 2;
+    private final int workflowSchedulerPoolSize = 2;
 
-    private int workflowPoolSize = 4;
-    private int workflowPoolCapacity = 1_000;
+    private final int workflowPoolSize = 4;
+    private final int workflowPoolCapacity = 1_000;
 
-    private int eventPoolSize = 2;
-    private int eventPoolCapacity = 1_000;
+    private final int eventPoolSize = 2;
+    private final int eventPoolCapacity = 1_000;
 
     @Bean(name = "workflow-scheduler-pool")
     public TaskScheduler workflowSchedulerPool() {

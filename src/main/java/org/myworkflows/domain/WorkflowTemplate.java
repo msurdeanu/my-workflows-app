@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.converter.WorkflowDefinitionToStringConverter;
 
@@ -33,6 +34,7 @@ public class WorkflowTemplate {
     private String cron;
 
     @Getter
+    @Setter
     @Convert(converter = WorkflowDefinitionToStringConverter.class)
     private WorkflowDefinition definition;
 

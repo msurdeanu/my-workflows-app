@@ -41,7 +41,7 @@ public final class WorkflowSchedulerService {
         lock.lock();
         try {
             unschedule(workflowDefinition);
-            scheduledFutureMap.put(workflowDefinition.getId(), scheduledTask);
+            scheduledFutureMap.put(workflowDefinition.getId().toString(), scheduledTask);
         } finally {
             lock.unlock();
         }

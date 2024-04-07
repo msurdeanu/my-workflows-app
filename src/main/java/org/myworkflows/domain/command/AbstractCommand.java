@@ -52,6 +52,11 @@ public abstract class AbstractCommand {
     @JsonProperty
     private String name;
 
+    @JsonProperty("ifs")
+    @JsonDeserialize(as = LinkedHashSet.class)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Set<ExpressionNameValue> ifs = Set.of();
+
     @JsonProperty("inputs")
     @JsonDeserialize(as = LinkedHashSet.class)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -68,14 +73,22 @@ public abstract class AbstractCommand {
     private Set<ExpressionNameValue> outputs = Set.of();
 
     public final void run(final ExecutionContext executionContext) {
+        if (!runIfs(executionContext)) {
+            return;
+        }
+
         runInputs(executionContext);
         stream(getClass().getDeclaredMethods())
-            .filter(method -> method.isAnnotationPresent(ExecutionMethod.class))
-            .findFirst()
-            .ifPresent(method -> runMethodWithAssertsAndOutputs(method, executionContext));
+                .filter(method -> method.isAnnotationPresent(ExecutionMethod.class))
+                .findFirst()
+                .ifPresent(method -> runMethodWithAssertsAndOutputs(method, executionContext));
     }
 
-    private void runInputs(ExecutionContext executionContext) {
+    public boolean runIfs(final ExecutionContext executionContext) {
+        return ifs.stream().allMatch(item -> Boolean.TRUE.equals(item.evaluate(Map.of(EXECUTION_CONTEXT, executionContext))));
+    }
+
+    private void runInputs(final ExecutionContext executionContext) {
         inputs.forEach(input -> executionContext.getCache().put(input.getName(), input.evaluate(Map.of(EXECUTION_CONTEXT, executionContext))));
     }
 
@@ -98,7 +111,7 @@ public abstract class AbstractCommand {
         final var parameters = method.getParameters();
         final var resolvedParameters = new Object[parameters.length];
         range(0, parameters.length)
-            .forEach(index -> resolvedParameters[index] = resolveParameter(parameters[index], executionContext));
+                .forEach(index -> resolvedParameters[index] = resolveParameter(parameters[index], executionContext));
         return resolvedParameters;
     }
 
@@ -109,7 +122,7 @@ public abstract class AbstractCommand {
         if (parameterizedType instanceof ParameterizedType && List.class.equals(parameterType)) {
             final var actualTypeArguments = ((ParameterizedType) parameterizedType).getActualTypeArguments();
             return executionContext.getCache()
-                .lookupList(parameter.getName(), (Class<?>) actualTypeArguments[0], parameterIsMandatory);
+                    .lookupList(parameter.getName(), (Class<?>) actualTypeArguments[0], parameterIsMandatory);
         } else if (ExecutionContext.class.equals(parameterType)) {
             return executionContext;
         } else {
@@ -119,11 +132,11 @@ public abstract class AbstractCommand {
 
     private void runAsserts(final Object output, ExecutionContext executionContext) {
         asserts.stream()
-            .filter(assertion -> !Boolean.TRUE.equals(assertion.evaluate(Map.of(EXECUTION_CONTEXT, executionContext, OUTPUT, output))))
-            .findFirst()
-            .ifPresent(assertion -> {
-                throw new WorkflowRuntimeException("Assertion name '" + assertion.getName() + "' with body '" + assertion.getValue() + "' failed.");
-            });
+                .filter(assertion -> !Boolean.TRUE.equals(assertion.evaluate(Map.of(EXECUTION_CONTEXT, executionContext, OUTPUT, output))))
+                .findFirst()
+                .ifPresent(assertion -> {
+                    throw new WorkflowRuntimeException("Assertion name '" + assertion.getName() + "' with body '" + assertion.getValue() + "' failed.");
+                });
     }
 
     private void runOutputs(final Object output, final ExecutionContext executionContext) {

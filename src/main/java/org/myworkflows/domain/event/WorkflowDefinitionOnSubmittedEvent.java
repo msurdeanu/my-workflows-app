@@ -14,7 +14,7 @@ import java.util.concurrent.Future;
  */
 @Builder
 @Getter
-public class WorkflowOnSubmittedEvent implements Event {
+public class WorkflowDefinitionOnSubmittedEvent implements Event {
 
     private final UUID token;
     private final Set<ValidationMessage> validationMessages;

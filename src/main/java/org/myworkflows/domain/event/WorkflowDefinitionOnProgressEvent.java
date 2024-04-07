@@ -12,11 +12,9 @@ import java.util.UUID;
  */
 @Builder
 @Getter
-public class WorkflowOnSubmitEvent implements Event {
+public class WorkflowDefinitionOnProgressEvent implements Event {
 
-    private final boolean isManual;
     private final UUID token;
-    private final Object workflow;
     private final ExecutionContext executionContext;
 
 }

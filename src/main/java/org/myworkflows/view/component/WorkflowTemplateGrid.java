@@ -13,16 +13,21 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.WorkflowTemplate;
+import org.myworkflows.domain.WorkflowTemplateEventHandler;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@RequiredArgsConstructor
 public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
 
     private final PaginatedGrid<WorkflowTemplate, ?> paginatedGrid = new PaginatedGrid<>();
+
+    private final WorkflowTemplateEventHandler workflowTemplateEventHandler;
 
     public void refreshPage() {
         paginatedGrid.refreshPaginator();
@@ -49,6 +54,10 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
                 .setHeader(getTranslation("workflow-templates.main-grid.actions.column"))
                 .setAutoWidth(true);
+        paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(
+                () -> new WorkflowTemplateDetails(workflowTemplateEventHandler),
+                WorkflowTemplateDetails::setDetails)
+        );
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
         paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);

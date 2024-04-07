@@ -17,7 +17,7 @@ public final class WorkflowDefinitionToStringConverter implements AttributeConve
     @Override
     public String convertToDatabaseColumn(final WorkflowDefinition attribute) {
         return ofNullable(attribute)
-                .map(JsonFactory::toString)
+                .map(item -> JsonFactory.toString(attribute, null))
                 .orElse(null);
     }
 
