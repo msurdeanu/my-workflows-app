@@ -87,9 +87,9 @@ try {
 Provides ability to run Groovy code at runtime.
 As you probably already imagine, this command is very powerful.
 
-| Type | Inputs                                                                                                                                                                                                                                                           | Output |
-| --- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| --- |
-| `groovy` | <ul><li><strong>scriptLines</strong>: Mandatory. Represents source code which contains definition of a `methodName` (or `run`) method to be executed.</li><li><em>methodName</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Return of `run` method or `void` |
+| `@type`  | Inputs                                                                                                                                                                                                                                                           | Output                             |
+|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| `groovy` | <ul><li><strong>scriptLines</strong>: Mandatory. Represents source code which contains definition of a `methodName` (or `run`) method to be executed.</li><li><em>methodName</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
 
 Example of a dummy command:
 ```json
@@ -112,13 +112,36 @@ Example of a dummy command:
 }
 ```
 
+### Nothing command
+
+This command is not doing anything.
+The purpose of this command is to allow inputs to be injected in the workflow pipeline.
+
+| `@type`   | Inputs | Output |
+|-----------|--------|--------|
+| `nothing` | N/A    | N/A    |
+
+Example of a dummy command:
+```json
+{
+  "name":"Inject input parameters or process existing ones",
+  "@type":"nothing",
+  "inputs":[
+    {
+      "name":"test",
+      "value":"Just a simple test"
+    }
+  ]
+}
+```
+
 ### Print command
 
 Captures an input / output variable during workflow execution and shows the value to the UI.
 
-| Type    | Inputs                                                                                                                                                                                                           | Output                                                                |
+| `@type` | Inputs                                                                                                                                                                                                           | Output                                                                |
 |---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
-| `print` | <ul><li><strong>keys</strong>: Mandatory. Represents a list of variable names that will be displayed.</li><li><em>methodName</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Returns total number of keys affected by this operation. Type: `int`. |
+| `print` | <ul><li><strong>keys</strong>: Mandatory. Represents a list of variable names that will be displayed.</li></ul> | Returns total number of keys affected by this operation. Type: `int`. |
 
 Example of a dummy command:
 ```json
@@ -131,6 +154,29 @@ Example of a dummy command:
       "value":[
         "commandOutput"
       ]
+    }
+  ]
+}
+```
+
+### Sleep command
+
+Provides ability to pause current workflow execution by a given time.
+Time unit is milliseconds.
+
+| `@type` | Inputs                                                                                              | Output                                       |
+|---------|-----------------------------------------------------------------------------------------------------|----------------------------------------------|
+| `sleep` | <ul><li><strong>sleepTime</strong>: Mandatory. Represents number of millis used to sleep.</li></ul> | Returns the actual time slept. Type: `long`. |
+
+Example of a dummy command:
+```json
+{
+  "name":"Sleep for one second",
+  "@type":"sleep",
+  "inputs":[
+    {
+      "name":"sleepTime",
+      "value":1000
     }
   ]
 }
