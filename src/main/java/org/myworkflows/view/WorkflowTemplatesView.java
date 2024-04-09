@@ -7,7 +7,7 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
+import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @since 1.0.0
  */
 @Slf4j
-@AnonymousAllowed
+@PermitAll
 @Route(value = WorkflowTemplatesView.ROUTE, layout = BaseLayout.class)
 public class WorkflowTemplatesView extends ResponsiveLayout implements HasDynamicTitle, WorkflowTemplateEventHandler {
 
@@ -67,9 +67,10 @@ public class WorkflowTemplatesView extends ResponsiveLayout implements HasDynami
 
     private TextField createFilterByName() {
         final var filterByNameTextField = new TextField();
-        filterByNameTextField.setPlaceholder(getTranslation("workflow-templates.main-grid.filter.by-name.placeholder"));
-        filterByNameTextField.setHelperText(getTranslation("workflow-templates.main-grid.filter.by-name.helper"));
+        filterByNameTextField.setPlaceholder(getTranslation("workflow-templates.filter.by-name.placeholder"));
+        filterByNameTextField.setHelperText(getTranslation("workflow-templates.filter.by-name.helper"));
         filterByNameTextField.setClearButtonVisible(true);
+        filterByNameTextField.setMinWidth("200px");
         filterByNameTextField.setValueChangeMode(ValueChangeMode.LAZY);
         filterByNameTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));
         filterByNameTextField.addValueChangeListener(event -> onFilteringByName(event.getValue()));

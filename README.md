@@ -12,19 +12,23 @@ All workflows are defined in JSON format and for playing with them, you have a n
 
 * Java 17 as programming language.
 * Spring Boot 3.x as dependency injection framework
-* [Vaadin 24](https://vaadin.com/) as UI framework
+* [Vaadin 24](https://vaadin.com) as UI framework
 * [SQLite](https://www.sqlite.org/) as relational database for persisting data.
 * Use [Groovy](https://groovy-lang.org/) as additional language for defining workflow commands
 * Use [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) as runtime evaluator to propagate data between two or multiple commands.
 
 ## Features
 
-* Modern and responsive UI.
+* **Modern** and **responsive** UI.
+* **Authentication** and **authorization** enabled by default.
+* Persistence layer based on **SQLite**.
+* Dedicated web pages for **workflow development**, **workflow templates** and **workflow runs**.
+* Dedicated web page for **statistics**.
 
 ## TODOs
 
 - [ ] **Checkpoints**. Introduce ability to reschedule a failing workflow from a specific moment in time.
-- [ ] **Debugger**. Improve debugging experience for failing workflows to easily find the root cause of their failure.
+- [ ] **Debug mode**. Improve debugging experience for failing workflows to easily find the root cause of their failure.
 
 ## How it works?
 
@@ -40,7 +44,7 @@ All workflows are defined in JSON format and for playing with them, you have a n
 ### Workflow definition
 
 `Workflow` is the logic entity that encapsulates multiple steps - called `commands` - need to implement a task.
-Each workflow has a `name` and a set of `tags` associated to be able to split them easily in categories.
+Each workflow has a `name` to be able to identify easily what is doing.
 
 When the time comes, the workflow can be run `manually` by the user or `automatically` using a scheduler.
 Behind the scene, there is a `thread pool` responsible for executing the workflow.
@@ -85,10 +89,6 @@ TODO: Present here all predefined commands
 ```json
 {
   "name":"Test",
-  "tags":[
-    "tag1",
-    "tag2"
-  ],
   "commands":[
     {
       "name":"Just a sleep",

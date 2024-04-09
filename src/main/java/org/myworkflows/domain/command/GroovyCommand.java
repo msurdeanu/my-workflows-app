@@ -2,6 +2,9 @@ package org.myworkflows.domain.command;
 
 import groovy.lang.GroovyShell;
 import org.myworkflows.domain.ExecutionContext;
+import org.myworkflows.domain.command.api.ExecutionMethod;
+import org.myworkflows.domain.command.api.MandatoryParam;
+import org.myworkflows.domain.command.api.OptionalParam;
 
 import java.util.List;
 
@@ -18,9 +21,9 @@ public final class GroovyCommand extends AbstractCommand {
     private static final GroovyShell GROOVY_SHELL = new GroovyShell();
 
     @ExecutionMethod
-    public Object runScript(@MandatoryParam final ExecutionContext executionContext,
-                            @MandatoryParam final List<String> scriptLines,
-                            @OptionalParam final String methodName) {
+    public Object groovy(@MandatoryParam final ExecutionContext executionContext,
+                         @MandatoryParam final List<String> scriptLines,
+                         @OptionalParam final String methodName) {
         final var resolvedMethodName = ofNullable(methodName).orElse("run");
 
         final var script = GROOVY_SHELL.parse(scriptLines.stream().collect(joining(lineSeparator())));

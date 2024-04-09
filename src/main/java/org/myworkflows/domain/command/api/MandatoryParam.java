@@ -1,4 +1,4 @@
-package org.myworkflows.domain.command;
+package org.myworkflows.domain.command.api;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * @since 1.0.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface ExecutionMethod {
+@Target(ElementType.PARAMETER)
+public @interface MandatoryParam {
 
 }

@@ -1,5 +1,7 @@
 package org.myworkflows.domain.command;
 
+import org.myworkflows.domain.command.api.ExecutionMethod;
+
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0

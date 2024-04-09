@@ -25,6 +25,9 @@ public class WorkflowDefinition {
     @JsonProperty("name")
     private String name;
 
+    @JsonProperty("variables")
+    private List<Variable> variables = List.of();
+
     @JsonProperty("commands")
     private List<AbstractCommand> commands;
 

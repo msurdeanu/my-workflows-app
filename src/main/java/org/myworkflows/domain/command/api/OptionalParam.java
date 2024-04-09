@@ -1,4 +1,4 @@
-package org.myworkflows.domain.command;
+package org.myworkflows.domain.command.api;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
