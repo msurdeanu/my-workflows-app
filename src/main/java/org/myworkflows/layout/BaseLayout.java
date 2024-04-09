@@ -20,7 +20,7 @@ import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.myworkflows.view.LoginView;
 import org.myworkflows.view.StatisticView;
-import org.myworkflows.view.WorkflowDefinitionDevView;
+import org.myworkflows.view.WorkflowDevelopmentView;
 import org.myworkflows.view.WorkflowTemplatesView;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -86,7 +86,7 @@ public class BaseLayout extends AppLayout {
     private List<SideNavItem> createNavItems(final boolean isAuthenticated) {
         final var sideNavItems = new ArrayList<SideNavItem>();
         sideNavItems.add(new SideNavItem(getTranslation("menu.main.workflow-templates"), WorkflowTemplatesView.class, VaadinIcon.LIST.create()));
-        sideNavItems.add(new SideNavItem(getTranslation("menu.main.workflow-development"), WorkflowDefinitionDevView.class, VaadinIcon.CODE.create()));
+        sideNavItems.add(new SideNavItem(getTranslation("menu.main.workflow-development"), WorkflowDevelopmentView.class, VaadinIcon.CODE.create()));
         sideNavItems.add(new SideNavItem(getTranslation("menu.main.statistics"), StatisticView.class, VaadinIcon.CHART.create()));
 
         if (!isAuthenticated) {

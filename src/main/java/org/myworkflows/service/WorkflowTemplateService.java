@@ -50,6 +50,22 @@ public final class WorkflowTemplateService {
                 .forEach(this::loadAndSchedule);
     }
 
+    public void loadAndSchedule(@NonNull final WorkflowTemplate workflowTemplate) {
+        lock.lock();
+        try {
+            ofNullable(ALL_WORKFLOWS.put(workflowTemplate.getId(), workflowTemplate))
+                    .filter(WorkflowTemplate::isEnabledForScheduling)
+                    .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowSchedulerService.class)
+                            .unschedule(oldItem.getDefinition()));
+            if (workflowTemplate.isEnabled()) {
+                applicationManager.getBeanOfType(WorkflowSchedulerService.class)
+                        .schedule(workflowTemplate.getDefinition(), workflowTemplate.getCron());
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public boolean changeDefinition(@NonNull final WorkflowTemplate workflowTemplate, final String newDefinition) {
         var isOperationPerformed = false;
 
@@ -66,22 +82,6 @@ public final class WorkflowTemplateService {
                     .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
         }
         return isOperationPerformed;
-    }
-
-    public void loadAndSchedule(@NonNull final WorkflowTemplate workflowTemplate) {
-        lock.lock();
-        try {
-            ofNullable(ALL_WORKFLOWS.put(workflowTemplate.getId(), workflowTemplate))
-                    .filter(WorkflowTemplate::isEnabledForScheduling)
-                    .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowSchedulerService.class)
-                            .unschedule(oldItem.getDefinition()));
-            if (workflowTemplate.isEnabled()) {
-                applicationManager.getBeanOfType(WorkflowSchedulerService.class)
-                        .schedule(workflowTemplate.getDefinition(), workflowTemplate.getCron());
-            }
-        } finally {
-            lock.unlock();
-        }
     }
 
     public Stream<WorkflowTemplate> findBy(final Query<WorkflowTemplate, WorkflowTemplateFilter> query) {
@@ -121,6 +121,5 @@ public final class WorkflowTemplateService {
                 ? workflowTemplate -> StringUtils.containsIgnoreCase(workflowTemplate.getName(), byNameCriteria)
                 : ALWAYS_TRUE_PREDICATE;
     }
-
 
 }

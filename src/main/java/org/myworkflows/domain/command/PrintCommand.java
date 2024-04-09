@@ -1,6 +1,8 @@
 package org.myworkflows.domain.command;
 
 import org.myworkflows.domain.ExecutionContext;
+import org.myworkflows.domain.command.api.ExecutionMethod;
+import org.myworkflows.domain.command.api.MandatoryParam;
 
 import java.util.List;
 

@@ -7,8 +7,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
+import org.myworkflows.domain.ExecutionCache;
 import org.myworkflows.domain.ExecutionContext;
 import org.myworkflows.domain.ExpressionNameValue;
+import org.myworkflows.domain.command.api.ExecutionMethod;
+import org.myworkflows.domain.command.api.OptionalParam;
 import org.myworkflows.exception.WorkflowRuntimeException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -44,7 +47,7 @@ import static java.util.stream.IntStream.range;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class AbstractCommand {
 
-    private static final String EXECUTION_CONTEXT = "executionContext";
+    private static final String EXECUTION_CACHE = "executionCache";
 
     private static final String OUTPUT = "output";
 
@@ -73,29 +76,29 @@ public abstract class AbstractCommand {
     private Set<ExpressionNameValue> outputs = Set.of();
 
     public final void run(final ExecutionContext executionContext) {
-        if (!runIfs(executionContext)) {
+        if (!runIfs(executionContext.getCache())) {
             return;
         }
 
-        runInputs(executionContext);
+        runInputs(executionContext.getCache());
         stream(getClass().getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(ExecutionMethod.class))
                 .findFirst()
                 .ifPresent(method -> runMethodWithAssertsAndOutputs(method, executionContext));
     }
 
-    public boolean runIfs(final ExecutionContext executionContext) {
-        return ifs.stream().allMatch(item -> Boolean.TRUE.equals(item.evaluate(Map.of(EXECUTION_CONTEXT, executionContext))));
+    public boolean runIfs(final ExecutionCache executionCache) {
+        return ifs.stream().allMatch(item -> Boolean.TRUE.equals(item.evaluate(Map.of(EXECUTION_CACHE, executionCache))));
     }
 
-    private void runInputs(final ExecutionContext executionContext) {
-        inputs.forEach(input -> executionContext.getCache().put(input.getName(), input.evaluate(Map.of(EXECUTION_CONTEXT, executionContext))));
+    private void runInputs(final ExecutionCache executionCache) {
+        inputs.forEach(input -> executionCache.put(input.getName(), input.evaluate(Map.of(EXECUTION_CACHE, executionCache))));
     }
 
     private void runMethodWithAssertsAndOutputs(final Method method, final ExecutionContext executionContext) {
         runMethod(method, executionContext).ifPresent(output -> {
-            runAsserts(output, executionContext);
-            runOutputs(output, executionContext);
+            runAsserts(output, executionContext.getCache());
+            runOutputs(output, executionContext.getCache());
         });
     }
 
@@ -130,17 +133,17 @@ public abstract class AbstractCommand {
         }
     }
 
-    private void runAsserts(final Object output, ExecutionContext executionContext) {
+    private void runAsserts(final Object output, final ExecutionCache executionCache) {
         asserts.stream()
-                .filter(assertion -> !Boolean.TRUE.equals(assertion.evaluate(Map.of(EXECUTION_CONTEXT, executionContext, OUTPUT, output))))
+                .filter(assertion -> !Boolean.TRUE.equals(assertion.evaluate(Map.of(EXECUTION_CACHE, executionCache, OUTPUT, output))))
                 .findFirst()
                 .ifPresent(assertion -> {
                     throw new WorkflowRuntimeException("Assertion name '" + assertion.getName() + "' with body '" + assertion.getValue() + "' failed.");
                 });
     }
 
-    private void runOutputs(final Object output, final ExecutionContext executionContext) {
-        outputs.forEach(out -> executionContext.getCache().put(out.getName(), out.evaluate(Map.of(EXECUTION_CONTEXT, executionContext, OUTPUT, output))));
+    private void runOutputs(final Object output, final ExecutionCache executionCache) {
+        outputs.forEach(out -> executionCache.put(out.getName(), out.evaluate(Map.of(EXECUTION_CACHE, executionCache, OUTPUT, output))));
     }
 
 }

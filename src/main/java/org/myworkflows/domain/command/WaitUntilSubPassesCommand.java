@@ -1,6 +1,9 @@
 package org.myworkflows.domain.command;
 
 import org.myworkflows.domain.ExecutionContext;
+import org.myworkflows.domain.command.api.ExecutionMethod;
+import org.myworkflows.domain.command.api.MandatoryParam;
+import org.myworkflows.domain.command.api.OptionalParam;
 
 import static java.util.Optional.ofNullable;
 

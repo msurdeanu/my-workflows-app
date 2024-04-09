@@ -1,5 +1,8 @@
 package org.myworkflows.domain.command;
 
+import org.myworkflows.domain.command.api.ExecutionMethod;
+import org.myworkflows.domain.command.api.MandatoryParam;
+import org.myworkflows.domain.command.api.OptionalParam;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

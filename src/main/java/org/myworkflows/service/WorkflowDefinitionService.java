@@ -1,8 +1,5 @@
 package org.myworkflows.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.ValidationMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
@@ -23,14 +20,12 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
-import static org.myworkflows.serializer.JsonFactory.fromJsonToSchema;
 
 /**
  * @author Mihai Surdeanu
@@ -40,31 +35,14 @@ import static org.myworkflows.serializer.JsonFactory.fromJsonToSchema;
 @Service
 public final class WorkflowDefinitionService implements EventListener<WorkflowDefinitionOnSubmitEvent> {
 
-    private static final JsonSchema WORKFLOW_SCHEMA;
-
-    private final EventBroadcaster eventBroadcaster;
-
     private final ThreadPoolExecutor threadPoolExecutor;
 
     private final ApplicationManager applicationManager;
 
-    public WorkflowDefinitionService(final EventBroadcaster eventBroadcaster,
-                                     final @Qualifier("workflow-pool") ThreadPoolExecutor threadPoolExecutor,
+    public WorkflowDefinitionService(final @Qualifier("workflow-pool") ThreadPoolExecutor threadPoolExecutor,
                                      final ApplicationManager applicationManager) {
-        this.eventBroadcaster = eventBroadcaster;
         this.threadPoolExecutor = threadPoolExecutor;
         this.applicationManager = applicationManager;
-    }
-
-    static {
-        final var schemaNode = fromJsonToObject("""
-                {
-                "$schema": "http://json-schema.org/draft-06/schema#",
-                "properties": { "id": {"type": "number"}}
-                }
-                """, JsonNode.class);
-        WORKFLOW_SCHEMA = fromJsonToSchema(schemaNode);
-        WORKFLOW_SCHEMA.initializeValidators();
     }
 
     @Override
@@ -75,10 +53,11 @@ public final class WorkflowDefinitionService implements EventListener<WorkflowDe
         onSubmittedEventBuilder.token(onSubmitEvent.getToken());
 
         if (workflowObject instanceof String workflowAsString) {
-            final var validationMessages = validateWorkflow(workflowAsString);
+            final var validationMessages = applicationManager.getBeanOfType(WorkflowDefinitionValidatorService.class)
+                    .validate(workflowAsString);
             onSubmittedEventBuilder.validationMessages(validationMessages);
             if (!validationMessages.isEmpty()) {
-                eventBroadcaster.broadcast(onSubmittedEventBuilder.build());
+                applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
                 return;
             }
             onSubmittedEventBuilder.executionContextFuture(submit(fromJsonToObject(workflowAsString, WorkflowDefinition.class),
@@ -87,16 +66,12 @@ public final class WorkflowDefinitionService implements EventListener<WorkflowDe
             onSubmittedEventBuilder.executionContextFuture(submit(workflowDefinition, onSubmitEvent));
         }
 
-        eventBroadcaster.broadcast(onSubmittedEventBuilder.build());
+        applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
     }
 
     @Override
     public Class<WorkflowDefinitionOnSubmitEvent> getEventType() {
         return WorkflowDefinitionOnSubmitEvent.class;
-    }
-
-    private Set<ValidationMessage> validateWorkflow(final String wokflowAsString) {
-        return WORKFLOW_SCHEMA.validate(fromJsonToObject(wokflowAsString, JsonNode.class));
     }
 
     private Future<?> submit(final WorkflowDefinition workflowDefinition,
@@ -113,13 +88,13 @@ public final class WorkflowDefinitionService implements EventListener<WorkflowDe
                                   final WorkflowDefinitionOnProgressEvent workflowResultEvent) {
         final var executionContext = workflowResultEvent.getExecutionContext();
         final var startTime = System.currentTimeMillis();
-        eventBroadcaster.broadcast(workflowResultEvent);
+        applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
         try {
             workflowDefinition.getCommands().forEach(command -> {
                 resolveCommandPlaceholders(command);
                 command.run(executionContext);
                 executionContext.markCommandAsCompleted();
-                eventBroadcaster.broadcast(workflowResultEvent);
+                applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
             });
         } catch (Exception exception) {
             executionContext.markCommandAsFailed(exception);
@@ -129,13 +104,13 @@ public final class WorkflowDefinitionService implements EventListener<WorkflowDe
                     resolveCommandPlaceholders(command);
                     command.run(executionContext);
                     executionContext.markCommandAsCompleted();
-                    eventBroadcaster.broadcast(workflowResultEvent);
+                    applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
                 });
             } catch (Exception exception) {
                 executionContext.markCommandAsFailed(exception);
             }
             executionContext.markAsCompleted(System.currentTimeMillis() - startTime);
-            eventBroadcaster.broadcast(workflowResultEvent);
+            applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
         }
     }
 
