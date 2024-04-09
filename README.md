@@ -82,7 +82,59 @@ try {
 
 ## Predefined type of commands
 
-TODO: Present here all predefined commands
+### Groovy command
+
+Provides ability to run Groovy code at runtime.
+As you probably already imagine, this command is very powerful.
+
+| Type | Inputs                                                                                                                                                                                                                                                           | Output |
+| --- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| --- |
+| `groovy` | <ul><li><strong>scriptLines</strong>: Mandatory. Represents source code which contains definition of a `methodName` (or `run`) method to be executed.</li><li><em>methodName</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Return of `run` method or `void` |
+
+Example of a dummy command:
+```json
+{
+  "name":"Run empty method",
+  "@type":"groovy",
+  "inputs":[
+    {
+      "name":"scriptLines",
+      "value":[
+        "def run(executionCache) {",
+        "}"
+      ]
+    },
+    {
+      "name":"methodName",
+      "value":"run"
+    }
+  ]
+}
+```
+
+### Print command
+
+Captures an input / output variable during workflow execution and shows the value to the UI.
+
+| Type    | Inputs                                                                                                                                                                                                           | Output                                                                |
+|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
+| `print` | <ul><li><strong>keys</strong>: Mandatory. Represents a list of variable names that will be displayed.</li><li><em>methodName</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Returns total number of keys affected by this operation. Type: `int`. |
+
+Example of a dummy command:
+```json
+{
+  "name":"Print 'commandOutput' value",
+  "@type":"print",
+  "inputs":[
+    {
+      "name":"keys",
+      "value":[
+        "commandOutput"
+      ]
+    }
+  ]
+}
+```
 
 ## Example of a dummy workflow
 
