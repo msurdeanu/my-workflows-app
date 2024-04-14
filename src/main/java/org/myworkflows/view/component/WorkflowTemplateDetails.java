@@ -46,7 +46,7 @@ public final class WorkflowTemplateDetails extends Composite<VerticalLayout> {
         editor.setValue(JsonFactory.toPrettyString(workflowTemplate.getDefinition(), ""));
         editor.addAceChangedListener(event -> saveButton.setEnabled(isNewDefinition(workflowTemplate, event.getValue())));
 
-        saveButton.addClickListener(event -> workflowTemplateEventHandler.onDefinitionChanged(workflowTemplate, editor.getValue()));
+        saveButton.addClickListener(event -> workflowTemplateEventHandler.onDefinitionChanged(workflowTemplate.getId(), editor.getValue()));
     }
 
     private boolean isNewDefinition(final WorkflowTemplate workflowTemplate,

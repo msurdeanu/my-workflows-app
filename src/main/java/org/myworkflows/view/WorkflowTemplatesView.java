@@ -59,10 +59,29 @@ public class WorkflowTemplatesView extends ResponsiveLayout implements HasDynami
     }
 
     @Override
-    public void onDefinitionChanged(final WorkflowTemplate testScenario, final String newDefinition) {
-        if (workflowTemplateService.changeDefinition(testScenario, newDefinition)) {
+    public void onActivationChanged(final Integer workflowTemplateId) {
+        workflowTemplateService.changeActivation(workflowTemplateId);
+        workflowTemplateGrid.refreshPage();
+
+        Notification.show("TODO"); // TODO
+    }
+
+    @Override
+    public void onDefinitionChanged(final Integer workflowTemplateId, final String newDefinition) {
+        if (workflowTemplateService.changeDefinition(workflowTemplateId, newDefinition)) {
             Notification.show("Workflow template definition changed successfully.");
         }
+    }
+
+    @Override
+    public void onDelete(final Integer workflowTemplateId) {
+        workflowTemplateService.delete(workflowTemplateId);
+        workflowTemplateGrid.refreshPage();
+    }
+
+    @Override
+    public void onScheduleNow(final Integer workflowTemplateId) {
+        workflowTemplateService.scheduleNow(workflowTemplateId);
     }
 
     private TextField createFilterByName() {

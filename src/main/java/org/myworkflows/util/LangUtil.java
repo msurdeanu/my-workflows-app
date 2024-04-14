@@ -5,6 +5,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.Optional;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
@@ -14,7 +17,7 @@ public final class LangUtil {
 
     public static Optional<String> pluralize(final String word, final long count, final boolean inclusive) {
         if (word == null || count < 1) {
-            return Optional.empty();
+            return empty();
         }
 
         final var builder = new StringBuilder();
@@ -25,7 +28,7 @@ public final class LangUtil {
         if (count > 1) {
             builder.append("s");
         }
-        return Optional.of(builder.toString());
+        return of(builder.toString());
     }
 
 }
