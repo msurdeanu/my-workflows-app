@@ -51,7 +51,7 @@ public final class WorkflowPrintGrid extends VerticalLayout {
     }
 
     private Component renderName(final ExecutionPrint print) {
-        return new Span(print.getName());
+        return new Span(print.name());
     }
 
     private Component renderType(final ExecutionPrint print) {

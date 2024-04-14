@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.domain.event.EventListener;
-import org.myworkflows.domain.event.WorkflowTemplateOnUpdateEvent;
+import org.myworkflows.domain.event.WorkflowTemplateOnDeleteEvent;
 import org.myworkflows.repository.WorkflowTemplateRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,19 +15,19 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public final class WorkflowTemplateOnUpdateEventService implements EventListener<WorkflowTemplateOnUpdateEvent> {
+public final class WorkflowTemplateOnDeleteEventService implements EventListener<WorkflowTemplateOnDeleteEvent> {
 
     private final ApplicationManager applicationManager;
 
     @Override
-    public void onEventReceived(final WorkflowTemplateOnUpdateEvent event) {
+    public void onEventReceived(final WorkflowTemplateOnDeleteEvent event) {
         applicationManager.getBeanOfType(WorkflowTemplateRepository.class)
-                .save(event.getWorkflowTemplate());
+                .delete(event.getWorkflowTemplate());
     }
 
     @Override
-    public Class<WorkflowTemplateOnUpdateEvent> getEventType() {
-        return WorkflowTemplateOnUpdateEvent.class;
+    public Class<WorkflowTemplateOnDeleteEvent> getEventType() {
+        return WorkflowTemplateOnDeleteEvent.class;
     }
 
 }

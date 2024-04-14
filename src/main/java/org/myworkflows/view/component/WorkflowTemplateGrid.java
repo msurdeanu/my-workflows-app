@@ -67,7 +67,9 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
     }
 
     private Component renderIsEnabled(final WorkflowTemplate workflowTemplate) {
-        return new Checkbox(workflowTemplate.isEnabled());
+        final var toggleButton = new Checkbox(workflowTemplate.isEnabled());
+        toggleButton.addValueChangeListener(event -> workflowTemplateEventHandler.onActivationChanged(workflowTemplate.getId()));
+        return toggleButton;
     }
 
     private Component renderName(final WorkflowTemplate workflowTemplate) {
@@ -83,20 +85,28 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
 
         final var scheduleNowButton = new Button(new Icon(VaadinIcon.START_COG));
         scheduleNowButton.addThemeVariants(ButtonVariant.LUMO_ICON);
-        scheduleNowButton.getElement().setProperty("title", getTranslation("workflow-templates.main-grid.actions.button.schedule.title"));
+        scheduleNowButton.setTooltipText(getTranslation("workflow-templates.main-grid.actions.button.schedule.title"));
         scheduleNowButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-        final var editButton = new Button(new Icon(VaadinIcon.EDIT));
-        editButton.getElement().setProperty("title", getTranslation("workflow-templates.main-grid.actions.button.edit.title"));
-        editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         final var deleteButton = new Button();
         deleteButton.setIcon(new Icon(VaadinIcon.TRASH));
-        deleteButton.getElement().setProperty("title", getTranslation("workflow-templates.main-grid.actions.button.delete.title"));
+        deleteButton.setTooltipText(getTranslation("workflow-templates.main-grid.actions.button.delete.title"));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
 
         // TODO
+        scheduleNowButton.addClickListener(event -> onScheduleNow(workflowTemplate));
+        if (!workflowTemplate.isEnabled()) {
+            deleteButton.addClickListener(event -> workflowTemplateEventHandler.onDelete(workflowTemplate.getId()));
+        } else {
+            deleteButton.setEnabled(false);
+        }
 
-        layout.add(scheduleNowButton, editButton, deleteButton);
+        layout.add(scheduleNowButton, deleteButton);
         return layout;
+    }
+
+    private void onScheduleNow(final WorkflowTemplate workflowTemplate) {
+        workflowTemplateEventHandler.onScheduleNow(workflowTemplate.getId());
+        paginatedGrid.getDataProvider().refreshItem(workflowTemplate);
     }
 
 }

@@ -42,4 +42,8 @@ public class WorkflowTemplate {
         return enabled && !StringUtils.isEmpty(cron);
     }
 
+    public void toggleOnEnabling() {
+        enabled = !enabled;
+    }
+
 }

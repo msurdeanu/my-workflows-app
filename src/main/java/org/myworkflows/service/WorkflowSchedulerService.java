@@ -9,9 +9,11 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -27,7 +29,7 @@ import static java.util.Optional.ofNullable;
 @RequiredArgsConstructor
 public final class WorkflowSchedulerService {
 
-    private final Map<String, ScheduledFuture<?>> scheduledFutureMap = new HashMap<>();
+    private final Map<UUID, ScheduledFuture<?>> scheduledFutureMap = new HashMap<>();
 
     private final Lock lock = new ReentrantLock();
 
@@ -41,12 +43,18 @@ public final class WorkflowSchedulerService {
         lock.lock();
         try {
             unschedule(workflowDefinition);
-            scheduledFutureMap.put(workflowDefinition.getId().toString(), scheduledTask);
+            scheduledFutureMap.put(workflowDefinition.getId(), scheduledTask);
         } finally {
             lock.unlock();
         }
 
-        log.info("Workflow ID '{}' has been scheduled. Running frequency is '{}'", workflowDefinition.getId(), cron);
+        log.info("Workflow ID '{}' has been scheduled. Running frequency is '{}'",
+                workflowDefinition.getId().toString(), cron);
+    }
+
+    public void scheduleNowAsync(final WorkflowDefinition workflowDefinition) {
+        applicationManager.getBeanOfType(TaskScheduler.class)
+                .schedule(new WorkflowRunnable(applicationManager, workflowDefinition), Instant.now());
     }
 
     public void unschedule(final WorkflowDefinition workflowDefinition) {
@@ -56,7 +64,7 @@ public final class WorkflowSchedulerService {
                 task.cancel(true);
                 scheduledFutureMap.remove(workflowDefinition.getId());
 
-                log.info("Workflow ID '{}' has been unscheduled.", workflowDefinition.getId());
+                log.info("Workflow ID '{}' has been unscheduled.", workflowDefinition.getId().toString());
             });
         } finally {
             lock.unlock();

@@ -22,6 +22,7 @@ import org.springframework.core.annotation.Order;
 @Push(PushMode.AUTOMATIC)
 @Theme(value = "simple")
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
+
     private final ApplicationManager applicationManager;
 
     public static void main(final String[] args) {

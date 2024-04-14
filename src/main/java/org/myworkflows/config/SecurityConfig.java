@@ -29,8 +29,8 @@ public class SecurityConfig extends VaadinWebSecurity {
 
     @Override
     public void configure(final HttpSecurity http) throws Exception {
-        http.rememberMe().alwaysRemember(true).key(REMEMBER_ME).rememberMeCookieName(REMEMBER_ME);
-        http.authorizeHttpRequests().requestMatchers(new AntPathRequestMatcher("/logo.png")).permitAll();
+        http.rememberMe(config -> config.alwaysRemember(true).key(REMEMBER_ME).rememberMeCookieName(REMEMBER_ME));
+        http.authorizeHttpRequests(config -> config.requestMatchers(new AntPathRequestMatcher("/logo.png")).permitAll());
         super.configure(http);
 
         setLoginView(http, LoginView.class);

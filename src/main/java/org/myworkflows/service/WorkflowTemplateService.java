@@ -9,6 +9,7 @@ import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateFilter;
+import org.myworkflows.domain.event.WorkflowTemplateOnDeleteEvent;
 import org.myworkflows.domain.event.WorkflowTemplateOnUpdateEvent;
 import org.myworkflows.repository.WorkflowTemplateRepository;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -66,22 +67,62 @@ public final class WorkflowTemplateService {
         }
     }
 
-    public boolean changeDefinition(@NonNull final WorkflowTemplate workflowTemplate, final String newDefinition) {
-        var isOperationPerformed = false;
-
+    public void changeActivation(@NonNull final Integer workflowId) {
         lock.lock();
         try {
-            workflowTemplate.setDefinition(fromJsonToObject(newDefinition, WorkflowDefinition.class));
-            isOperationPerformed = true;
+            ofNullable(ALL_WORKFLOWS.get(workflowId)).ifPresent(workflowTemplate -> {
+                workflowTemplate.toggleOnEnabling();
+                if (workflowTemplate.isEnabled()) {
+                    applicationManager.getBeanOfType(WorkflowSchedulerService.class)
+                            .unschedule(workflowTemplate.getDefinition());
+                } else {
+                    applicationManager.getBeanOfType(WorkflowSchedulerService.class)
+                            .schedule(workflowTemplate.getDefinition(), workflowTemplate.getCron());
+                }
+                applicationManager.getBeanOfType(EventBroadcaster.class)
+                        .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
+            });
         } finally {
             lock.unlock();
         }
+    }
 
-        if (isOperationPerformed) {
-            applicationManager.getBeanOfType(EventBroadcaster.class)
-                    .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
+    public boolean changeDefinition(final Integer workflowId, final String newDefinition) {
+        lock.lock();
+        try {
+            return ofNullable(ALL_WORKFLOWS.get(workflowId)).map(workflowTemplate -> {
+                workflowTemplate.setDefinition(fromJsonToObject(newDefinition, WorkflowDefinition.class));
+                applicationManager.getBeanOfType(EventBroadcaster.class)
+                        .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
+                return true;
+            }).orElse(false);
+        } catch (Exception notUsed) {
+            return false;
+        } finally {
+            lock.unlock();
         }
-        return isOperationPerformed;
+    }
+
+    public void delete(final Integer workflowId) {
+        lock.lock();
+        try {
+            final var workflowTemplate = ALL_WORKFLOWS.remove(workflowId);
+            if (workflowTemplate.isEnabled()) {
+                applicationManager.getBeanOfType(WorkflowSchedulerService.class)
+                        .unschedule(workflowTemplate.getDefinition());
+            }
+            applicationManager.getBeanOfType(EventBroadcaster.class)
+                    .broadcast(WorkflowTemplateOnDeleteEvent.builder().workflowTemplate(workflowTemplate).build());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void scheduleNow(final Integer workflowId) {
+        ofNullable(ALL_WORKFLOWS.get(workflowId)).ifPresent(workflowTemplate -> {
+            applicationManager.getBeanOfType(WorkflowSchedulerService.class)
+                    .scheduleNowAsync(workflowTemplate.getDefinition());
+        });
     }
 
     public Stream<WorkflowTemplate> findBy(final Query<WorkflowTemplate, WorkflowTemplateFilter> query) {
