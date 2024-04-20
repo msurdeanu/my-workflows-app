@@ -1,6 +1,6 @@
 # MyWorkflows
 
-**MyWorkflows** is a simple tool for creating workflows to automate daily manual tasks.
+[MyWorkflows](https://myworkflows.org) is a simple tool for creating workflows to automate daily manual tasks.
 You can easily create workflows, schedule them using cron-jobs and see their output.
 
 Uses Java as programming language and Vaadin as UI framework.
