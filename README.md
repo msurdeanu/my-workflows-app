@@ -243,3 +243,4 @@ Vaadin web applications are full-stack and include both client-side and server-s
 | &nbsp;&nbsp;&nbsp;&nbsp;`service/`                        | Contains a set of services exposed by the application |
 | &nbsp;&nbsp;&nbsp;&nbsp;`view/`                           | Contains a set of views exposed by the application    |
 | &nbsp;&nbsp;&nbsp;&nbsp;`Application.java`                | Server entrypoint                                     |
+
