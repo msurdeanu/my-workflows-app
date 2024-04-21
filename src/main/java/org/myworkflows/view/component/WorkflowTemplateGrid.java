@@ -6,17 +6,22 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.theme.lumo.LumoIcon;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
+import org.myworkflows.view.WorkflowDevelopmentView;
 import org.vaadin.klaudeta.PaginatedGrid;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
@@ -43,20 +48,17 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
 
         layout.setSizeFull();
         paginatedGrid.setAllRowsVisible(true);
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderIsEnabled))
-                .setAutoWidth(true);
+        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActive))
+            .setAutoWidth(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderName))
-                .setHeader(getTranslation("workflow-templates.main-grid.name.column"))
-                .setAutoWidth(true);
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderCronExpression))
-                .setHeader(getTranslation("workflow-templates.main-grid.cron-expression.column"))
-                .setAutoWidth(true);
+            .setHeader(getTranslation("workflow-templates.main-grid.name.column"))
+            .setAutoWidth(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
-                .setHeader(getTranslation("workflow-templates.main-grid.actions.column"))
-                .setAutoWidth(true);
+            .setHeader(getTranslation("workflow-templates.main-grid.actions.column"))
+            .setAutoWidth(true);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(
-                () -> new WorkflowTemplateDetails(workflowTemplateEventHandler),
-                WorkflowTemplateDetails::setDetails)
+            () -> new WorkflowTemplateDetails(workflowTemplateEventHandler),
+            WorkflowTemplateDetails::setDetails)
         );
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
@@ -66,18 +68,32 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         return layout;
     }
 
-    private Component renderIsEnabled(final WorkflowTemplate workflowTemplate) {
-        final var toggleButton = new Checkbox(workflowTemplate.isEnabled());
-        toggleButton.addValueChangeListener(event -> workflowTemplateEventHandler.onActivationChanged(workflowTemplate.getId()));
-        return toggleButton;
+    private Component renderActive(final WorkflowTemplate workflowTemplate) {
+        final var checkbox = new Checkbox(workflowTemplate.isEnabled());
+        checkbox.addValueChangeListener(event -> workflowTemplateEventHandler.onActivationChanged(workflowTemplate.getId()));
+        return checkbox;
     }
 
     private Component renderName(final WorkflowTemplate workflowTemplate) {
-        return new Span(workflowTemplate.getName());
+        final var layout = new HorizontalLayout();
+        return ofNullable(workflowTemplate.getCron())
+            .<Component>map(cron -> {
+                layout.add(getOnlyName(workflowTemplate));
+                final var icon = LumoIcon.CLOCK.create();
+                Tooltip.forComponent(icon)
+                    .withText(getTranslation("workflow-templates.main-grid.cron-expression.tooltip", cron))
+                    .withPosition(Tooltip.TooltipPosition.TOP);
+                layout.add(icon);
+                layout.setSpacing(false);
+                return layout;
+            })
+            .orElseGet(() -> getOnlyName(workflowTemplate));
     }
 
-    private Component renderCronExpression(final WorkflowTemplate workflowTemplate) {
-        return new Span(workflowTemplate.getCron());
+    private Component getOnlyName(final WorkflowTemplate workflowTemplate) {
+        final var routerLink = new RouterLink(workflowTemplate.getName(), WorkflowDevelopmentView.class, workflowTemplate.getId());
+        routerLink.getElement().getThemeList().add("badge" + (workflowTemplate.isEnabled() ? "" : " contrast"));
+        return routerLink;
     }
 
     private Component renderActions(final WorkflowTemplate workflowTemplate) {

@@ -25,6 +25,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 
 /**
@@ -47,20 +48,20 @@ public final class WorkflowTemplateService {
     @EventListener(ApplicationReadyEvent.class)
     public void loadAll() {
         applicationManager.getBeanOfType(WorkflowTemplateRepository.class)
-                .findAll()
-                .forEach(this::loadAndSchedule);
+            .findAll()
+            .forEach(this::loadAndSchedule);
     }
 
     public void loadAndSchedule(@NonNull final WorkflowTemplate workflowTemplate) {
         lock.lock();
         try {
             ofNullable(ALL_WORKFLOWS.put(workflowTemplate.getId(), workflowTemplate))
-                    .filter(WorkflowTemplate::isEnabledForScheduling)
-                    .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowSchedulerService.class)
-                            .unschedule(oldItem.getDefinition()));
+                .filter(WorkflowTemplate::isEnabledForScheduling)
+                .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowSchedulerService.class)
+                    .unschedule(oldItem.getDefinition()));
             if (workflowTemplate.isEnabled()) {
                 applicationManager.getBeanOfType(WorkflowSchedulerService.class)
-                        .schedule(workflowTemplate.getDefinition(), workflowTemplate.getCron());
+                    .schedule(workflowTemplate.getDefinition(), workflowTemplate.getCron());
             }
         } finally {
             lock.unlock();
@@ -74,13 +75,13 @@ public final class WorkflowTemplateService {
                 workflowTemplate.toggleOnEnabling();
                 if (workflowTemplate.isEnabled()) {
                     applicationManager.getBeanOfType(WorkflowSchedulerService.class)
-                            .unschedule(workflowTemplate.getDefinition());
+                        .unschedule(workflowTemplate.getDefinition());
                 } else {
                     applicationManager.getBeanOfType(WorkflowSchedulerService.class)
-                            .schedule(workflowTemplate.getDefinition(), workflowTemplate.getCron());
+                        .schedule(workflowTemplate.getDefinition(), workflowTemplate.getCron());
                 }
                 applicationManager.getBeanOfType(EventBroadcaster.class)
-                        .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
+                    .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
             });
         } finally {
             lock.unlock();
@@ -93,7 +94,7 @@ public final class WorkflowTemplateService {
             return ofNullable(ALL_WORKFLOWS.get(workflowId)).map(workflowTemplate -> {
                 workflowTemplate.setDefinition(fromJsonToObject(newDefinition, WorkflowDefinition.class));
                 applicationManager.getBeanOfType(EventBroadcaster.class)
-                        .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
+                    .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
                 return true;
             }).orElse(false);
         } catch (Exception notUsed) {
@@ -109,10 +110,10 @@ public final class WorkflowTemplateService {
             final var workflowTemplate = ALL_WORKFLOWS.remove(workflowId);
             if (workflowTemplate.isEnabled()) {
                 applicationManager.getBeanOfType(WorkflowSchedulerService.class)
-                        .unschedule(workflowTemplate.getDefinition());
+                    .unschedule(workflowTemplate.getDefinition());
             }
             applicationManager.getBeanOfType(EventBroadcaster.class)
-                    .broadcast(WorkflowTemplateOnDeleteEvent.builder().workflowTemplate(workflowTemplate).build());
+                .broadcast(WorkflowTemplateOnDeleteEvent.builder().workflowTemplate(workflowTemplate).build());
         } finally {
             lock.unlock();
         }
@@ -121,21 +122,21 @@ public final class WorkflowTemplateService {
     public void scheduleNow(final Integer workflowId) {
         ofNullable(ALL_WORKFLOWS.get(workflowId)).ifPresent(workflowTemplate -> {
             applicationManager.getBeanOfType(WorkflowSchedulerService.class)
-                    .scheduleNowAsync(workflowTemplate.getDefinition());
+                .scheduleNowAsync(workflowTemplate.getDefinition());
         });
     }
 
     public Stream<WorkflowTemplate> findBy(final Query<WorkflowTemplate, WorkflowTemplateFilter> query) {
         return query.getFilter()
-                .map(filter -> getAll(filter, query.getOffset(), query.getLimit()))
-                .orElseGet(this::getAll);
+            .map(filter -> getAll(filter, query.getOffset(), query.getLimit()))
+            .orElseGet(this::getAll);
     }
 
     public int countBy(final Query<WorkflowTemplate, WorkflowTemplateFilter> query) {
         return query.getFilter()
-                .map(this::getAllSize)
-                .orElseGet(this::getAllSize)
-                .intValue();
+            .map(this::getAllSize)
+            .orElseGet(this::getAllSize)
+            .intValue();
     }
 
     public Stream<WorkflowTemplate> getAll() {
@@ -144,9 +145,10 @@ public final class WorkflowTemplateService {
 
     public Stream<WorkflowTemplate> getAll(final WorkflowTemplateFilter filter, final long offset, final long limit) {
         return ALL_WORKFLOWS.values().stream()
-                .filter(getPredicateByNameCriteria(filter.getByNameCriteria()))
-                .skip(offset)
-                .limit(limit);
+            .filter(getPredicateByIdCriteria(filter.getByIdCriteria()))
+            .filter(getPredicateByNameCriteria(filter.getByNameCriteria()))
+            .skip(offset)
+            .limit(limit);
     }
 
     public long getAllSize() {
@@ -157,10 +159,16 @@ public final class WorkflowTemplateService {
         return getAll(filter, 0, Long.MAX_VALUE).count();
     }
 
+    private Predicate<WorkflowTemplate> getPredicateByIdCriteria(final int byIdCriteria) {
+        return byIdCriteria > 0
+            ? workflowTemplate -> workflowTemplate.getId() == byIdCriteria
+            : ALWAYS_TRUE_PREDICATE;
+    }
+
     private Predicate<WorkflowTemplate> getPredicateByNameCriteria(final String byNameCriteria) {
-        return StringUtils.isNotEmpty(byNameCriteria)
-                ? workflowTemplate -> StringUtils.containsIgnoreCase(workflowTemplate.getName(), byNameCriteria)
-                : ALWAYS_TRUE_PREDICATE;
+        return isNotEmpty(byNameCriteria)
+            ? workflowTemplate -> StringUtils.containsIgnoreCase(workflowTemplate.getName(), byNameCriteria)
+            : ALWAYS_TRUE_PREDICATE;
     }
 
 }

@@ -4,6 +4,9 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
@@ -25,5 +28,9 @@ public final class StatisticItem {
     private String valueTranslationKey;
 
     private String description;
+
+    public String getValueAsString() {
+        return ofNullable(value).map(Object::toString).orElse(StringUtils.EMPTY);
+    }
 
 }
