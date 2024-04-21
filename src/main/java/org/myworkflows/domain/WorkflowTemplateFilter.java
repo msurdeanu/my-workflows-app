@@ -10,7 +10,14 @@ import org.apache.commons.lang3.StringUtils;
 @Getter
 public final class WorkflowTemplateFilter {
 
+    private int byIdCriteria;
     private String byNameCriteria = StringUtils.EMPTY;
+
+    public WorkflowTemplateFilter setByIdCriteria(final int byIdCriteria) {
+        this.byIdCriteria = byIdCriteria;
+
+        return this;
+    }
 
     public WorkflowTemplateFilter setByNameCriteria(final String byNameCriteria) {
         this.byNameCriteria = byNameCriteria;

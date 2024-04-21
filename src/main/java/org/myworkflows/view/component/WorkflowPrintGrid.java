@@ -1,9 +1,11 @@
 package org.myworkflows.view.component;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.myworkflows.domain.ExecutionPrint;
 
@@ -15,27 +17,9 @@ import static com.vaadin.flow.component.UI.getCurrent;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-public final class WorkflowPrintGrid extends VerticalLayout {
+public final class WorkflowPrintGrid extends AdjustableWidthComposite<VerticalLayout> {
 
     private final Grid<ExecutionPrint> grid = new Grid<>();
-
-    public WorkflowPrintGrid() {
-        grid.addColumn(new ComponentRenderer<>(this::renderName))
-                .setHeader(getTranslation("workflow-print.grid.name.column"))
-                .setWidth("20%");
-        grid.addColumn(new ComponentRenderer<>(this::renderType))
-                .setHeader(getTranslation("workflow-print.grid.type.column"))
-                .setWidth("15%");
-        grid.addColumn(new ComponentRenderer<>(this::renderValue))
-                .setHeader(getTranslation("workflow-print.grid.value.column"))
-                .setWidth("65%");
-
-        final var contextMenu = grid.addContextMenu();
-        contextMenu.addItem(getTranslation("workflow-print.grid.context-menu.value-to-clipboard"),
-                event -> event.getItem().ifPresent(it -> getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", it.getFullValue())));
-
-        add(grid);
-    }
 
     public void setItems(final List<ExecutionPrint> prints) {
         grid.setItems(prints);
@@ -50,16 +34,52 @@ public final class WorkflowPrintGrid extends VerticalLayout {
         }
     }
 
+    @Override
+    protected VerticalLayout initContent() {
+        final var layout = super.initContent();
+
+        layout.setSizeFull();
+        grid.addComponentColumn(item -> new Html(getTranslation("workflow-print.grid.summarized.column", item.name(), item.getAbbrValue())))
+            .setHeader(getTranslation("workflow-print.grid.name.column")).setVisible(false);
+        grid.addColumn(new ComponentRenderer<>(this::renderName))
+            .setHeader(getTranslation("workflow-print.grid.name.column"));
+        grid.addColumn(new ComponentRenderer<>(this::renderValueAndType))
+            .setHeader(getTranslation("workflow-print.grid.value.column"));
+        layout.add(grid);
+
+        final var contextMenu = grid.addContextMenu();
+        contextMenu.addItem(getTranslation("workflow-print.grid.context-menu.value-to-clipboard"),
+            event -> event.getItem().ifPresent(it -> getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", it.getFullValue())));
+
+        return layout;
+    }
+
+    @Override
+    protected void adjustByWidth(final int width) {
+        boolean[] visibleColumns;
+        if (width > THRESHOLD_WIDTH) {
+            visibleColumns = new boolean[]{false, true, true};
+        } else {
+            visibleColumns = new boolean[]{true, false, false};
+        }
+        for (int index = 0; index < visibleColumns.length; index++) {
+            grid.getColumns().get(index).setVisible(visibleColumns[index]);
+        }
+    }
+
     private Component renderName(final ExecutionPrint print) {
-        return new Span(print.name());
+        final var span = new Span(print.name());
+        span.getElement().getThemeList().add("badge");
+        return span;
     }
 
-    private Component renderType(final ExecutionPrint print) {
-        return new Span(print.getType());
-    }
-
-    private Component renderValue(final ExecutionPrint print) {
-        return new Span(print.getAbbrValue());
+    private Component renderValueAndType(final ExecutionPrint print) {
+        final var span = new Span(print.getAbbrValue());
+        span.getElement().getThemeList().add("badge");
+        Tooltip.forComponent(span)
+            .withText(getTranslation("workflow-print.grid.type.tooltip", print.getType()))
+            .withPosition(Tooltip.TooltipPosition.TOP);
+        return span;
     }
 
 }

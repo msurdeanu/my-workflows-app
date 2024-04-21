@@ -16,7 +16,10 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasDynamicTitle;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
 import de.f0rce.ace.AceEditor;
@@ -27,6 +30,7 @@ import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.ExecutionContext;
 import org.myworkflows.domain.WorkflowTemplate;
+import org.myworkflows.domain.WorkflowTemplateFilter;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
@@ -48,7 +52,7 @@ import static java.util.Optional.ofNullable;
 @Slf4j
 @RolesAllowed("ROLE_ADMIN")
 @Route(value = WorkflowDevelopmentView.ROUTE, layout = BaseLayout.class)
-public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDynamicTitle {
+public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDynamicTitle, HasUrlParameter<Integer> {
 
     public static final String ROUTE = "workflow/development";
 
@@ -71,8 +75,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         currentWorkflowStatus.setVisible(false);
 
         add(createHeader(getTranslation("workflow-development.page.title"), createFilterByTemplate()),
-                createContent(createBody()),
-                createFooter());
+            createContent(createBody()),
+            createFooter());
     }
 
     @Override
@@ -81,12 +85,21 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     }
 
     @Override
+    public void setParameter(final BeforeEvent beforeEvent, @OptionalParameter final Integer selectedTemplateId) {
+        ofNullable(selectedTemplateId)
+            .flatMap(templateId -> applicationManager.getBeanOfType(WorkflowTemplateService.class)
+                .getAll(new WorkflowTemplateFilter().setByIdCriteria(templateId), 0, 1)
+                .findFirst())
+            .ifPresent(this::onFilteringByTemplate);
+    }
+
+    @Override
     protected void onAttach(final AttachEvent attachEvent) {
         final var ui = attachEvent.getUI();
         onSubmittedRegistration = applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
             final var workflowResultEvent = (WorkflowDefinitionOnSubmittedEvent) event;
             if (workflowResultEvent.getToken().equals(lastSubmittedUuid)
-                    && !workflowResultEvent.getValidationMessages().isEmpty()) {
+                && !workflowResultEvent.getValidationMessages().isEmpty()) {
                 ui.access(() -> updateWorkflowProgress(workflowResultEvent.getValidationMessages()));
             }
         }, WorkflowDefinitionOnSubmittedEvent.class);
@@ -104,15 +117,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     @Override
     protected void onDetach(final DetachEvent detachEvent) {
         onSubmittedRegistration.remove();
-        onSubmittedRegistration = null;
         onProgressRegistration.remove();
-        onProgressRegistration = null;
+        super.onDetach(detachEvent);
     }
 
     private Component createFilterByTemplate() {
         final var filterByTemplateSelect = new Select<WorkflowTemplate>();
         filterByTemplateSelect.setItems(applicationManager.getBeanOfType(WorkflowTemplateService.class)
-                .getAll().toList());
+            .getAll().toList());
         filterByTemplateSelect.setPlaceholder(getTranslation("workflow-development.filter.by-template.placeholder"));
         filterByTemplateSelect.setHelperText(getTranslation("workflow-development.filter.by-template.helper"));
         filterByTemplateSelect.setMinWidth("200px");
@@ -141,15 +153,15 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         inputDetails.setWidthFull();
 
         final var runWorkflowButton = new Button(getTranslation("workflow-development.run.button"),
-                new Icon(VaadinIcon.PLAY));
+            new Icon(VaadinIcon.PLAY));
         runWorkflowButton.setIconAfterText(true);
         runWorkflowButton.addClickListener(event -> {
             lastSubmittedUuid = UUID.randomUUID();
             applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
-                    .isManual(true)
-                    .token(lastSubmittedUuid)
-                    .workflow(editor.getValue())
-                    .build());
+                .isManual(true)
+                .token(lastSubmittedUuid)
+                .workflow(editor.getValue())
+                .build());
         });
         runWorkflowButton.setWidthFull();
 
@@ -175,9 +187,9 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.ERROR);
         currentWorkflowStatus.add(new Span(getTranslation("workflow-development.validation.message")));
         final var listItems = validationMessages.stream()
-                .map(ValidationMessage::getMessage)
-                .map(ListItem::new)
-                .toList();
+            .map(ValidationMessage::getMessage)
+            .map(ListItem::new)
+            .toList();
         currentWorkflowStatus.add(new UnorderedList(listItems.toArray(listItems.toArray(new ListItem[0]))));
 
         currentWorkflowStatus.setVisible(true);
@@ -190,17 +202,17 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
             ofNullable(executionContext.getFailureMessage()).ifPresentOrElse(error -> {
                 currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.ERROR);
                 currentWorkflowStatus.add(new Span(getTranslation("workflow-development.error.message",
-                        executionContext.getWorkflowId().toString(), executionContext.getHumanReadableDuration(),
-                        executionContext.getFailureMessage())));
+                    executionContext.getWorkflowId().toString(), executionContext.getHumanReadableDuration(),
+                    executionContext.getFailureMessage())));
             }, () -> {
                 currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.SUCCESS);
                 currentWorkflowStatus.add(new Span(getTranslation("workflow-development.success.message",
-                        executionContext.getWorkflowId().toString(), executionContext.getHumanReadableDuration())));
+                    executionContext.getWorkflowId().toString(), executionContext.getHumanReadableDuration())));
             });
         } else {
             currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.INFO);
             currentWorkflowStatus.add(new Span(getTranslation("workflow-development.in-progress.message",
-                    executionContext.getWorkflowId().toString())));
+                executionContext.getWorkflowId().toString())));
         }
 
         currentWorkflowStatus.setVisible(true);
