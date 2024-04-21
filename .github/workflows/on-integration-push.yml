@@ -1,4 +1,4 @@
-name: Build, Test, Release and Deploy
+name: Build, Test and Release
 
 on:
   push:
@@ -29,25 +29,3 @@ jobs:
       env:
         GITHUB_USERNAME: ${{ secrets.DEPLOY_GITHUB_USERNAME }}
         GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
-    - name: Upload WAR file
-      uses: actions/upload-artifact@v2
-      with:
-        name: artifact
-        path: target/myworkflows*.war
-  deploy:
-    needs: build
-    name: Deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download WAR file
-        uses: actions/download-artifact@v2
-        with:
-          name: artifact
-      - name: Deploy
-        uses: easingthemes/ssh-deploy@main
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
-          SCRIPT_BEFORE: ls

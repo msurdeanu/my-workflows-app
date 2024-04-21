@@ -21,6 +21,7 @@ All workflows are defined in JSON format and for playing with them, you have a n
 
 * **Modern** and **responsive** UI.
 * **Authentication** and **authorization** enabled by default.
+* Vaadin **Push** enabled. Through websockets, the server can send updates to the client.
 * Persistence layer based on **SQLite**.
 * Dedicated web pages for **workflow development**, **workflow templates** and **workflow runs**.
 * Dedicated web page for **statistics**.
