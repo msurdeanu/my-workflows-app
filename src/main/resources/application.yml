@@ -4,7 +4,7 @@ server:
 spring:
   jpa:
     # Prints current SQL query executed. Used for debug purposes.
-    show-sql: true
+    show-sql: false
     # Database type is SQLite
     database-platform: org.hibernate.community.dialect.SQLiteDialect
     hibernate:
