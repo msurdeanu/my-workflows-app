@@ -3,8 +3,8 @@ package org.myworkflows.view;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
-import org.myworkflows.layout.BaseLayout;
-import org.myworkflows.layout.ResponsiveLayout;
+import org.myworkflows.view.component.BaseLayout;
+import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.provider.StatisticProvider;
 import org.myworkflows.view.component.StatisticTreeGrid;
 

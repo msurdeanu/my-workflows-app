@@ -88,11 +88,48 @@ public final class WorkflowTemplateService {
         }
     }
 
+    public void changeCron(final Integer workflowId, final String newCron) {
+        lock.lock();
+        try {
+            ofNullable(ALL_WORKFLOWS.get(workflowId)).ifPresent(workflowTemplate -> {
+                if (workflowTemplate.isEnabled()) {
+                    applicationManager.getBeanOfType(WorkflowSchedulerService.class)
+                        .unschedule(workflowTemplate.getDefinition());
+                }
+                workflowTemplate.setCron(newCron);
+                if (workflowTemplate.isEnabled()) {
+                    applicationManager.getBeanOfType(WorkflowSchedulerService.class)
+                        .schedule(workflowTemplate.getDefinition(), newCron);
+                }
+                applicationManager.getBeanOfType(EventBroadcaster.class)
+                    .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
+            });
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public boolean changeDefinition(final Integer workflowId, final String newDefinition) {
         lock.lock();
         try {
             return ofNullable(ALL_WORKFLOWS.get(workflowId)).map(workflowTemplate -> {
                 workflowTemplate.setDefinition(fromJsonToObject(newDefinition, WorkflowDefinition.class));
+                applicationManager.getBeanOfType(EventBroadcaster.class)
+                    .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
+                return true;
+            }).orElse(false);
+        } catch (Exception notUsed) {
+            return false;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public boolean changeName(final Integer workflowId, final String newName) {
+        lock.lock();
+        try {
+            return ofNullable(ALL_WORKFLOWS.get(workflowId)).map(workflowTemplate -> {
+                workflowTemplate.setName(newName);
                 applicationManager.getBeanOfType(EventBroadcaster.class)
                     .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
                 return true;

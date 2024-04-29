@@ -2,12 +2,13 @@ package org.myworkflows.view.component;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
-import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.myworkflows.domain.ExecutionPrint;
+import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
 
@@ -17,20 +18,36 @@ import static com.vaadin.flow.component.UI.getCurrent;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-public final class WorkflowPrintGrid extends AdjustableWidthComposite<VerticalLayout> {
+public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> {
 
-    private final Grid<ExecutionPrint> grid = new Grid<>();
+    private final PaginatedGrid<ExecutionPrint, ?> paginatedGrid = new PaginatedGrid<>();
 
     public void setItems(final List<ExecutionPrint> prints) {
-        grid.setItems(prints);
+        paginatedGrid.setItems(prints);
         final var sizeOfPrints = prints.size();
         if (sizeOfPrints > 1) {
             for (int i = 0; i < sizeOfPrints - 1; i++) {
-                grid.setDetailsVisible(prints.get(i), false);
+                paginatedGrid.setDetailsVisible(prints.get(i), false);
             }
-            grid.setDetailsVisible(prints.get(sizeOfPrints - 1), true);
+            paginatedGrid.setDetailsVisible(prints.get(sizeOfPrints - 1), true);
         } else if (sizeOfPrints == 1) {
-            grid.setDetailsVisible(prints.get(0), true);
+            paginatedGrid.setDetailsVisible(prints.get(0), true);
+        }
+    }
+
+    @Override
+    public void onSmallWidth() {
+        boolean[] visibleColumns = new boolean[]{true, false, false};
+        for (int index = 0; index < visibleColumns.length; index++) {
+            paginatedGrid.getColumns().get(index).setVisible(visibleColumns[index]);
+        }
+    }
+
+    @Override
+    public void onBigWidth() {
+        boolean[] visibleColumns = new boolean[]{false, true, true};
+        for (int index = 0; index < visibleColumns.length; index++) {
+            paginatedGrid.getColumns().get(index).setVisible(visibleColumns[index]);
         }
     }
 
@@ -39,32 +56,22 @@ public final class WorkflowPrintGrid extends AdjustableWidthComposite<VerticalLa
         final var layout = super.initContent();
 
         layout.setSizeFull();
-        grid.addComponentColumn(item -> new Html(getTranslation("workflow-print.grid.summarized.column", item.name(), item.getAbbrValue())))
-            .setHeader(getTranslation("workflow-print.grid.name.column")).setVisible(false);
-        grid.addColumn(new ComponentRenderer<>(this::renderName))
+        paginatedGrid.addComponentColumn(item -> new Html(getTranslation("workflow-print.grid.summarized.column", item.name(), item.getAbbrValue())))
+            .setHeader(getTranslation("workflow-print.grid.name-value.column")).setVisible(false);
+        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderName))
             .setHeader(getTranslation("workflow-print.grid.name.column"));
-        grid.addColumn(new ComponentRenderer<>(this::renderValueAndType))
+        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderValueAndType))
             .setHeader(getTranslation("workflow-print.grid.value.column"));
-        layout.add(grid);
+        paginatedGrid.setPageSize(10);
+        paginatedGrid.setPaginatorSize(5);
+        paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
+        layout.add(paginatedGrid);
 
-        final var contextMenu = grid.addContextMenu();
+        final var contextMenu = paginatedGrid.addContextMenu();
         contextMenu.addItem(getTranslation("workflow-print.grid.context-menu.value-to-clipboard"),
             event -> event.getItem().ifPresent(it -> getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", it.getFullValue())));
 
         return layout;
-    }
-
-    @Override
-    protected void adjustByWidth(final int width) {
-        boolean[] visibleColumns;
-        if (width > THRESHOLD_WIDTH) {
-            visibleColumns = new boolean[]{false, true, true};
-        } else {
-            visibleColumns = new boolean[]{true, false, false};
-        }
-        for (int index = 0; index < visibleColumns.length; index++) {
-            grid.getColumns().get(index).setVisible(visibleColumns[index]);
-        }
     }
 
     private Component renderName(final ExecutionPrint print) {

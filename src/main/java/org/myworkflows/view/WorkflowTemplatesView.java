@@ -8,12 +8,13 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
 import org.myworkflows.domain.WorkflowTemplateFilter;
-import org.myworkflows.layout.BaseLayout;
-import org.myworkflows.layout.ResponsiveLayout;
+import org.myworkflows.view.component.BaseLayout;
+import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.service.WorkflowTemplateService;
 import org.myworkflows.view.component.WorkflowTemplateGrid;
 
@@ -62,8 +63,11 @@ public class WorkflowTemplatesView extends ResponsiveLayout implements HasDynami
     public void onActivationChanged(final Integer workflowTemplateId) {
         workflowTemplateService.changeActivation(workflowTemplateId);
         workflowTemplateGrid.refreshPage();
+    }
 
-        Notification.show("TODO"); // TODO
+    @Override
+    public void onCronChanged(final Integer workflowTemplateId, final String newCron) {
+        workflowTemplateService.changeCron(workflowTemplateId, newCron);
     }
 
     @Override
@@ -77,6 +81,13 @@ public class WorkflowTemplatesView extends ResponsiveLayout implements HasDynami
     public void onDelete(final Integer workflowTemplateId) {
         workflowTemplateService.delete(workflowTemplateId);
         workflowTemplateGrid.refreshPage();
+    }
+
+    @Override
+    public void onNameChanged(final Integer workflowTemplateId, @NonNull final String newName) {
+        if (workflowTemplateService.changeName(workflowTemplateId, newName)) {
+            Notification.show("Workflow template name changed successfully to '" + newName + "'.");
+        }
     }
 
     @Override
