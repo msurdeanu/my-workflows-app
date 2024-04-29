@@ -1,4 +1,4 @@
-package org.myworkflows.layout;
+package org.myworkflows.view.component;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -79,7 +79,7 @@ public class BaseLayout extends AppLayout {
     private Component createFooter() {
         final var layout = new Footer();
         layout.addClassNames("flex", "items-center", "my-s", "px-m", "py-xs");
-        layout.add(new Span("v1.0")); // TODO: Use version from settings table
+        layout.add(new Span("v1.0"));
         return layout;
     }
 

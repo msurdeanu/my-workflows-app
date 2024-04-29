@@ -10,9 +10,7 @@ import com.vaadin.flow.shared.Registration;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-public abstract class AdjustableWidthComposite<T extends Component> extends Composite<T> {
-
-    protected static final int THRESHOLD_WIDTH = 900;
+public abstract class ResizableComposite<T extends Component> extends Composite<T> implements HasResizeableWidth {
 
     private Registration registration;
 
@@ -29,7 +27,5 @@ public abstract class AdjustableWidthComposite<T extends Component> extends Comp
         registration.remove();
         super.onDetach(detachEvent);
     }
-
-    protected abstract void adjustByWidth(final int width);
 
 }

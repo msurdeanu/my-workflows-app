@@ -36,8 +36,8 @@ public final class StatisticTreeGrid extends Composite<VerticalLayout> {
     @Override
     protected VerticalLayout initContent() {
         final var layout = super.initContent();
-
         layout.setSizeFull();
+
         treeGrid.setItems(statisticItemListMap.keySet(), parent -> statisticItemListMap.getOrDefault(parent, List.of()));
         treeGrid.addColumn(LitRenderer.<StatisticItem>of("<vaadin-grid-tree-toggle @click=${onClick} "
                     + ".leaf=${item.leaf} .expanded=${model.expanded} .level=${model.level}>"

@@ -34,10 +34,11 @@ import org.myworkflows.domain.WorkflowTemplateFilter;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
-import org.myworkflows.layout.BaseLayout;
-import org.myworkflows.layout.ResponsiveLayout;
 import org.myworkflows.serializer.JsonFactory;
 import org.myworkflows.service.WorkflowTemplateService;
+import org.myworkflows.view.component.BaseLayout;
+import org.myworkflows.view.component.HasResizeableWidth;
+import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowPrintGrid;
 
 import java.util.Set;
@@ -52,7 +53,7 @@ import static java.util.Optional.ofNullable;
 @Slf4j
 @RolesAllowed("ROLE_ADMIN")
 @Route(value = WorkflowDevelopmentView.ROUTE, layout = BaseLayout.class)
-public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDynamicTitle, HasUrlParameter<Integer> {
+public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResizeableWidth, HasDynamicTitle, HasUrlParameter<Integer> {
 
     public static final String ROUTE = "workflow/development";
 
@@ -61,6 +62,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     private final WorkflowPrintGrid workflowPrintGrid = new WorkflowPrintGrid();
 
     private final ApplicationManager applicationManager;
+    private final SplitLayout splitLayout;
 
     private Registration onSubmittedRegistration;
     private Registration onProgressRegistration;
@@ -74,8 +76,9 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         currentWorkflowStatus.setCompact(true);
         currentWorkflowStatus.setVisible(false);
 
+        splitLayout = createBody();
         add(createHeader(getTranslation("workflow-development.page.title"), createFilterByTemplate()),
-            createContent(createBody()),
+            createContent(splitLayout),
             createFooter());
     }
 
@@ -94,7 +97,18 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     }
 
     @Override
+    public void onSmallWidth() {
+        splitLayout.setOrientation(SplitLayout.Orientation.VERTICAL);
+    }
+
+    @Override
+    public void onBigWidth() {
+        splitLayout.setOrientation(SplitLayout.Orientation.HORIZONTAL);
+    }
+
+    @Override
     protected void onAttach(final AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
         final var ui = attachEvent.getUI();
         onSubmittedRegistration = applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
             final var workflowResultEvent = (WorkflowDefinitionOnSubmittedEvent) event;
@@ -116,8 +130,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
 
     @Override
     protected void onDetach(final DetachEvent detachEvent) {
-        onSubmittedRegistration.remove();
         onProgressRegistration.remove();
+        onSubmittedRegistration.remove();
         super.onDetach(detachEvent);
     }
 
@@ -137,7 +151,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         editor.setValue(JsonFactory.toPrettyString(workflowTemplate.getDefinition(), ""));
     }
 
-    private Component createBody() {
+    private SplitLayout createBody() {
         final var layout = new SplitLayout(createLeft(), createRight());
         layout.setSplitterPosition(50);
         layout.setWidthFull();
