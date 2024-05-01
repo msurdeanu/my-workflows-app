@@ -9,17 +9,17 @@ import static org.apache.commons.lang3.StringUtils.abbreviate;
  */
 public record ExecutionPrint(String name, Object value) {
 
-    private static final String NULL_AS_STR = "null";
+    public static final String NULL_AS_STR = "null";
 
-    public String getType() {
+    public String type() {
         return ofNullable(value).map(item -> item.getClass().getSimpleName().toLowerCase()).orElse(NULL_AS_STR);
     }
 
-    public String getAbbrValue() {
+    public String abbrValue() {
         return ofNullable(value).map(item -> abbreviate(item.toString(), 64)).orElse(NULL_AS_STR);
     }
 
-    public String getFullValue() {
+    public String fullValue() {
         return ofNullable(value).map(Object::toString).orElse(NULL_AS_STR);
     }
 
