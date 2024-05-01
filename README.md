@@ -35,7 +35,8 @@ All workflows are defined in JSON format and for playing with them, you have a n
 
 ### Abbreviations
 
-* **Command**: Represents a standalone entity for executing an operation. A command has a name, a type, inputs, asserts and outputs.
+* **Command**: Represents a standalone entity for encapsulating an operation. A command has a name, a type, ifs, inputs,
+  asserts and outputs.
 * **Workflow**: Represents one or multiple commands which will be executed on a single thread and in a sequential order.
 * **Input**: Each commands needs some inputs in order to do the expected operation.
 * **Assert**: Once a command is completed, the output, if exists, can be validated through a set of assertions.
@@ -56,7 +57,8 @@ The thread is configured to run commands in the same order as they are defined i
 You are allowed to use global `placeholders` to avoid data duplication in your workflow definition.
 Please note that all placeholders are resolved immediately before workflow running process.
 All placeholders are persisted in a database - a table called `placeholders`.
-Placeholders are mandatory, as a result, if one of them is not found, you will get en exception and your workflow will not continue his execution.
+Placeholders are mandatory, as a result, if one of them is not found, you will get en exception and your workflow will
+not continue his execution.
 
 Inside workflow definition, you can recognize a placeholder by having this format: `$(NAME)`.
 You are allowed to use placeholders inside any `input`, `assert` and `output` (`name` and `value` fields).
@@ -65,12 +67,14 @@ You are allowed to use placeholders inside any `input`, `assert` and `output` (`
 
 From technical point of view, each workflow is defined in JSON format.
 If you are familiar with JSON, you probably know that comments are not allowed.
-Since comments are useful sometimes, there is a hack that can be implemented to have this wonderful feature: by using a dedicated field called `_comment`.
+Since comments are useful sometimes, there is a hack that can be implemented to have this wonderful feature: by using a
+dedicated field called `_comment`.
 This field can be used anywhere in the workflow definition.
 
 ### Finally commands
 
-The concept of `finally commands` lets you declare some special commands for your workflow to be executed at the end, no matter if the workflow failed.
+The concept of `finally commands` lets you declare some special commands for your workflow to be executed at the end, no
+matter if the workflow failed.
 The concept is similar with `try-finally` block functionality from Java.
 
 ```
@@ -93,21 +97,22 @@ As you probably already imagine, this command is very powerful.
 | `groovy` | <ul><li><strong>scriptLines</strong>: Mandatory. Represents source code which contains definition of a `methodName` (or `run`) method to be executed.</li><li><em>methodName</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
 
 Example of a dummy command:
+
 ```json
 {
-  "name":"Run empty method",
-  "@type":"groovy",
-  "inputs":[
+  "name": "Run empty method",
+  "@type": "groovy",
+  "inputs": [
     {
-      "name":"scriptLines",
-      "value":[
+      "name": "scriptLines",
+      "value": [
         "def run(executionCache) {",
         "}"
       ]
     },
     {
-      "name":"methodName",
-      "value":"run"
+      "name": "methodName",
+      "value": "run"
     }
   ]
 }
@@ -123,14 +128,15 @@ The purpose of this command is to allow inputs to be injected in the workflow pi
 | `nothing` | N/A    | N/A    |
 
 Example of a dummy command:
+
 ```json
 {
-  "name":"Inject input parameters or process existing ones",
-  "@type":"nothing",
-  "inputs":[
+  "name": "Inject input parameters or process existing ones",
+  "@type": "nothing",
+  "inputs": [
     {
-      "name":"test",
-      "value":"Just a simple test"
+      "name": "test",
+      "value": "Just a simple test"
     }
   ]
 }
@@ -140,19 +146,20 @@ Example of a dummy command:
 
 Captures an input / output variable during workflow execution and shows the value to the UI.
 
-| `@type` | Inputs                                                                                                                                                                                                           | Output                                                                |
-|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
+| `@type` | Inputs                                                                                                          | Output                                                                |
+|---------|-----------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
 | `print` | <ul><li><strong>keys</strong>: Mandatory. Represents a list of variable names that will be displayed.</li></ul> | Returns total number of keys affected by this operation. Type: `int`. |
 
 Example of a dummy command:
+
 ```json
 {
-  "name":"Print 'commandOutput' value",
-  "@type":"print",
-  "inputs":[
+  "name": "Print 'commandOutput' value",
+  "@type": "print",
+  "inputs": [
     {
-      "name":"keys",
-      "value":[
+      "name": "keys",
+      "value": [
         "commandOutput"
       ]
     }
@@ -170,14 +177,15 @@ Time unit is milliseconds.
 | `sleep` | <ul><li><strong>sleepTime</strong>: Mandatory. Represents number of millis used to sleep.</li></ul> | Returns the actual time slept. Type: `long`. |
 
 Example of a dummy command:
+
 ```json
 {
-  "name":"Sleep for one second",
-  "@type":"sleep",
-  "inputs":[
+  "name": "Sleep for one second",
+  "@type": "sleep",
+  "inputs": [
     {
-      "name":"sleepTime",
-      "value":1000
+      "name": "sleepTime",
+      "value": 1000
     }
   ]
 }
@@ -187,31 +195,31 @@ Example of a dummy command:
 
 ```json
 {
-  "name":"Test",
-  "commands":[
+  "name": "Test",
+  "commands": [
     {
-      "name":"Just a sleep",
-      "@type":"sleep",
-      "inputs":[
+      "name": "Just a sleep",
+      "@type": "sleep",
+      "inputs": [
         {
-          "name":"sleepTime",
-          "value":5000
+          "name": "sleepTime",
+          "value": 5000
         }
       ],
-      "outputs":[
+      "outputs": [
         {
-          "name":"$(TEST)",
-          "value":5000
+          "name": "$(TEST)",
+          "value": 5000
         }
       ]
     },
     {
-      "name":"Just a print",
-      "@type":"print",
-      "inputs":[
+      "name": "Just a print",
+      "@type": "print",
+      "inputs": [
         {
-          "name":"keys",
-          "value":[
+          "name": "keys",
+          "value": [
             "$(TEST)"
           ]
         }
@@ -222,7 +230,9 @@ Example of a dummy command:
 ```
 
 ## Running the application
-There are two ways to run the application: using `mvn spring-boot:run` or by running the `Application` class directly from your IDE.
+
+There are two ways to run the application: using `mvn spring-boot:run` or by running the `Application` class directly
+from your IDE.
 
 You can use any IDE of your preference, but I suggest IntelliJ IDEA.
 
@@ -230,18 +240,18 @@ You can use any IDE of your preference, but I suggest IntelliJ IDEA.
 
 Vaadin web applications are full-stack and include both client-side and server-side code in the same project.
 
-| Directory                                                 | Description                                           |
-|:----------------------------------------------------------|:------------------------------------------------------|
-| `frontend/`                                               | Client-side source directory                          |
-| &nbsp;&nbsp;&nbsp;&nbsp;`themes/`                         | Themes directory (CSS)                                |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`simple/` | Default theme                                         |
-| `src/main/java/org/myworkflows`                           | Server-side source directory                          |
-| &nbsp;&nbsp;&nbsp;&nbsp;`component/`                      | Package with all Vaadin custom components             |
-| &nbsp;&nbsp;&nbsp;&nbsp;`config/`                         | Package with different Spring configuration beans     |
-| &nbsp;&nbsp;&nbsp;&nbsp;`domain/`                         | Package with all classes part of application domain   |
-| &nbsp;&nbsp;&nbsp;&nbsp;`provider/`                       | Java package with a set of providers                  |
-| &nbsp;&nbsp;&nbsp;&nbsp;`repository/`                     | Contains a set of JpaRepositories                     |
-| &nbsp;&nbsp;&nbsp;&nbsp;`service/`                        | Contains a set of services exposed by the application |
-| &nbsp;&nbsp;&nbsp;&nbsp;`view/`                           | Contains a set of views exposed by the application    |
-| &nbsp;&nbsp;&nbsp;&nbsp;`Application.java`                | Server entrypoint                                     |
+| Directory                                                    | Description                                           |
+|:-------------------------------------------------------------|:------------------------------------------------------|
+| `frontend/`                                                  | Client-side source directory                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;`themes/`                            | Themes directory (CSS)                                |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`simple/`    | Default theme                                         |
+| `src/main/java/org/myworkflows`                              | Server-side source directory                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;`config/`                            | Package with different Spring configuration beans     |
+| &nbsp;&nbsp;&nbsp;&nbsp;`domain/`                            | Package with all classes part of application domain   |
+| &nbsp;&nbsp;&nbsp;&nbsp;`provider/`                          | Java package with a set of providers                  |
+| &nbsp;&nbsp;&nbsp;&nbsp;`repository/`                        | Contains a set of JpaRepositories                     |
+| &nbsp;&nbsp;&nbsp;&nbsp;`service/`                           | Contains a set of services exposed by the application |
+| &nbsp;&nbsp;&nbsp;&nbsp;`view/`                              | Contains a set of views exposed by the application    |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`component/` | Package with all Vaadin custom components             |
+| &nbsp;&nbsp;&nbsp;&nbsp;`Application.java`                   | Server entrypoint                                     |
 

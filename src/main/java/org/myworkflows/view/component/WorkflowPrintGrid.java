@@ -56,7 +56,7 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
         final var layout = super.initContent();
 
         layout.setSizeFull();
-        paginatedGrid.addComponentColumn(item -> new Html(getTranslation("workflow-print.grid.summarized.column", item.name(), item.getAbbrValue())))
+        paginatedGrid.addComponentColumn(item -> new Html(getTranslation("workflow-print.grid.summarized.column", item.name(), item.abbrValue())))
             .setHeader(getTranslation("workflow-print.grid.name-value.column")).setVisible(false);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderName))
             .setHeader(getTranslation("workflow-print.grid.name.column"));
@@ -64,12 +64,14 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
             .setHeader(getTranslation("workflow-print.grid.value.column"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
+        paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(WorkflowTemplateDetailsFormLayout::new,
+            WorkflowTemplateDetailsFormLayout::setExecutionPrint));
         paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
         layout.add(paginatedGrid);
 
         final var contextMenu = paginatedGrid.addContextMenu();
         contextMenu.addItem(getTranslation("workflow-print.grid.context-menu.value-to-clipboard"),
-            event -> event.getItem().ifPresent(it -> getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", it.getFullValue())));
+            event -> event.getItem().ifPresent(it -> getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", it.fullValue())));
 
         return layout;
     }
@@ -81,10 +83,10 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
     }
 
     private Component renderValueAndType(final ExecutionPrint print) {
-        final var span = new Span(print.getAbbrValue());
+        final var span = new Span(print.abbrValue());
         span.getElement().getThemeList().add("badge");
         Tooltip.forComponent(span)
-            .withText(getTranslation("workflow-print.grid.type.tooltip", print.getType()))
+            .withText(getTranslation("workflow-print.grid.type.tooltip", print.type()))
             .withPosition(Tooltip.TooltipPosition.TOP);
         return span;
     }
