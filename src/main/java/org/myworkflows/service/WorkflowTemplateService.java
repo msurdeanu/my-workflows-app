@@ -52,7 +52,7 @@ public final class WorkflowTemplateService {
             .forEach(this::loadAndSchedule);
     }
 
-    public void loadAndSchedule(@NonNull final WorkflowTemplate workflowTemplate) {
+    public void loadAndSchedule(@NonNull WorkflowTemplate workflowTemplate) {
         lock.lock();
         try {
             ofNullable(ALL_WORKFLOWS.put(workflowTemplate.getId(), workflowTemplate))
@@ -68,7 +68,7 @@ public final class WorkflowTemplateService {
         }
     }
 
-    public void changeActivation(@NonNull final Integer workflowId) {
+    public void changeActivation(@NonNull Integer workflowId) {
         lock.lock();
         try {
             ofNullable(ALL_WORKFLOWS.get(workflowId)).ifPresent(workflowTemplate -> {
@@ -88,7 +88,7 @@ public final class WorkflowTemplateService {
         }
     }
 
-    public void changeCron(final Integer workflowId, final String newCron) {
+    public void changeCron(Integer workflowId, String newCron) {
         lock.lock();
         try {
             ofNullable(ALL_WORKFLOWS.get(workflowId)).ifPresent(workflowTemplate -> {
@@ -109,7 +109,7 @@ public final class WorkflowTemplateService {
         }
     }
 
-    public boolean changeDefinition(final Integer workflowId, final String newDefinition) {
+    public boolean changeDefinition(Integer workflowId, String newDefinition) {
         lock.lock();
         try {
             return ofNullable(ALL_WORKFLOWS.get(workflowId)).map(workflowTemplate -> {
@@ -125,7 +125,7 @@ public final class WorkflowTemplateService {
         }
     }
 
-    public boolean changeName(final Integer workflowId, final String newName) {
+    public boolean changeName(Integer workflowId, String newName) {
         lock.lock();
         try {
             return ofNullable(ALL_WORKFLOWS.get(workflowId)).map(workflowTemplate -> {
@@ -141,7 +141,7 @@ public final class WorkflowTemplateService {
         }
     }
 
-    public void delete(final Integer workflowId) {
+    public void delete(Integer workflowId) {
         lock.lock();
         try {
             final var workflowTemplate = ALL_WORKFLOWS.remove(workflowId);
@@ -156,20 +156,20 @@ public final class WorkflowTemplateService {
         }
     }
 
-    public void scheduleNow(final Integer workflowId) {
+    public void scheduleNow(Integer workflowId) {
         ofNullable(ALL_WORKFLOWS.get(workflowId)).ifPresent(workflowTemplate -> {
             applicationManager.getBeanOfType(WorkflowSchedulerService.class)
                 .scheduleNowAsync(workflowTemplate.getDefinition());
         });
     }
 
-    public Stream<WorkflowTemplate> findBy(final Query<WorkflowTemplate, WorkflowTemplateFilter> query) {
+    public Stream<WorkflowTemplate> findBy(Query<WorkflowTemplate, WorkflowTemplateFilter> query) {
         return query.getFilter()
             .map(filter -> getAll(filter, query.getOffset(), query.getLimit()))
             .orElseGet(this::getAll);
     }
 
-    public int countBy(final Query<WorkflowTemplate, WorkflowTemplateFilter> query) {
+    public int countBy(Query<WorkflowTemplate, WorkflowTemplateFilter> query) {
         return query.getFilter()
             .map(this::getAllSize)
             .orElseGet(this::getAllSize)
@@ -180,7 +180,7 @@ public final class WorkflowTemplateService {
         return getAll(new WorkflowTemplateFilter(), 0, Long.MAX_VALUE);
     }
 
-    public Stream<WorkflowTemplate> getAll(final WorkflowTemplateFilter filter, final long offset, final long limit) {
+    public Stream<WorkflowTemplate> getAll(WorkflowTemplateFilter filter, long offset, long limit) {
         return ALL_WORKFLOWS.values().stream()
             .filter(getPredicateByIdCriteria(filter.getByIdCriteria()))
             .filter(getPredicateByNameCriteria(filter.getByNameCriteria()))
@@ -192,17 +192,17 @@ public final class WorkflowTemplateService {
         return getAll().count();
     }
 
-    public long getAllSize(final WorkflowTemplateFilter filter) {
+    public long getAllSize(WorkflowTemplateFilter filter) {
         return getAll(filter, 0, Long.MAX_VALUE).count();
     }
 
-    private Predicate<WorkflowTemplate> getPredicateByIdCriteria(final int byIdCriteria) {
+    private Predicate<WorkflowTemplate> getPredicateByIdCriteria(int byIdCriteria) {
         return byIdCriteria > 0
             ? workflowTemplate -> workflowTemplate.getId() == byIdCriteria
             : ALWAYS_TRUE_PREDICATE;
     }
 
-    private Predicate<WorkflowTemplate> getPredicateByNameCriteria(final String byNameCriteria) {
+    private Predicate<WorkflowTemplate> getPredicateByNameCriteria(String byNameCriteria) {
         return isNotEmpty(byNameCriteria)
             ? workflowTemplate -> StringUtils.containsIgnoreCase(workflowTemplate.getName(), byNameCriteria)
             : ALWAYS_TRUE_PREDICATE;

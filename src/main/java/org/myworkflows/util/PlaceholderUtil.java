@@ -18,11 +18,11 @@ public class PlaceholderUtil {
 
     public static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\(([a-zA-Z0-9_]+)\\)");
 
-    public static String resolvePlaceholders(final String value,
-                                             final Map<String, String> placeholders) {
+    public static String resolvePlaceholders(String value, Map<String, String> placeholders) {
         return StringReplacer.replace(value, PLACEHOLDER_PATTERN, (Matcher matcher) -> {
             final var name = matcher.group(1);
             return ofNullable(placeholders.get(name)).orElseGet(() -> matcher.group(0));
         });
     }
+
 }

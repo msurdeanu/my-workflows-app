@@ -45,7 +45,7 @@ public class CacheManagerStatisticProvider implements StatisticProvider {
                 .build();
     }
 
-    private String cacheToString(final Cache<Object, Object> cache) {
+    private String cacheToString(Cache<Object, Object> cache) {
         final var cacheStats = cache.stats();
         return format("(%.4f, %d, %d)", cacheStats.hitRate(), cacheStats.totalLoadTime(), cache.estimatedSize());
     }

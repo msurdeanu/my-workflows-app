@@ -46,7 +46,7 @@ public final class WorkflowDefinitionService implements EventListener<WorkflowDe
     }
 
     @Override
-    public void onEventReceived(final WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
+    public void onEventReceived(WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var workflowObject = onSubmitEvent.getWorkflow();
 
         final var onSubmittedEventBuilder = WorkflowDefinitionOnSubmittedEvent.builder();
@@ -74,8 +74,8 @@ public final class WorkflowDefinitionService implements EventListener<WorkflowDe
         return WorkflowDefinitionOnSubmitEvent.class;
     }
 
-    private Future<?> submit(final WorkflowDefinition workflowDefinition,
-                             final WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
+    private Future<?> submit(WorkflowDefinition workflowDefinition,
+                             WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var executionContext = ofNullable(onSubmitEvent.getExecutionContext())
                 .orElseGet(() -> new ExecutionContext(workflowDefinition));
         final var onProgressEventBuilder = WorkflowDefinitionOnProgressEvent.builder();
@@ -84,8 +84,8 @@ public final class WorkflowDefinitionService implements EventListener<WorkflowDe
         return threadPoolExecutor.submit(() -> runSynchronously(workflowDefinition, onProgressEventBuilder.build()));
     }
 
-    private void runSynchronously(final WorkflowDefinition workflowDefinition,
-                                  final WorkflowDefinitionOnProgressEvent workflowResultEvent) {
+    private void runSynchronously(WorkflowDefinition workflowDefinition,
+                                  WorkflowDefinitionOnProgressEvent workflowResultEvent) {
         final var executionContext = workflowResultEvent.getExecutionContext();
         final var startTime = System.currentTimeMillis();
         applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
@@ -114,7 +114,7 @@ public final class WorkflowDefinitionService implements EventListener<WorkflowDe
         }
     }
 
-    private void resolveCommandPlaceholders(final AbstractCommand abstractCommand) {
+    private void resolveCommandPlaceholders(AbstractCommand abstractCommand) {
         resolveItemPlaceholders(abstractCommand.getInputs());
         resolveItemPlaceholders(abstractCommand.getAsserts());
         resolveItemPlaceholders(abstractCommand.getOutputs());
@@ -123,14 +123,14 @@ public final class WorkflowDefinitionService implements EventListener<WorkflowDe
         }
     }
 
-    private void resolveItemPlaceholders(final Collection<ExpressionNameValue> items) {
+    private void resolveItemPlaceholders(Collection<ExpressionNameValue> items) {
         items.forEach(item -> {
             item.setName((String) resolvePlaceholders(item.getName()));
             item.setValue(resolvePlaceholders(item.getValue()));
         });
     }
 
-    private Object resolvePlaceholders(final Object value) {
+    private Object resolvePlaceholders(Object value) {
         if (value instanceof String valueAsString) {
             return PlaceholderUtil.resolvePlaceholders(valueAsString,
                     applicationManager.getBeanOfType(PlaceholderRepository.class).getAllAsMap());

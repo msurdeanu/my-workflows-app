@@ -12,7 +12,7 @@ public final class ExceptionUtil {
 
     private static final String DOT = ".";
 
-    public static String getMessageAndCause(final Throwable throwable) {
+    public static String getMessageAndCause(Throwable throwable) {
         if (throwable == null) {
             return null;
         }
@@ -23,7 +23,7 @@ public final class ExceptionUtil {
         return builder.toString();
     }
 
-    private static String formatCause(final Throwable cause) {
+    private static String formatCause(Throwable cause) {
         final var builder = new StringBuilder(" Cause type: ");
         builder.append(cause.getClass().getSimpleName());
         builder.append(DOT);

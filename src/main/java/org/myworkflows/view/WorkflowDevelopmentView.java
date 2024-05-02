@@ -68,7 +68,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private Registration onProgressRegistration;
     private UUID lastSubmittedUuid;
 
-    public WorkflowDevelopmentView(final ApplicationManager applicationManager) {
+    public WorkflowDevelopmentView(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
 
         editor.setMode(AceMode.json);
@@ -88,7 +88,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     }
 
     @Override
-    public void setParameter(final BeforeEvent beforeEvent, @OptionalParameter final Integer selectedTemplateId) {
+    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter Integer selectedTemplateId) {
         ofNullable(selectedTemplateId)
             .flatMap(templateId -> applicationManager.getBeanOfType(WorkflowTemplateService.class)
                 .getAll(new WorkflowTemplateFilter().setByIdCriteria(templateId), 0, 1)
@@ -107,7 +107,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     }
 
     @Override
-    protected void onAttach(final AttachEvent attachEvent) {
+    protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         final var ui = attachEvent.getUI();
         onSubmittedRegistration = applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
@@ -129,7 +129,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     }
 
     @Override
-    protected void onDetach(final DetachEvent detachEvent) {
+    protected void onDetach(DetachEvent detachEvent) {
         onProgressRegistration.remove();
         onSubmittedRegistration.remove();
         super.onDetach(detachEvent);
@@ -147,7 +147,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         return filterByTemplateSelect;
     }
 
-    private void onFilteringByTemplate(final WorkflowTemplate workflowTemplate) {
+    private void onFilteringByTemplate(WorkflowTemplate workflowTemplate) {
         editor.setValue(JsonFactory.toPrettyString(workflowTemplate.getDefinition(), ""));
     }
 
@@ -195,7 +195,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         return layout;
     }
 
-    private void updateWorkflowProgress(final Set<ValidationMessage> validationMessages) {
+    private void updateWorkflowProgress(Set<ValidationMessage> validationMessages) {
         currentWorkflowStatus.removeAll();
 
         currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.ERROR);
@@ -209,7 +209,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         currentWorkflowStatus.setVisible(true);
     }
 
-    private void updateWorkflowProgress(final ExecutionContext executionContext) {
+    private void updateWorkflowProgress(ExecutionContext executionContext) {
         currentWorkflowStatus.removeAll();
 
         if (executionContext.isRunCompleted()) {

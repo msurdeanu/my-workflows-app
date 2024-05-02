@@ -20,7 +20,7 @@ public final class WorkflowTemplateOnUpdateEventService implements EventListener
     private final ApplicationManager applicationManager;
 
     @Override
-    public void onEventReceived(final WorkflowTemplateOnUpdateEvent event) {
+    public void onEventReceived(WorkflowTemplateOnUpdateEvent event) {
         applicationManager.getBeanOfType(WorkflowTemplateRepository.class)
                 .save(event.getWorkflowTemplate());
     }

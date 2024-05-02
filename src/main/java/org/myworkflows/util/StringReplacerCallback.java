@@ -9,6 +9,6 @@ import java.util.regex.Matcher;
 @FunctionalInterface
 public interface StringReplacerCallback {
 
-    String replace(final Matcher match);
+    String replace(Matcher match);
 
 }

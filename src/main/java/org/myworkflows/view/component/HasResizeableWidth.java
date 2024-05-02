@@ -12,7 +12,7 @@ public interface HasResizeableWidth {
     default void onSmallWidth() {
     }
 
-    default void adjustByWidth(final int width) {
+    default void adjustByWidth(int width) {
         if (width > 900) {
             onBigWidth();
         } else {

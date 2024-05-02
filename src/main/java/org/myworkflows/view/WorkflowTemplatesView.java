@@ -37,7 +37,7 @@ public class WorkflowTemplatesView extends ResponsiveLayout implements HasDynami
 
     private final WorkflowTemplateGrid workflowTemplateGrid;
 
-    public WorkflowTemplatesView(final WorkflowTemplateService workflowTemplateService) {
+    public WorkflowTemplatesView(WorkflowTemplateService workflowTemplateService) {
         super();
         this.workflowTemplateService = workflowTemplateService;
 
@@ -60,38 +60,38 @@ public class WorkflowTemplatesView extends ResponsiveLayout implements HasDynami
     }
 
     @Override
-    public void onActivationChanged(final Integer workflowTemplateId) {
+    public void onActivationChanged(Integer workflowTemplateId) {
         workflowTemplateService.changeActivation(workflowTemplateId);
         workflowTemplateGrid.refreshPage();
     }
 
     @Override
-    public void onCronChanged(final Integer workflowTemplateId, final String newCron) {
+    public void onCronChanged(Integer workflowTemplateId, String newCron) {
         workflowTemplateService.changeCron(workflowTemplateId, newCron);
     }
 
     @Override
-    public void onDefinitionChanged(final Integer workflowTemplateId, final String newDefinition) {
+    public void onDefinitionChanged(Integer workflowTemplateId, String newDefinition) {
         if (workflowTemplateService.changeDefinition(workflowTemplateId, newDefinition)) {
             Notification.show("Workflow template definition changed successfully.");
         }
     }
 
     @Override
-    public void onDelete(final Integer workflowTemplateId) {
+    public void onDelete(Integer workflowTemplateId) {
         workflowTemplateService.delete(workflowTemplateId);
         workflowTemplateGrid.refreshPage();
     }
 
     @Override
-    public void onNameChanged(final Integer workflowTemplateId, @NonNull final String newName) {
+    public void onNameChanged(Integer workflowTemplateId, @NonNull String newName) {
         if (workflowTemplateService.changeName(workflowTemplateId, newName)) {
             Notification.show("Workflow template name changed successfully to '" + newName + "'.");
         }
     }
 
     @Override
-    public void onScheduleNow(final Integer workflowTemplateId) {
+    public void onScheduleNow(Integer workflowTemplateId) {
         workflowTemplateService.scheduleNow(workflowTemplateId);
     }
 
@@ -107,7 +107,7 @@ public class WorkflowTemplatesView extends ResponsiveLayout implements HasDynami
         return filterByNameTextField;
     }
 
-    private void onFilteringByName(final String value) {
+    private void onFilteringByName(String value) {
         workflowTemplateFilter.setByNameCriteria(value.toLowerCase());
 
         workflowTemplateGrid.refreshPage();

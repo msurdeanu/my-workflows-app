@@ -42,15 +42,14 @@ public final class WorkflowTemplateDetails extends Composite<VerticalLayout> {
         return layout;
     }
 
-    public void setDetails(final WorkflowTemplate workflowTemplate) {
+    public void setDetails(WorkflowTemplate workflowTemplate) {
         editor.setValue(JsonFactory.toPrettyString(workflowTemplate.getDefinition(), ""));
         editor.addAceChangedListener(event -> saveButton.setEnabled(isNewDefinition(workflowTemplate, event.getValue())));
 
         saveButton.addClickListener(event -> workflowTemplateEventHandler.onDefinitionChanged(workflowTemplate.getId(), editor.getValue()));
     }
 
-    private boolean isNewDefinition(final WorkflowTemplate workflowTemplate,
-                                    final String newDefinition) {
+    private boolean isNewDefinition(WorkflowTemplate workflowTemplate, String newDefinition) {
         return !JsonFactory.toPrettyString(workflowTemplate.getDefinition(), "").equals(newDefinition);
     }
 

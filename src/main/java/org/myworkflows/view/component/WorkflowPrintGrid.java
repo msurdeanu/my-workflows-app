@@ -22,7 +22,7 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
 
     private final PaginatedGrid<ExecutionPrint, ?> paginatedGrid = new PaginatedGrid<>();
 
-    public void setItems(final List<ExecutionPrint> prints) {
+    public void setItems(List<ExecutionPrint> prints) {
         paginatedGrid.setItems(prints);
         final var sizeOfPrints = prints.size();
         if (sizeOfPrints > 1) {
@@ -76,13 +76,13 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
         return layout;
     }
 
-    private Component renderName(final ExecutionPrint print) {
+    private Component renderName(ExecutionPrint print) {
         final var span = new Span(print.name());
         span.getElement().getThemeList().add("badge");
         return span;
     }
 
-    private Component renderValueAndType(final ExecutionPrint print) {
+    private Component renderValueAndType(ExecutionPrint print) {
         final var span = new Span(print.abbrValue());
         span.getElement().getThemeList().add("badge");
         Tooltip.forComponent(span)

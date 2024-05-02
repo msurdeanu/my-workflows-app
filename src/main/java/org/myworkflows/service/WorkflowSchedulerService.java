@@ -35,7 +35,7 @@ public final class WorkflowSchedulerService {
 
     private final ApplicationManager applicationManager;
 
-    public void schedule(final WorkflowDefinition workflowDefinition, final String cron) {
+    public void schedule(WorkflowDefinition workflowDefinition, String cron) {
         final var scheduledTask = applicationManager.getBeanOfType(TaskScheduler.class)
                 .schedule(new WorkflowRunnable(applicationManager, workflowDefinition),
                         new CronTrigger(cron, TimeZone.getTimeZone(TimeZone.getDefault().getID())));
@@ -52,12 +52,12 @@ public final class WorkflowSchedulerService {
                 workflowDefinition.getId().toString(), cron);
     }
 
-    public void scheduleNowAsync(final WorkflowDefinition workflowDefinition) {
+    public void scheduleNowAsync(WorkflowDefinition workflowDefinition) {
         applicationManager.getBeanOfType(TaskScheduler.class)
                 .schedule(new WorkflowRunnable(applicationManager, workflowDefinition), Instant.now());
     }
 
-    public void unschedule(final WorkflowDefinition workflowDefinition) {
+    public void unschedule(WorkflowDefinition workflowDefinition) {
         lock.lock();
         try {
             ofNullable(scheduledFutureMap.get(workflowDefinition.getId())).ifPresent(task -> {

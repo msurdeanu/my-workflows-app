@@ -19,12 +19,13 @@ import static org.myworkflows.domain.ExecutionPrint.NULL_AS_STR;
 public final class WorkflowTemplateDetailsFormLayout extends FormLayout {
 
     private static final int TEXTAREA_CHAR_LIMIT = 32_768;
+    private static final int COLUMNS = 2;
 
     public WorkflowTemplateDetailsFormLayout() {
-        setResponsiveSteps(new ResponsiveStep("0", 2));
+        setResponsiveSteps(new ResponsiveStep("0", COLUMNS));
     }
 
-    public void setExecutionPrint(final ExecutionPrint executionPrint) {
+    public void setExecutionPrint(ExecutionPrint executionPrint) {
         removeAll();
 
         final var textAreas = new ArrayList<TextArea>();
@@ -44,12 +45,13 @@ public final class WorkflowTemplateDetailsFormLayout extends FormLayout {
             add(textArea);
         });
 
-        if (textAreas.size() == 1) {
-            setColspan(textAreas.get(0), 2);
+        final var textAreasSize = textAreas.size();
+        if (textAreasSize % 2 == 1) {
+            setColspan(textAreas.get(textAreasSize - 1), COLUMNS);
         }
     }
 
-    private TextArea createTextArea(final String name, final String type, final String value) {
+    private TextArea createTextArea(String name, String type, String value) {
         final var textArea = new TextArea();
         textArea.setTooltipText(getTranslation("workflow-print.grid.details.tooltip", type, name));
         textArea.setValue(value);
