@@ -19,7 +19,7 @@ public class IndexView extends Composite<Div> implements BeforeEnterObserver {
     public static final String ROUTE = StringUtils.EMPTY;
 
     @Override
-    public void beforeEnter(final BeforeEnterEvent beforeEnterEvent) {
+    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
         beforeEnterEvent.rerouteTo(WorkflowTemplatesView.class);
     }
 

@@ -40,7 +40,7 @@ public final class WorkflowDefinitionValidatorService {
         WORKFLOW_SCHEMA.initializeValidators();
     }
 
-    public Set<ValidationMessage> validate(final String wokflowAsString) {
+    public Set<ValidationMessage> validate(String wokflowAsString) {
         return WORKFLOW_SCHEMA.validate(fromJsonToObject(wokflowAsString, JsonNode.class));
     }
 

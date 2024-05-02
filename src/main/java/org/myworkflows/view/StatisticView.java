@@ -20,7 +20,7 @@ public class StatisticView extends ResponsiveLayout implements HasDynamicTitle {
 
     public static final String ROUTE = "statistics";
 
-    public StatisticView(final List<StatisticProvider> statisticProviders) {
+    public StatisticView(List<StatisticProvider> statisticProviders) {
         add(createHeader(getTranslation("statistics.page.title")),
                 createContent(new StatisticTreeGrid(statisticProviders)),
                 createFooter());

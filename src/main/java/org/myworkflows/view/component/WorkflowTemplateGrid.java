@@ -47,7 +47,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         paginatedGrid.refreshPaginator();
     }
 
-    public void setDataProvider(final DataProvider<WorkflowTemplate, ?> dataProvider) {
+    public void setDataProvider(DataProvider<WorkflowTemplate, ?> dataProvider) {
         paginatedGrid.setDataProvider(dataProvider);
     }
 
@@ -77,13 +77,13 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         return layout;
     }
 
-    private Component renderActive(final WorkflowTemplate workflowTemplate) {
+    private Component renderActive(WorkflowTemplate workflowTemplate) {
         final var checkbox = new Checkbox(workflowTemplate.isEnabled());
         checkbox.addValueChangeListener(event -> workflowTemplateEventHandler.onActivationChanged(workflowTemplate.getId()));
         return checkbox;
     }
 
-    private Component renderNameAndCron(final WorkflowTemplate workflowTemplate) {
+    private Component renderNameAndCron(WorkflowTemplate workflowTemplate) {
         final var layout = new HorizontalLayout();
         if (!workflowTemplate.isEditable()) {
             return ofNullable(workflowTemplate.getCron())
@@ -123,13 +123,13 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         return layout;
     }
 
-    private Component getOnlyName(final WorkflowTemplate workflowTemplate) {
+    private Component getOnlyName(WorkflowTemplate workflowTemplate) {
         final var routerLink = new RouterLink(workflowTemplate.getName(), WorkflowDevelopmentView.class, workflowTemplate.getId());
         routerLink.getElement().getThemeList().add("badge" + (workflowTemplate.isEnabled() ? "" : " contrast"));
         return routerLink;
     }
 
-    private Component renderActions(final WorkflowTemplate workflowTemplate) {
+    private Component renderActions(WorkflowTemplate workflowTemplate) {
         final var layout = new HorizontalLayout();
 
         final var scheduleNowButton = new Button(new Icon(VaadinIcon.START_COG));
@@ -165,17 +165,17 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         return layout;
     }
 
-    private void onEdit(final WorkflowTemplate workflowTemplate) {
+    private void onEdit(WorkflowTemplate workflowTemplate) {
         workflowTemplate.toggleOnEditing();
         paginatedGrid.getDataProvider().refreshItem(workflowTemplate);
     }
 
-    private void onUpdated(final WorkflowTemplate workflowTemplate) {
+    private void onUpdated(WorkflowTemplate workflowTemplate) {
         workflowTemplate.setEditable(false);
         paginatedGrid.getDataProvider().refreshItem(workflowTemplate);
     }
 
-    private void onScheduleNow(final WorkflowTemplate workflowTemplate) {
+    private void onScheduleNow(WorkflowTemplate workflowTemplate) {
         workflowTemplateEventHandler.onScheduleNow(workflowTemplate.getId());
         paginatedGrid.getDataProvider().refreshItem(workflowTemplate);
     }

@@ -19,13 +19,13 @@ public class ApplicationReadyManager {
 
     @EventListener
     @Order(1)
-    public void registerAllListeners(final ApplicationReadyEvent event) {
+    public void registerAllListeners(ApplicationReadyEvent event) {
         event.getApplicationContext()
                 .getBeansOfType(org.myworkflows.domain.event.EventListener.class)
                 .forEach(this::registerListener);
     }
 
-    private void registerListener(final String key, final org.myworkflows.domain.event.EventListener<Event> value) {
+    private void registerListener(String key, org.myworkflows.domain.event.EventListener<Event> value) {
         applicationManager.getBeanOfType(EventBroadcaster.class).register(value::onEventReceived, value.getEventType());
     }
 

@@ -6,11 +6,11 @@ package org.myworkflows.exception;
  */
 public class WorkflowRuntimeException extends RuntimeException {
 
-    public WorkflowRuntimeException(final String message) {
+    public WorkflowRuntimeException(String message) {
         super(message);
     }
 
-    public WorkflowRuntimeException(final Throwable throwable) {
+    public WorkflowRuntimeException(Throwable throwable) {
         super(throwable);
     }
 

@@ -35,7 +35,7 @@ public class LoginView extends Composite<VerticalLayout> implements BeforeEnterO
     }
 
     @Override
-    public void beforeEnter(final BeforeEnterEvent beforeEnterEvent) {
+    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
         if (beforeEnterEvent.getLocation().getQueryParameters().getParameters().containsKey("error")) {
             loginForm.setError(true);
         }

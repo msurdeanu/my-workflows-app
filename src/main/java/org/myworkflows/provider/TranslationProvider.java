@@ -31,7 +31,7 @@ public class TranslationProvider implements I18NProvider {
     }
 
     @Override
-    public String getTranslation(final String key, final Locale locale, final Object... params) {
+    public String getTranslation(String key, Locale locale, Object... params) {
         if (key == null) {
             return null;
         }

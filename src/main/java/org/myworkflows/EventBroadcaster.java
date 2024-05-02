@@ -27,21 +27,20 @@ public class EventBroadcaster {
 
     private final ThreadPoolExecutor threadPoolExecutor;
 
-    public EventBroadcaster(final @Qualifier("event-pool") ThreadPoolExecutor threadPoolExecutor) {
+    public EventBroadcaster(@Qualifier("event-pool") ThreadPoolExecutor threadPoolExecutor) {
         this.threadPoolExecutor = threadPoolExecutor;
     }
 
-    public synchronized void broadcast(final Event event) {
+    public synchronized void broadcast(Event event) {
         ofNullable(consumersMap.get(event.getClass()))
-                .orElse(List.of())
-                .forEach(consumer -> threadPoolExecutor.execute(() -> consumer.accept(event)));
+            .orElse(List.of())
+            .forEach(consumer -> threadPoolExecutor.execute(() -> consumer.accept(event)));
     }
 
-    public synchronized Registration register(final Consumer<Event> consumer,
-                                              final Class<? extends Event> acceptedEvent) {
+    public synchronized Registration register(Consumer<Event> consumer, Class<? extends Event> acceptedEvent) {
         ofNullable(consumersMap.get(acceptedEvent)).ifPresentOrElse(
-                consumers -> consumers.add(consumer),
-                () -> consumersMap.put(acceptedEvent, new ArrayList<>(List.of(consumer)))
+            consumers -> consumers.add(consumer),
+            () -> consumersMap.put(acceptedEvent, new ArrayList<>(List.of(consumer)))
         );
 
         log.debug("A new broadcast consumer is registered for event type '{}'.", acceptedEvent.getName());

@@ -33,12 +33,12 @@ import java.util.List;
  */
 public class BaseLayout extends AppLayout {
 
-    public BaseLayout(final AuthenticationContext authContext) {
+    public BaseLayout(AuthenticationContext authContext) {
         createHeader(authContext);
         createDrawer(createNavItems(authContext.isAuthenticated()));
     }
 
-    private void createHeader(final AuthenticationContext authContext) {
+    private void createHeader(AuthenticationContext authContext) {
         final var logoLayout = new HorizontalLayout();
         final var logo = new Image(getTranslation("app.logo.src"), getTranslation("app.logo.alt"));
         logo.setHeight("44px");
@@ -62,7 +62,7 @@ public class BaseLayout extends AppLayout {
         addToNavbar(header);
     }
 
-    private void createDrawer(final List<SideNavItem> routerLinks) {
+    private void createDrawer(List<SideNavItem> routerLinks) {
         final var appName = new H1(getTranslation("app.name"));
         appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
         final var header = new Header(appName);
@@ -70,7 +70,7 @@ public class BaseLayout extends AppLayout {
         addToDrawer(header, scroller, createFooter());
     }
 
-    private SideNav createNavigation(final List<SideNavItem> sideNavItems) {
+    private SideNav createNavigation(List<SideNavItem> sideNavItems) {
         final var appNav = new SideNav();
         sideNavItems.forEach(appNav::addItem);
         return appNav;
@@ -83,7 +83,7 @@ public class BaseLayout extends AppLayout {
         return layout;
     }
 
-    private List<SideNavItem> createNavItems(final boolean isAuthenticated) {
+    private List<SideNavItem> createNavItems(boolean isAuthenticated) {
         final var sideNavItems = new ArrayList<SideNavItem>();
         sideNavItems.add(new SideNavItem(getTranslation("menu.main.workflow-templates"), WorkflowTemplatesView.class, VaadinIcon.LIST.create()));
         sideNavItems.add(new SideNavItem(getTranslation("menu.main.workflow-development"), WorkflowDevelopmentView.class, VaadinIcon.CODE.create()));

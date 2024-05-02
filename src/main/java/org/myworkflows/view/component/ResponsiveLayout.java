@@ -22,7 +22,7 @@ public abstract class ResponsiveLayout extends FlexLayout implements HasResizeab
     }
 
     @Override
-    protected void onAttach(final AttachEvent attachEvent) {
+    protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         final var page = attachEvent.getUI().getPage();
         registration = page.addBrowserWindowResizeListener(event -> adjustByWidth(event.getWidth()));
@@ -31,7 +31,7 @@ public abstract class ResponsiveLayout extends FlexLayout implements HasResizeab
     }
 
     @Override
-    protected void onDetach(final DetachEvent detachEvent) {
+    protected void onDetach(DetachEvent detachEvent) {
         registration.remove();
         super.onDetach(detachEvent);
     }

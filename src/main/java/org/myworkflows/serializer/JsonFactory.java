@@ -33,7 +33,7 @@ public final class JsonFactory {
         MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     }
 
-    public static <T> T fromJsonToObject(final String content, final Class<T> clazz) {
+    public static <T> T fromJsonToObject(String content, Class<T> clazz) {
         try {
             return MAPPER.readValue(content, clazz);
         } catch (JsonProcessingException e) {
@@ -41,11 +41,11 @@ public final class JsonFactory {
         }
     }
 
-    public static JsonSchema fromJsonToSchema(final JsonNode jsonNode) {
+    public static JsonSchema fromJsonToSchema(JsonNode jsonNode) {
         return getInstance(detect(jsonNode)).getSchema(jsonNode);
     }
 
-    public static String toString(final Object object, final String defaultValue) {
+    public static String toString(Object object, String defaultValue) {
         try {
             return MAPPER.writeValueAsString(object);
         } catch (IOException exception) {
@@ -53,7 +53,7 @@ public final class JsonFactory {
         }
     }
 
-    public static String toPrettyString(final Object object, final String defaultValue) {
+    public static String toPrettyString(Object object, String defaultValue) {
         try {
             return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(object);
         } catch (IOException exception) {

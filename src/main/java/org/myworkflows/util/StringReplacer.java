@@ -14,7 +14,7 @@ import static java.util.regex.Matcher.quoteReplacement;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class StringReplacer {
 
-    public static String replace(final String input, final Pattern regex, final StringReplacerCallback callback) {
+    public static String replace(String input, Pattern regex, StringReplacerCallback callback) {
         final var builder = new StringBuilder();
         final var matcher = regex.matcher(input);
         while (matcher.find()) {

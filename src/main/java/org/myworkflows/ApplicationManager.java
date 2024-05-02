@@ -17,15 +17,15 @@ public class ApplicationManager {
 
     private final ApplicationContext applicationContext;
 
-    public <T> T getBeanOfType(final Class<T> clazz) {
+    public <T> T getBeanOfType(Class<T> clazz) {
         return applicationContext.getBean(clazz);
     }
 
-    public <T> Collection<T> getBeansOfType(final Class<T> clazz) {
+    public <T> Collection<T> getBeansOfType(Class<T> clazz) {
         return applicationContext.getBeansOfType(clazz).values();
     }
 
-    public <T> Stream<T> getBeansOfTypeAsStream(final Class<T> clazz) {
+    public <T> Stream<T> getBeansOfTypeAsStream(Class<T> clazz) {
         return getBeansOfType(clazz).stream();
     }
 

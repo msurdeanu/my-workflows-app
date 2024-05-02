@@ -29,7 +29,7 @@ public final class StatisticTreeGrid extends Composite<VerticalLayout> {
 
     private final TreeGrid<StatisticItem> treeGrid = new TreeGrid<>();
 
-    public StatisticTreeGrid(final List<StatisticProvider> statisticProviders) {
+    public StatisticTreeGrid(List<StatisticProvider> statisticProviders) {
         statisticItemListMap = buildAllStats(statisticProviders);
     }
 
@@ -66,13 +66,13 @@ public final class StatisticTreeGrid extends Composite<VerticalLayout> {
         return layout;
     }
 
-    private Map<StatisticItem, List<StatisticItem>> buildAllStats(final List<StatisticProvider> statisticProviders) {
+    private Map<StatisticItem, List<StatisticItem>> buildAllStats(List<StatisticProvider> statisticProviders) {
         return statisticProviders.stream()
             .map(StatisticProvider::getStatisticItemGroup)
             .collect(Collectors.toMap(StatisticItemGroup::getRoot, StatisticItemGroup::getLeafs, (it1, it2) -> it1));
     }
 
-    private Component getComputedValue(final StatisticItem statisticItem) {
+    private Component getComputedValue(StatisticItem statisticItem) {
         final var span = ofNullable(statisticItem.getValueTranslationKey())
             .map(key -> new Span(getTranslation(key, statisticItem.getValue())))
             .orElseGet(() -> new Span(statisticItem.getValueAsString()));
