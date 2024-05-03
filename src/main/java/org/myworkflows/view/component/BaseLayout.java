@@ -1,6 +1,5 @@
 package org.myworkflows.view.component;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
@@ -10,7 +9,6 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
@@ -18,13 +16,10 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import org.myworkflows.view.LoginView;
-import org.myworkflows.view.StatisticView;
-import org.myworkflows.view.WorkflowDevelopmentView;
-import org.myworkflows.view.WorkflowTemplatesView;
+import org.myworkflows.repository.MenuItemRepository;
+import org.myworkflows.transformer.MenuItemsToSideNavItemsTransformer;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,9 +28,10 @@ import java.util.List;
  */
 public class BaseLayout extends AppLayout {
 
-    public BaseLayout(AuthenticationContext authContext) {
+    public BaseLayout(AuthenticationContext authContext, final MenuItemRepository menuItemRepository) {
         createHeader(authContext);
-        createDrawer(createNavItems(authContext.isAuthenticated()));
+
+        addDrawerContent(new MenuItemsToSideNavItemsTransformer().transform(menuItemRepository.findByOrderByPosition()));
     }
 
     private void createHeader(AuthenticationContext authContext) {
@@ -46,15 +42,15 @@ public class BaseLayout extends AppLayout {
 
         var header = new HorizontalLayout(new DrawerToggle(), logoLayout);
         authContext.getAuthenticatedUser(UserDetails.class)
-                .map(user -> {
-                    final var avatar = new Avatar(user.getUsername());
-                    avatar.setTooltipEnabled(true);
-                    final var contextMenu = new ContextMenu(avatar);
-                    contextMenu.setOpenOnClick(true);
-                    contextMenu.addItem(getTranslation("menu.main.logout"), event -> authContext.logout());
-                    return avatar;
-                })
-                .ifPresent(header::add);
+            .map(user -> {
+                final var avatar = new Avatar(user.getUsername());
+                avatar.setTooltipEnabled(true);
+                final var contextMenu = new ContextMenu(avatar);
+                contextMenu.setOpenOnClick(true);
+                contextMenu.addItem(getTranslation("menu.main.logout"), event -> authContext.logout());
+                return avatar;
+            })
+            .ifPresent(header::add);
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         header.expand(logoLayout);
         header.setWidthFull();
@@ -62,7 +58,7 @@ public class BaseLayout extends AppLayout {
         addToNavbar(header);
     }
 
-    private void createDrawer(List<SideNavItem> routerLinks) {
+    private void addDrawerContent(final List<SideNavItem> routerLinks) {
         final var appName = new H1(getTranslation("app.name"));
         appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
         final var header = new Header(appName);
@@ -70,30 +66,17 @@ public class BaseLayout extends AppLayout {
         addToDrawer(header, scroller, createFooter());
     }
 
-    private SideNav createNavigation(List<SideNavItem> sideNavItems) {
+    private SideNav createNavigation(final List<SideNavItem> routerLinks) {
         final var appNav = new SideNav();
-        sideNavItems.forEach(appNav::addItem);
+        routerLinks.forEach(appNav::addItem);
         return appNav;
     }
 
-    private Component createFooter() {
+    private Footer createFooter() {
         final var layout = new Footer();
         layout.addClassNames("flex", "items-center", "my-s", "px-m", "py-xs");
         layout.add(new Span("v1.0"));
         return layout;
-    }
-
-    private List<SideNavItem> createNavItems(boolean isAuthenticated) {
-        final var sideNavItems = new ArrayList<SideNavItem>();
-        sideNavItems.add(new SideNavItem(getTranslation("menu.main.workflow-templates"), WorkflowTemplatesView.class, VaadinIcon.LIST.create()));
-        sideNavItems.add(new SideNavItem(getTranslation("menu.main.workflow-development"), WorkflowDevelopmentView.class, VaadinIcon.CODE.create()));
-        sideNavItems.add(new SideNavItem(getTranslation("menu.main.statistics"), StatisticView.class, VaadinIcon.CHART.create()));
-
-        if (!isAuthenticated) {
-            sideNavItems.add(new SideNavItem(getTranslation("menu.main.login"), LoginView.class, VaadinIcon.SIGN_IN.create()));
-        }
-
-        return sideNavItems;
     }
 
 }
