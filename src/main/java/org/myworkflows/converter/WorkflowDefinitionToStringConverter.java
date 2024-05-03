@@ -15,17 +15,17 @@ import static java.util.Optional.ofNullable;
 public final class WorkflowDefinitionToStringConverter implements AttributeConverter<WorkflowDefinition, String> {
 
     @Override
-    public String convertToDatabaseColumn(final WorkflowDefinition attribute) {
+    public String convertToDatabaseColumn(WorkflowDefinition attribute) {
         return ofNullable(attribute)
-                .map(item -> JsonFactory.toString(attribute, null))
-                .orElse(null);
+            .map(item -> JsonFactory.toString(attribute, null))
+            .orElse(null);
     }
 
     @Override
-    public WorkflowDefinition convertToEntityAttribute(final String data) {
+    public WorkflowDefinition convertToEntityAttribute(String data) {
         return ofNullable(data)
-                .map(item -> JsonFactory.fromJsonToObject(item, WorkflowDefinition.class))
-                .orElse(null);
+            .map(item -> JsonFactory.fromJsonToObject(item, WorkflowDefinition.class))
+            .orElse(null);
     }
 
 }

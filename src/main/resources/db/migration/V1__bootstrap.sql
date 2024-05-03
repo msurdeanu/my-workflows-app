@@ -1,3 +1,23 @@
+CREATE TABLE menu_items
+(
+    label    TEXT PRIMARY KEY NOT NULL,
+    icon     TEXT             NOT NULL,
+    path     TEXT             NOT NULL,
+    role     TEXT                      DEFAULT 'ROLE_GUEST',
+    position INTEGER          NOT NULL DEFAULT (0)
+);
+
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.workflow-templates', 'list', 'class://org.myworkflows.view.WorkflowTemplatesView', 'ROLE_GUEST',
+        '1');
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.workflow-development', 'code', 'class://org.myworkflows.view.WorkflowDevelopmentView', 'ROLE_ADMIN',
+        '2');
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', '3');
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.github-myworkflows', 'qrcode', 'https://github.com/msurdeanu/my-workflows-app', 'ROLE_GUEST', '4');
+
 CREATE TABLE workflow_templates
 (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,

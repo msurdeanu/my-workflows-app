@@ -1,7 +1,6 @@
 package org.myworkflows.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -24,6 +23,13 @@ public class CacheConfig {
 
     @Bean
     @Primary
+    public CacheManager menuItemCacheManager() {
+        final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(86_400));
+        cacheManager.setCacheNames(List.of("menu-items"));
+        return cacheManager;
+    }
+
+    @Bean
     public CacheManager placeholderCacheManager() {
         final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(86_400));
         cacheManager.setCacheNames(List.of("placeholders"));
@@ -32,11 +38,9 @@ public class CacheConfig {
 
     private static class CustomCacheManager extends CaffeineCacheManager {
 
-        public CustomCacheManager(final long maxSize,
-                                  @NotNull final Duration expireAfterAccess,
-                                  @NotNull final Duration expireAfterWrite) {
+        public CustomCacheManager(long maxSize, Duration expireAfterAccess, Duration expireAfterWrite) {
             final var caffeine = Caffeine.newBuilder()
-                    .recordStats();
+                .recordStats();
 
             if (maxSize > 0) {
                 caffeine.maximumSize(maxSize);
