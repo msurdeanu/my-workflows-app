@@ -16,7 +16,7 @@ import static java.util.Optional.ofNullable;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PlaceholderUtil {
 
-    public static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\(([a-zA-Z0-9_]+)\\)");
+    public static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\$\\(([a-zA-Z0-9_]+)\\)");
 
     public static String resolvePlaceholders(String value, Map<String, String> placeholders) {
         return StringReplacer.replace(value, PLACEHOLDER_PATTERN, (Matcher matcher) -> {

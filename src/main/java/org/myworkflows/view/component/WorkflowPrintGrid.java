@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import lombok.NoArgsConstructor;
 import org.myworkflows.domain.ExecutionPrint;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -18,9 +19,14 @@ import static com.vaadin.flow.component.UI.getCurrent;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@NoArgsConstructor
 public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> {
 
     private final PaginatedGrid<ExecutionPrint, ?> paginatedGrid = new PaginatedGrid<>();
+
+    public WorkflowPrintGrid(List<ExecutionPrint> prints) {
+        setItems(prints);
+    }
 
     public void setItems(List<ExecutionPrint> prints) {
         paginatedGrid.setItems(prints);

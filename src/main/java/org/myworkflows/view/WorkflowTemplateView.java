@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @PermitAll
-@Route(value = WorkflowTemplatesView.ROUTE, layout = BaseLayout.class)
-public class WorkflowTemplatesView extends ResponsiveLayout implements HasDynamicTitle, WorkflowTemplateEventHandler {
+@Route(value = WorkflowTemplateView.ROUTE, layout = BaseLayout.class)
+public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamicTitle, WorkflowTemplateEventHandler {
 
     public static final String ROUTE = "workflow/templates";
 
@@ -37,7 +37,7 @@ public class WorkflowTemplatesView extends ResponsiveLayout implements HasDynami
 
     private final WorkflowTemplateGrid workflowTemplateGrid;
 
-    public WorkflowTemplatesView(WorkflowTemplateService workflowTemplateService) {
+    public WorkflowTemplateView(WorkflowTemplateService workflowTemplateService) {
         super();
         this.workflowTemplateService = workflowTemplateService;
 
@@ -100,7 +100,6 @@ public class WorkflowTemplatesView extends ResponsiveLayout implements HasDynami
         filterByNameTextField.setPlaceholder(getTranslation("workflow-templates.filter.by-name.placeholder"));
         filterByNameTextField.setHelperText(getTranslation("workflow-templates.filter.by-name.helper"));
         filterByNameTextField.setClearButtonVisible(true);
-        filterByNameTextField.setMinWidth("200px");
         filterByNameTextField.setValueChangeMode(ValueChangeMode.LAZY);
         filterByNameTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));
         filterByNameTextField.addValueChangeListener(event -> onFilteringByName(event.getValue()));

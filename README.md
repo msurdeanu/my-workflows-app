@@ -208,7 +208,7 @@ Example of a dummy command:
       ],
       "outputs": [
         {
-          "name": "$(TEST)",
+          "name": "$$(TEST)",
           "value": 5000
         }
       ]
@@ -220,7 +220,7 @@ Example of a dummy command:
         {
           "name": "keys",
           "value": [
-            "$(TEST)"
+            "$$(TEST)"
           ]
         }
       ]

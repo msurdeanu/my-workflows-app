@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
@@ -54,16 +53,15 @@ public final class WorkflowDefinitionService implements EventListener<WorkflowDe
 
         if (workflowObject instanceof String workflowAsString) {
             final var validationMessages = applicationManager.getBeanOfType(WorkflowDefinitionValidatorService.class)
-                    .validate(workflowAsString);
+                .validate(workflowAsString);
             onSubmittedEventBuilder.validationMessages(validationMessages);
             if (!validationMessages.isEmpty()) {
                 applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
                 return;
             }
-            onSubmittedEventBuilder.executionContextFuture(submit(fromJsonToObject(workflowAsString, WorkflowDefinition.class),
-                    onSubmitEvent));
+            onSubmittedEventBuilder.executionContext(submit(fromJsonToObject(workflowAsString, WorkflowDefinition.class), onSubmitEvent));
         } else if (workflowObject instanceof WorkflowDefinition workflowDefinition) {
-            onSubmittedEventBuilder.executionContextFuture(submit(workflowDefinition, onSubmitEvent));
+            onSubmittedEventBuilder.executionContext(submit(workflowDefinition, onSubmitEvent));
         }
 
         applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
@@ -74,14 +72,14 @@ public final class WorkflowDefinitionService implements EventListener<WorkflowDe
         return WorkflowDefinitionOnSubmitEvent.class;
     }
 
-    private Future<?> submit(WorkflowDefinition workflowDefinition,
-                             WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
+    private ExecutionContext submit(WorkflowDefinition workflowDefinition, WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var executionContext = ofNullable(onSubmitEvent.getExecutionContext())
-                .orElseGet(() -> new ExecutionContext(workflowDefinition));
+            .orElseGet(() -> new ExecutionContext(workflowDefinition));
         final var onProgressEventBuilder = WorkflowDefinitionOnProgressEvent.builder();
         onProgressEventBuilder.token(onSubmitEvent.getToken());
         onProgressEventBuilder.executionContext(executionContext);
-        return threadPoolExecutor.submit(() -> runSynchronously(workflowDefinition, onProgressEventBuilder.build()));
+        threadPoolExecutor.submit(() -> runSynchronously(workflowDefinition, onProgressEventBuilder.build()));
+        return executionContext;
     }
 
     private void runSynchronously(WorkflowDefinition workflowDefinition,
@@ -133,17 +131,17 @@ public final class WorkflowDefinitionService implements EventListener<WorkflowDe
     private Object resolvePlaceholders(Object value) {
         if (value instanceof String valueAsString) {
             return PlaceholderUtil.resolvePlaceholders(valueAsString,
-                    applicationManager.getBeanOfType(PlaceholderRepository.class).getAllAsMap());
+                applicationManager.getBeanOfType(PlaceholderRepository.class).getAllAsMap());
         } else if (value instanceof List<?> valueAsList) {
             return valueAsList.stream()
-                    .map(this::resolvePlaceholders)
-                    .collect(Collectors.toList());
+                .map(this::resolvePlaceholders)
+                .collect(Collectors.toList());
         } else if (value instanceof Map<?, ?> valueAsMap) {
             return valueAsMap.entrySet().stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            entry -> resolvePlaceholders(entry.getValue())
-                    ));
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    entry -> resolvePlaceholders(entry.getValue())
+                ));
         }
 
         return value;

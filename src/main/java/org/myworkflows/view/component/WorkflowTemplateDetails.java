@@ -32,6 +32,8 @@ public final class WorkflowTemplateDetails extends Composite<VerticalLayout> {
 
         editor.addClassName("ace-editor");
         editor.setMode(AceMode.json);
+        editor.setAutoComplete(true);
+        editor.setLiveAutocompletion(true);
         layout.add(editor);
 
         saveButton.setEnabled(false);

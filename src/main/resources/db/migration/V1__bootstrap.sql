@@ -8,15 +8,18 @@ CREATE TABLE menu_items
 );
 
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-templates', 'list', 'class://org.myworkflows.view.WorkflowTemplatesView', 'ROLE_GUEST',
+VALUES ('menu.main.workflow-runs', 'lines', 'class://org.myworkflows.view.WorkflowRunView', 'ROLE_GUEST',
         '1');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-development', 'code', 'class://org.myworkflows.view.WorkflowDevelopmentView', 'ROLE_ADMIN',
+VALUES ('menu.main.workflow-templates', 'list', 'class://org.myworkflows.view.WorkflowTemplateView', 'ROLE_GUEST',
         '2');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', '3');
+VALUES ('menu.main.workflow-development', 'code', 'class://org.myworkflows.view.WorkflowDevelopmentView', 'ROLE_ADMIN',
+        '3');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.github-myworkflows', 'qrcode', 'https://github.com/msurdeanu/my-workflows-app', 'ROLE_GUEST', '4');
+VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', '4');
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.github-myworkflows', 'qrcode', 'https://github.com/msurdeanu/my-workflows-app', 'ROLE_GUEST', '5');
 
 CREATE TABLE workflow_templates
 (
@@ -29,7 +32,7 @@ CREATE TABLE workflow_templates
 
 INSERT INTO workflow_templates ("enabled", "name", "cron", "definition")
 VALUES ('1', 'Simple test', '0 0 0 * * MON-FRI',
-        '{"name":"Test","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":5000}],"outputs":[{"name":"$(TEST)","value":5000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$(TEST)"]}]}]}');
+        '{"name":"Test","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":5000}],"outputs":[{"name":"$$(TEST)","value":5000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$$(TEST)"]}]}]}');
 
 CREATE TABLE users
 (
