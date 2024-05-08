@@ -141,7 +141,6 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             .getAll().toList());
         filterByTemplateSelect.setPlaceholder(getTranslation("workflow-development.filter.by-template.placeholder"));
         filterByTemplateSelect.setHelperText(getTranslation("workflow-development.filter.by-template.helper"));
-        filterByTemplateSelect.setMinWidth("200px");
         filterByTemplateSelect.setItemLabelGenerator(WorkflowTemplate::getName);
         filterByTemplateSelect.addValueChangeListener(event -> onFilteringByTemplate(event.getValue()));
         return filterByTemplateSelect;

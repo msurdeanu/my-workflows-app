@@ -21,8 +21,15 @@ import static java.time.Duration.ofSeconds;
 @EnableCaching
 public class CacheConfig {
 
-    @Bean
     @Primary
+    @Bean
+    public CacheManager workflowRunCacheManager() {
+        final var cacheManager = new CustomCacheManager(1_000, ofSeconds(0), ofSeconds(86_400));
+        cacheManager.setCacheNames(List.of("workflow-runs"));
+        return cacheManager;
+    }
+
+    @Bean
     public CacheManager menuItemCacheManager() {
         final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(86_400));
         cacheManager.setCacheNames(List.of("menu-items"));

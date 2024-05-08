@@ -3,10 +3,10 @@ package org.myworkflows.domain.event;
 import com.networknt.schema.ValidationMessage;
 import lombok.Builder;
 import lombok.Getter;
+import org.myworkflows.domain.ExecutionContext;
 
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Future;
 
 /**
  * @author Mihai Surdeanu
@@ -18,6 +18,6 @@ public class WorkflowDefinitionOnSubmittedEvent implements Event {
 
     private final UUID token;
     private final Set<ValidationMessage> validationMessages;
-    private final Future<?> executionContextFuture;
+    private final ExecutionContext executionContext;
 
 }

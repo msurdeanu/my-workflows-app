@@ -36,7 +36,7 @@ import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 @RequiredArgsConstructor
 public final class WorkflowTemplateService {
 
-    private static final Predicate<WorkflowTemplate> ALWAYS_TRUE_PREDICATE = testScenario -> true;
+    private static final Predicate<WorkflowTemplate> ALWAYS_TRUE_PREDICATE = item -> true;
 
     private static final Map<Integer, WorkflowTemplate> ALL_WORKFLOWS = new HashMap<>();
 
