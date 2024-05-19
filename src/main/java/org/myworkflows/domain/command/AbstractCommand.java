@@ -75,7 +75,7 @@ public abstract class AbstractCommand {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Set<ExpressionNameValue> outputs = Set.of();
 
-    public final void run(final ExecutionContext executionContext) {
+    public final void run(ExecutionContext executionContext) {
         if (!runIfs(executionContext.getCache())) {
             return;
         }
@@ -87,22 +87,22 @@ public abstract class AbstractCommand {
                 .ifPresent(method -> runMethodWithAssertsAndOutputs(method, executionContext));
     }
 
-    public boolean runIfs(final ExecutionCache executionCache) {
+    public boolean runIfs(ExecutionCache executionCache) {
         return ifs.stream().allMatch(item -> Boolean.TRUE.equals(item.evaluate(Map.of(EXECUTION_CACHE, executionCache))));
     }
 
-    private void runInputs(final ExecutionCache executionCache) {
+    private void runInputs(ExecutionCache executionCache) {
         inputs.forEach(input -> executionCache.put(input.getName(), input.evaluate(Map.of(EXECUTION_CACHE, executionCache))));
     }
 
-    private void runMethodWithAssertsAndOutputs(final Method method, final ExecutionContext executionContext) {
+    private void runMethodWithAssertsAndOutputs(Method method, ExecutionContext executionContext) {
         runMethod(method, executionContext).ifPresent(output -> {
             runAsserts(output, executionContext.getCache());
             runOutputs(output, executionContext.getCache());
         });
     }
 
-    private Optional<Object> runMethod(final Method method, final ExecutionContext executionContext) {
+    private Optional<Object> runMethod(Method method, ExecutionContext executionContext) {
         try {
             return ofNullable(method.invoke(this, resolveParameters(method, executionContext)));
         } catch (IllegalAccessException | InvocationTargetException exception) {
@@ -110,7 +110,7 @@ public abstract class AbstractCommand {
         }
     }
 
-    private Object[] resolveParameters(final Method method, final ExecutionContext executionContext) {
+    private Object[] resolveParameters(Method method, ExecutionContext executionContext) {
         final var parameters = method.getParameters();
         final var resolvedParameters = new Object[parameters.length];
         range(0, parameters.length)
@@ -118,7 +118,7 @@ public abstract class AbstractCommand {
         return resolvedParameters;
     }
 
-    private Object resolveParameter(final Parameter parameter, final ExecutionContext executionContext) {
+    private Object resolveParameter(Parameter parameter, ExecutionContext executionContext) {
         final var parameterIsMandatory = ofNullable(parameter.getDeclaredAnnotation(OptionalParam.class)).isEmpty();
         final var parameterType = parameter.getType();
         final var parameterizedType = parameter.getParameterizedType();
@@ -133,7 +133,7 @@ public abstract class AbstractCommand {
         }
     }
 
-    private void runAsserts(final Object output, final ExecutionCache executionCache) {
+    private void runAsserts(Object output, ExecutionCache executionCache) {
         asserts.stream()
                 .filter(assertion -> !Boolean.TRUE.equals(assertion.evaluate(Map.of(EXECUTION_CACHE, executionCache, OUTPUT, output))))
                 .findFirst()
@@ -142,7 +142,7 @@ public abstract class AbstractCommand {
                 });
     }
 
-    private void runOutputs(final Object output, final ExecutionCache executionCache) {
+    private void runOutputs(Object output, ExecutionCache executionCache) {
         outputs.forEach(out -> executionCache.put(out.getName(), out.evaluate(Map.of(EXECUTION_CACHE, executionCache, OUTPUT, output))));
     }
 

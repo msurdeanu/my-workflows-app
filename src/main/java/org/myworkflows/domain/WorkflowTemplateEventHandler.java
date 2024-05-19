@@ -6,16 +6,14 @@ package org.myworkflows.domain;
  */
 public interface WorkflowTemplateEventHandler {
 
-    void onActivationChanged(final Integer workflowTemplateId);
+    void onActivationChanged(Integer workflowTemplateId);
 
-    void onCronChanged(final Integer workflowTemplateId, final String newCron);
+    void onDelete(Integer workflowTemplateId);
 
-    void onDefinitionChanged(final Integer workflowTemplateId, final String newDefinition);
+    void onRename(Integer workflowTemplateId, String newName);
 
-    void onDelete(final Integer workflowTemplateId);
+    void onReschedule(Integer workflowTemplateId, String newCron);
 
-    void onNameChanged(final Integer workflowTemplateId, final String newName);
-
-    void onScheduleNow(final Integer workflowTemplateId);
+    void onScheduleNow(Integer workflowTemplateId);
 
 }

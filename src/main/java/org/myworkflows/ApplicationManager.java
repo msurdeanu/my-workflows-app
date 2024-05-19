@@ -21,6 +21,10 @@ public class ApplicationManager {
         return applicationContext.getBean(clazz);
     }
 
+    public <T> T getBeanOfTypeAndName(Class<T> clazz, String name) {
+        return applicationContext.getBean(name, clazz);
+    }
+
     public <T> Collection<T> getBeansOfType(Class<T> clazz) {
         return applicationContext.getBeansOfType(clazz).values();
     }

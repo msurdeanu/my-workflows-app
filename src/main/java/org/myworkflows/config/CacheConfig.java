@@ -22,21 +22,28 @@ import static java.time.Duration.ofSeconds;
 public class CacheConfig {
 
     @Primary
-    @Bean
+    @Bean("workflowRunCacheManager")
     public CacheManager workflowRunCacheManager() {
         final var cacheManager = new CustomCacheManager(1_000, ofSeconds(0), ofSeconds(86_400));
         cacheManager.setCacheNames(List.of("workflow-runs"));
         return cacheManager;
     }
 
-    @Bean
+    @Bean("workflowDefinitionCacheManager")
+    public CacheManager workflowDefinitionCacheManager() {
+        final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(0));
+        cacheManager.setCacheNames(List.of("workflow-definitions"));
+        return cacheManager;
+    }
+
+    @Bean("menuItemCacheManager")
     public CacheManager menuItemCacheManager() {
         final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(86_400));
         cacheManager.setCacheNames(List.of("menu-items"));
         return cacheManager;
     }
 
-    @Bean
+    @Bean("placeholderCacheManager")
     public CacheManager placeholderCacheManager() {
         final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(86_400));
         cacheManager.setCacheNames(List.of("placeholders"));

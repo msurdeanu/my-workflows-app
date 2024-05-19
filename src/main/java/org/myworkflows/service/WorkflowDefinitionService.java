@@ -1,27 +1,18 @@
 package org.myworkflows.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
-import org.myworkflows.domain.ExecutionContext;
-import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.WorkflowDefinition;
-import org.myworkflows.domain.command.AbstractCommand;
-import org.myworkflows.domain.command.AbstractSubCommand;
-import org.myworkflows.domain.event.EventListener;
-import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
-import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
-import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
-import org.myworkflows.repository.PlaceholderRepository;
-import org.myworkflows.util.PlaceholderUtil;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.myworkflows.domain.WorkflowDefinitionScript;
+import org.myworkflows.domain.event.WorkflowDefinitionOnUpdateEvent;
+import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.stream.Collectors;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
@@ -30,121 +21,52 @@ import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-@Slf4j
 @Service
-public final class WorkflowDefinitionService implements EventListener<WorkflowDefinitionOnSubmitEvent> {
+public final class WorkflowDefinitionService extends AbstractDataService<WorkflowDefinition, WorkflowDefinitionFilter> {
 
-    private final ThreadPoolExecutor threadPoolExecutor;
+    private final Lock lock = new ReentrantLock();
 
     private final ApplicationManager applicationManager;
 
-    public WorkflowDefinitionService(final @Qualifier("workflow-pool") ThreadPoolExecutor threadPoolExecutor,
-                                     final ApplicationManager applicationManager) {
-        this.threadPoolExecutor = threadPoolExecutor;
+    private final CaffeineCache cache;
+
+    public WorkflowDefinitionService(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
+        cache = (CaffeineCache) applicationManager
+            .getBeanOfTypeAndName(CacheManager.class, "workflowDefinitionCacheManager")
+            .getCache("workflow-definitions");
+    }
+
+    public void addToCache(WorkflowDefinition workflowDefinition) {
+        cache.put(workflowDefinition.getId(), workflowDefinition);
     }
 
     @Override
-    public void onEventReceived(WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
-        final var workflowObject = onSubmitEvent.getWorkflow();
-
-        final var onSubmittedEventBuilder = WorkflowDefinitionOnSubmittedEvent.builder();
-        onSubmittedEventBuilder.token(onSubmitEvent.getToken());
-
-        if (workflowObject instanceof String workflowAsString) {
-            final var validationMessages = applicationManager.getBeanOfType(WorkflowDefinitionValidatorService.class)
-                .validate(workflowAsString);
-            onSubmittedEventBuilder.validationMessages(validationMessages);
-            if (!validationMessages.isEmpty()) {
-                applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
-                return;
-            }
-            onSubmittedEventBuilder.executionContext(submit(fromJsonToObject(workflowAsString, WorkflowDefinition.class), onSubmitEvent));
-        } else if (workflowObject instanceof WorkflowDefinition workflowDefinition) {
-            onSubmittedEventBuilder.executionContext(submit(workflowDefinition, onSubmitEvent));
-        }
-
-        applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
+    public Stream<WorkflowDefinition> getAllItems() {
+        return cache.getNativeCache().asMap().values().stream()
+            .filter(item -> item instanceof WorkflowDefinition)
+            .map(item -> (WorkflowDefinition) item);
     }
 
-    @Override
-    public Class<WorkflowDefinitionOnSubmitEvent> getEventType() {
-        return WorkflowDefinitionOnSubmitEvent.class;
-    }
-
-    private ExecutionContext submit(WorkflowDefinition workflowDefinition, WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
-        final var executionContext = ofNullable(onSubmitEvent.getExecutionContext())
-            .orElseGet(() -> new ExecutionContext(workflowDefinition));
-        final var onProgressEventBuilder = WorkflowDefinitionOnProgressEvent.builder();
-        onProgressEventBuilder.token(onSubmitEvent.getToken());
-        onProgressEventBuilder.executionContext(executionContext);
-        threadPoolExecutor.submit(() -> runSynchronously(workflowDefinition, onProgressEventBuilder.build()));
-        return executionContext;
-    }
-
-    private void runSynchronously(WorkflowDefinition workflowDefinition,
-                                  WorkflowDefinitionOnProgressEvent workflowResultEvent) {
-        final var executionContext = workflowResultEvent.getExecutionContext();
-        final var startTime = System.currentTimeMillis();
-        applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
+    public boolean changeDefinition(Integer id, String newScript) {
+        lock.lock();
         try {
-            workflowDefinition.getCommands().forEach(command -> {
-                resolveCommandPlaceholders(command);
-                command.run(executionContext);
-                executionContext.markCommandAsCompleted();
-                applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
-            });
-        } catch (Exception exception) {
-            executionContext.markCommandAsFailed(exception);
+            return ofNullable(cache.get(id, WorkflowDefinition.class)).map(workflowDefinition -> {
+                workflowDefinition.setScript(fromJsonToObject(newScript, WorkflowDefinitionScript.class));
+                applicationManager.getBeanOfType(EventBroadcaster.class)
+                    .broadcast(WorkflowDefinitionOnUpdateEvent.builder().workflowDefinition(workflowDefinition).build());
+                return true;
+            }).orElse(false);
+        } catch (Exception notUsed) {
+            return false;
         } finally {
-            try {
-                workflowDefinition.getFinallyCommands().forEach(command -> {
-                    resolveCommandPlaceholders(command);
-                    command.run(executionContext);
-                    executionContext.markCommandAsCompleted();
-                    applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
-                });
-            } catch (Exception exception) {
-                executionContext.markCommandAsFailed(exception);
-            }
-            executionContext.markAsCompleted(System.currentTimeMillis() - startTime);
-            applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
+            lock.unlock();
         }
     }
 
-    private void resolveCommandPlaceholders(AbstractCommand abstractCommand) {
-        resolveItemPlaceholders(abstractCommand.getInputs());
-        resolveItemPlaceholders(abstractCommand.getAsserts());
-        resolveItemPlaceholders(abstractCommand.getOutputs());
-        if (abstractCommand instanceof AbstractSubCommand subCommand) {
-            subCommand.getSubcommands().forEach(this::resolveCommandPlaceholders);
-        }
-    }
-
-    private void resolveItemPlaceholders(Collection<ExpressionNameValue> items) {
-        items.forEach(item -> {
-            item.setName((String) resolvePlaceholders(item.getName()));
-            item.setValue(resolvePlaceholders(item.getValue()));
-        });
-    }
-
-    private Object resolvePlaceholders(Object value) {
-        if (value instanceof String valueAsString) {
-            return PlaceholderUtil.resolvePlaceholders(valueAsString,
-                applicationManager.getBeanOfType(PlaceholderRepository.class).getAllAsMap());
-        } else if (value instanceof List<?> valueAsList) {
-            return valueAsList.stream()
-                .map(this::resolvePlaceholders)
-                .collect(Collectors.toList());
-        } else if (value instanceof Map<?, ?> valueAsMap) {
-            return valueAsMap.entrySet().stream()
-                .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    entry -> resolvePlaceholders(entry.getValue())
-                ));
-        }
-
-        return value;
+    @Override
+    protected WorkflowDefinitionFilter createFilter() {
+        return new WorkflowDefinitionFilter();
     }
 
 }

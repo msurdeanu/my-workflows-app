@@ -195,7 +195,6 @@ Example of a dummy command:
 
 ```json
 {
-  "name": "Test",
   "commands": [
     {
       "name": "Just a sleep",

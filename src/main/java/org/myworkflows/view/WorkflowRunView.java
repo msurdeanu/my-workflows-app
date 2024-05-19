@@ -9,7 +9,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.domain.ExecutionContext;
-import org.myworkflows.domain.ExecutionContextFilter;
+import org.myworkflows.domain.filter.ExecutionContextFilter;
 import org.myworkflows.service.WorkflowRunService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;

@@ -11,28 +11,50 @@ INSERT INTO menu_items ("label", "icon", "path", "role", "position")
 VALUES ('menu.main.workflow-runs', 'lines', 'class://org.myworkflows.view.WorkflowRunView', 'ROLE_GUEST',
         '1');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-templates', 'list', 'class://org.myworkflows.view.WorkflowTemplateView', 'ROLE_GUEST',
+VALUES ('menu.main.workflow-templates', 'cubes', 'class://org.myworkflows.view.WorkflowTemplateView', 'ROLE_GUEST',
         '2');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-development', 'code', 'class://org.myworkflows.view.WorkflowDevelopmentView', 'ROLE_ADMIN',
+VALUES ('menu.main.workflow-definitions', 'cube', 'class://org.myworkflows.view.WorkflowDefinitionView', 'ROLE_ADMIN',
         '3');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', '4');
+VALUES ('menu.main.workflow-development', 'code', 'class://org.myworkflows.view.WorkflowDevelopmentView', 'ROLE_ADMIN',
+        '4');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.github-myworkflows', 'qrcode', 'https://github.com/msurdeanu/my-workflows-app', 'ROLE_GUEST', '5');
+VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', '5');
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.github-myworkflows', 'qrcode', 'https://github.com/msurdeanu/my-workflows-app', 'ROLE_GUEST', '6');
+
+CREATE TABLE workflow_definitions
+(
+    id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    name   TEXT NOT NULL UNIQUE,
+    script TEXT NOT NULL DEFAULT ''
+);
+
+INSERT INTO workflow_definitions ("name", "script")
+VALUES ('Simple script',
+        '{"name":"Test","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":5000}],"outputs":[{"name":"$$(TEST)","value":5000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$$(TEST)"]}]}]}');
 
 CREATE TABLE workflow_templates
 (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    enabled    BOOLEAN NOT NULL DEFAULT (1),
-    name       TEXT    NOT NULL UNIQUE,
-    cron       TEXT    NOT NULL,
-    definition TEXT    NOT NULL DEFAULT ''
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    enabled BOOLEAN NOT NULL DEFAULT (1),
+    name    TEXT    NOT NULL UNIQUE,
+    cron    TEXT    NOT NULL
 );
 
-INSERT INTO workflow_templates ("enabled", "name", "cron", "definition")
-VALUES ('1', 'Simple test', '0 0 0 * * MON-FRI',
-        '{"name":"Test","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":5000}],"outputs":[{"name":"$$(TEST)","value":5000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$$(TEST)"]}]}]}');
+INSERT INTO workflow_templates ("enabled", "name", "cron")
+VALUES ('1', 'Simple template', '0 0 0 * * MON-FRI');
+
+CREATE TABLE workflow_templates_workflow_definitions
+(
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    workflow_template_id   INTEGER NOT NULL,
+    workflow_definition_id INTEGER NOT NULL
+);
+
+INSERT INTO workflow_templates_workflow_definitions ("workflow_template_id", "workflow_definition_id")
+VALUES (1, 1);
 
 CREATE TABLE users
 (

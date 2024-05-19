@@ -1,38 +1,32 @@
 package org.myworkflows.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import org.myworkflows.domain.command.AbstractCommand;
-
-import java.util.List;
-import java.util.UUID;
+import org.myworkflows.converter.WorkflowDefinitionToStringConverter;
 
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
 @Getter
-@Setter
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Entity
+@Table(name = "workflow_definitions")
 public class WorkflowDefinition {
 
-    @JsonIgnore
-    private final UUID id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-    @JsonProperty("name")
     private String name;
 
-    @JsonProperty("commands")
-    private List<AbstractCommand> commands;
-
-    @JsonProperty("finallyCommands")
-    private List<AbstractCommand> finallyCommands = List.of();
-
-    public WorkflowDefinition() {
-        id = UUID.randomUUID();
-    }
+    @Setter
+    @Convert(converter = WorkflowDefinitionToStringConverter.class)
+    private WorkflowDefinitionScript script;
 
 }

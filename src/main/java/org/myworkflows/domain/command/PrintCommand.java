@@ -13,8 +13,8 @@ import java.util.List;
 public final class PrintCommand extends AbstractCommand {
 
     @ExecutionMethod
-    public int print(@MandatoryParam final ExecutionContext executionContext,
-                     @MandatoryParam final List<String> keys) {
+    public int print(@MandatoryParam ExecutionContext executionContext,
+                     @MandatoryParam List<String> keys) {
         return keys.stream()
             .map(executionContext::markKeyAsPrinted)
             .mapToInt(isPrinted -> isPrinted ? 1 : 0)

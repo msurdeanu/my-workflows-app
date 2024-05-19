@@ -5,20 +5,25 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasDynamicTitle;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
-import org.myworkflows.domain.WorkflowTemplateFilter;
+import org.myworkflows.domain.filter.WorkflowTemplateFilter;
+import org.myworkflows.service.WorkflowTemplateService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;
-import org.myworkflows.service.WorkflowTemplateService;
 import org.myworkflows.view.component.WorkflowTemplateGrid;
 
 import java.util.concurrent.TimeUnit;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
@@ -27,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @PermitAll
 @Route(value = WorkflowTemplateView.ROUTE, layout = BaseLayout.class)
-public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamicTitle, WorkflowTemplateEventHandler {
+public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamicTitle, HasUrlParameter<Integer>, WorkflowTemplateEventHandler {
 
     public static final String ROUTE = "workflow/templates";
 
@@ -35,22 +40,22 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
 
     private final WorkflowTemplateService workflowTemplateService;
 
-    private final WorkflowTemplateGrid workflowTemplateGrid;
+    private final WorkflowTemplateGrid workflowDefinitionGrid;
 
     public WorkflowTemplateView(WorkflowTemplateService workflowTemplateService) {
         super();
         this.workflowTemplateService = workflowTemplateService;
 
         final ConfigurableFilterDataProvider<WorkflowTemplate, Void, WorkflowTemplateFilter> configurableFilterDataProvider = DataProvider
-                .fromFilteringCallbacks(workflowTemplateService::findBy, workflowTemplateService::countBy)
-                .withConfigurableFilter();
+            .fromFilteringCallbacks(workflowTemplateService::findBy, workflowTemplateService::countBy)
+            .withConfigurableFilter();
         configurableFilterDataProvider.setFilter(workflowTemplateFilter);
 
-        workflowTemplateGrid = new WorkflowTemplateGrid(this);
-        workflowTemplateGrid.setDataProvider(configurableFilterDataProvider);
+        workflowDefinitionGrid = new WorkflowTemplateGrid(this);
+        workflowDefinitionGrid.setDataProvider(configurableFilterDataProvider);
 
         add(createHeader(getTranslation("workflow-templates.page.title"), createFilterByName()));
-        add(createContent(workflowTemplateGrid));
+        add(createContent(workflowDefinitionGrid));
         add(createFooter());
     }
 
@@ -60,31 +65,29 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
     }
 
     @Override
+    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter Integer id) {
+        ofNullable(id).ifPresent(this::onFilterById);
+    }
+
+    @Override
     public void onActivationChanged(Integer workflowTemplateId) {
         workflowTemplateService.changeActivation(workflowTemplateId);
-        workflowTemplateGrid.refreshPage();
+        workflowDefinitionGrid.refreshPage();
     }
 
     @Override
-    public void onCronChanged(Integer workflowTemplateId, String newCron) {
+    public void onReschedule(Integer workflowTemplateId, String newCron) {
         workflowTemplateService.changeCron(workflowTemplateId, newCron);
-    }
-
-    @Override
-    public void onDefinitionChanged(Integer workflowTemplateId, String newDefinition) {
-        if (workflowTemplateService.changeDefinition(workflowTemplateId, newDefinition)) {
-            Notification.show("Workflow template definition changed successfully.");
-        }
     }
 
     @Override
     public void onDelete(Integer workflowTemplateId) {
         workflowTemplateService.delete(workflowTemplateId);
-        workflowTemplateGrid.refreshPage();
+        workflowDefinitionGrid.refreshPage();
     }
 
     @Override
-    public void onNameChanged(Integer workflowTemplateId, @NonNull String newName) {
+    public void onRename(Integer workflowTemplateId, @NonNull String newName) {
         if (workflowTemplateService.changeName(workflowTemplateId, newName)) {
             Notification.show("Workflow template name changed successfully to '" + newName + "'.");
         }
@@ -102,14 +105,18 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
         filterByNameTextField.setClearButtonVisible(true);
         filterByNameTextField.setValueChangeMode(ValueChangeMode.LAZY);
         filterByNameTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));
-        filterByNameTextField.addValueChangeListener(event -> onFilteringByName(event.getValue()));
+        filterByNameTextField.addValueChangeListener(event -> onFilterByName(event.getValue()));
         return filterByNameTextField;
     }
 
-    private void onFilteringByName(String value) {
+    private void onFilterByName(String value) {
         workflowTemplateFilter.setByNameCriteria(value.toLowerCase());
+        workflowDefinitionGrid.refreshPage();
+    }
 
-        workflowTemplateGrid.refreshPage();
+    private void onFilterById(int value) {
+        workflowTemplateFilter.setByIdCriteria(value);
+        workflowDefinitionGrid.refreshPage();
     }
 
 }
