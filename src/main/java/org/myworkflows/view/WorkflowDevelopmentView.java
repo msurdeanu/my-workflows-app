@@ -29,13 +29,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.ExecutionContext;
-import org.myworkflows.domain.WorkflowTemplate;
-import org.myworkflows.domain.WorkflowTemplateFilter;
+import org.myworkflows.domain.WorkflowDefinition;
+import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
 import org.myworkflows.serializer.JsonFactory;
-import org.myworkflows.service.WorkflowTemplateService;
+import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.HasResizeableWidth;
 import org.myworkflows.view.component.ResponsiveLayout;
@@ -55,7 +55,7 @@ import static java.util.Optional.ofNullable;
 @Route(value = WorkflowDevelopmentView.ROUTE, layout = BaseLayout.class)
 public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResizeableWidth, HasDynamicTitle, HasUrlParameter<Integer> {
 
-    public static final String ROUTE = "workflow/development";
+    public static final String ROUTE = "workflow/dev";
 
     private final AceEditor editor = new AceEditor();
     private final GraniteAlert currentWorkflowStatus = new GraniteAlert();
@@ -88,12 +88,12 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     }
 
     @Override
-    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter Integer selectedTemplateId) {
-        ofNullable(selectedTemplateId)
-            .flatMap(templateId -> applicationManager.getBeanOfType(WorkflowTemplateService.class)
-                .getAll(new WorkflowTemplateFilter().setByIdCriteria(templateId), 0, 1)
+    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter Integer workflowDefinitionId) {
+        ofNullable(workflowDefinitionId)
+            .flatMap(item -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
+                .getAll(new WorkflowDefinitionFilter().setByIdCriteria(item), 0, 1)
                 .findFirst())
-            .ifPresent(this::onFilteringByTemplate);
+            .ifPresent(this::onFilteringByDefinition);
     }
 
     @Override
@@ -136,18 +136,18 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     }
 
     private Component createFilterByTemplate() {
-        final var filterByTemplateSelect = new Select<WorkflowTemplate>();
-        filterByTemplateSelect.setItems(applicationManager.getBeanOfType(WorkflowTemplateService.class)
+        final var filterByTemplateSelect = new Select<WorkflowDefinition>();
+        filterByTemplateSelect.setItems(applicationManager.getBeanOfType(WorkflowDefinitionService.class)
             .getAll().toList());
         filterByTemplateSelect.setPlaceholder(getTranslation("workflow-development.filter.by-template.placeholder"));
         filterByTemplateSelect.setHelperText(getTranslation("workflow-development.filter.by-template.helper"));
-        filterByTemplateSelect.setItemLabelGenerator(WorkflowTemplate::getName);
-        filterByTemplateSelect.addValueChangeListener(event -> onFilteringByTemplate(event.getValue()));
+        filterByTemplateSelect.setItemLabelGenerator(WorkflowDefinition::getName);
+        filterByTemplateSelect.addValueChangeListener(event -> onFilteringByDefinition(event.getValue()));
         return filterByTemplateSelect;
     }
 
-    private void onFilteringByTemplate(WorkflowTemplate workflowTemplate) {
-        editor.setValue(JsonFactory.toPrettyString(workflowTemplate.getDefinition(), ""));
+    private void onFilteringByDefinition(WorkflowDefinition workflowDefinition) {
+        editor.setValue(JsonFactory.toPrettyString(workflowDefinition.getScript(), ""));
     }
 
     private SplitLayout createBody() {
@@ -173,7 +173,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
                 .isManual(true)
                 .token(lastSubmittedUuid)
-                .workflow(editor.getValue())
+                .workflowDefinitionScript(editor.getValue())
                 .build());
         });
         runWorkflowButton.setWidthFull();

@@ -9,13 +9,13 @@ import java.util.List;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@Getter
 public abstract class AbstractSubCommand extends AbstractCommand {
 
-    @Getter
     @JsonProperty("subcommands")
     private List<AbstractCommand> subcommands = List.of();
 
-    protected void sleepAWhile(final long millis) {
+    protected void sleepAWhile(long millis) {
         if (millis < 1) {
             return;
         }

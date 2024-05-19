@@ -22,8 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
-import org.myworkflows.view.WorkflowDevelopmentView;
+import org.myworkflows.view.WorkflowDefinitionView;
 import org.vaadin.klaudeta.PaginatedGrid;
+
+import java.util.ArrayList;
 
 import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 import static java.util.Optional.ofNullable;
@@ -66,7 +68,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
             .setHeader(getTranslation("workflow-templates.main-grid.actions.column"))
             .setAutoWidth(true);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(
-            () -> new WorkflowTemplateDetails(workflowTemplateEventHandler),
+            () -> new WorkflowTemplateDetails(new ArrayList<>()),
             WorkflowTemplateDetails::setDetails)
         );
         paginatedGrid.setPageSize(10);
@@ -105,7 +107,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         nameTextField.setValue(workflowTemplate.getName());
         layout.add(nameTextField);
         addShortcutListener(layout, () -> {
-            workflowTemplateEventHandler.onNameChanged(workflowTemplate.getId(), nameTextField.getValue());
+            workflowTemplateEventHandler.onRename(workflowTemplate.getId(), nameTextField.getValue());
             onUpdated(workflowTemplate);
         }, Key.ENTER);
         addShortcutListener(layout, () -> onUpdated(workflowTemplate), Key.ESCAPE);
@@ -115,7 +117,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         cronTextField.setValue(ofNullable(workflowTemplate.getCron()).orElse(StringUtils.EMPTY));
         layout.add(cronTextField);
         addShortcutListener(cronTextField, () -> {
-            workflowTemplateEventHandler.onCronChanged(workflowTemplate.getId(), cronTextField.getValue());
+            workflowTemplateEventHandler.onReschedule(workflowTemplate.getId(), cronTextField.getValue());
             onUpdated(workflowTemplate);
         }, Key.ENTER);
         addShortcutListener(cronTextField, () -> onUpdated(workflowTemplate), Key.ESCAPE);
@@ -124,7 +126,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
     }
 
     private Component getOnlyName(WorkflowTemplate workflowTemplate) {
-        final var routerLink = new RouterLink(workflowTemplate.getName(), WorkflowDevelopmentView.class, workflowTemplate.getId());
+        final var routerLink = new RouterLink(workflowTemplate.getName(), WorkflowDefinitionView.class, workflowTemplate.getId());
         routerLink.getElement().getThemeList().add("badge" + (workflowTemplate.isEnabled() ? "" : " contrast"));
         return routerLink;
     }

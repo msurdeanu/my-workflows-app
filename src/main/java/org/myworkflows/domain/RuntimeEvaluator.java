@@ -23,7 +23,7 @@ public enum RuntimeEvaluator {
 
     GROOVY("groovy") {
         @Override
-        public Object evaluate(final String expression, final Map<String, Object> variables) {
+        public Object evaluate(String expression, Map<String, Object> variables) {
             final var binding = new Binding();
             variables.forEach(binding::setProperty);
             final var groovyShell = new GroovyShell(binding);
@@ -33,14 +33,14 @@ public enum RuntimeEvaluator {
 
     PLAIN("plain") {
         @Override
-        public Object evaluate(final String expression, final Map<String, Object> variables) {
+        public Object evaluate(String expression, Map<String, Object> variables) {
             return expression;
         }
     },
 
     SPEL("spel") {
         @Override
-        public Object evaluate(final String expression, final Map<String, Object> variables) {
+        public Object evaluate(String expression, Map<String, Object> variables) {
             final var parsedExpression = new SpelExpressionParser().parseExpression(expression);
             final var context = new StandardEvaluationContext();
             context.setVariables(variables);
@@ -59,10 +59,10 @@ public enum RuntimeEvaluator {
     private final String type;
 
     @JsonCreator
-    public static RuntimeEvaluator of(final String type) {
+    public static RuntimeEvaluator of(String type) {
         return ALL_VALUES.getOrDefault(type, PLAIN);
     }
 
-    public abstract Object evaluate(final String expression, final Map<String, Object> variables);
+    public abstract Object evaluate(String expression, Map<String, Object> variables);
 
 }

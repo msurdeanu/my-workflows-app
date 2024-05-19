@@ -18,29 +18,29 @@ public final class ExecutionCache {
     private final Map<String, Object> cachedObjectMap = new HashMap<>();
 
     @SuppressWarnings("checkstyle:LineLength")
-    public <T> T get(final String key, final Class<T> clazz) {
+    public <T> T get(String key, Class<T> clazz) {
         return find(key, clazz)
             .orElseThrow(() -> new WorkflowRuntimeException("No value found for key '" + key + "' or value type is not assignable from class '" + clazz.getName() + "'"));
     }
 
     @SuppressWarnings({"unchecked", "checkstyle:LineLength"})
-    public <T> List<T> getList(final String key, final Class<T> clazz) {
+    public <T> List<T> getList(String key, Class<T> clazz) {
         return findList(key, clazz)
             .orElseThrow(() -> new WorkflowRuntimeException("No value found for key '" + key + "' or value type is not list or value type is not assignable from class '" + clazz.getName() + "' or value is empty list"));
     }
 
-    public Optional<Object> find(final String key) {
+    public Optional<Object> find(String key) {
         return ofNullable(cachedObjectMap.get(key));
     }
 
-    public <T> Optional<T> find(final String key, final Class<T> clazz) {
+    public <T> Optional<T> find(String key, Class<T> clazz) {
         return find(key)
             .filter(value -> clazz.isAssignableFrom(value.getClass()))
             .map(clazz::cast);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Optional<List<T>> findList(final String key, final Class<T> clazz) {
+    public <T> Optional<List<T>> findList(String key, Class<T> clazz) {
         return find(key)
             .filter(value -> value instanceof List)
             .map(List.class::cast)
@@ -49,19 +49,19 @@ public final class ExecutionCache {
             .map(list -> (List<T>) list);
     }
 
-    public <T> T lookup(final String key, final Class<T> clazz, final boolean mandatory) {
+    public <T> T lookup(String key, Class<T> clazz, boolean mandatory) {
         return mandatory ? get(key, clazz) : find(key, clazz).orElse(null);
     }
 
-    public <T> List<T> lookupList(final String key, final Class<T> clazz, final boolean mandatory) {
+    public <T> List<T> lookupList(String key, Class<T> clazz, boolean mandatory) {
         return mandatory ? getList(key, clazz) : findList(key, clazz).orElse(null);
     }
 
-    public Object put(final String key, final Object value) {
+    public Object put(String key, Object value) {
         return cachedObjectMap.put(key, value);
     }
 
-    public Object remove(final String key) {
+    public Object remove(String key) {
         return cachedObjectMap.remove(key);
     }
 

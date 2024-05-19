@@ -21,9 +21,9 @@ public final class GroovyCommand extends AbstractCommand {
     private static final GroovyShell GROOVY_SHELL = new GroovyShell();
 
     @ExecutionMethod
-    public Object groovy(@MandatoryParam final ExecutionContext executionContext,
-                         @MandatoryParam final List<String> scriptLines,
-                         @OptionalParam final String methodName) {
+    public Object groovy(@MandatoryParam ExecutionContext executionContext,
+                         @MandatoryParam List<String> scriptLines,
+                         @OptionalParam String methodName) {
         final var resolvedMethodName = ofNullable(methodName).orElse("run");
 
         final var script = GROOVY_SHELL.parse(scriptLines.stream().collect(joining(lineSeparator())));

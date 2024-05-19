@@ -5,6 +5,7 @@ import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -12,20 +13,20 @@ import java.util.UUID;
  * @since 1.0.0
  */
 @RequiredArgsConstructor
-public final class WorkflowRunnable implements Runnable {
+public final class WorkflowDefinitionScriptRunnable implements Runnable {
 
     private final ApplicationManager applicationManager;
 
-    private final WorkflowDefinition workflowDefinition;
+    private final List<WorkflowDefinitionScript> workflowDefinitionScripts;
 
     @Override
     public void run() {
         applicationManager.getBeanOfType(EventBroadcaster.class)
-                .broadcast(WorkflowDefinitionOnSubmitEvent.builder()
-                        .isManual(false)
-                        .token(UUID.randomUUID())
-                        .workflow(workflowDefinition)
-                        .build());
+            .broadcast(WorkflowDefinitionOnSubmitEvent.builder()
+                .isManual(false)
+                .token(UUID.randomUUID())
+                .workflowDefinitionScript(WorkflowDefinitionScript.of(workflowDefinitionScripts))
+                .build());
     }
 
 }

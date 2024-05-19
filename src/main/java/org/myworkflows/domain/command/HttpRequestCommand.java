@@ -24,12 +24,12 @@ import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 public final class HttpRequestCommand extends AbstractCommand {
 
     @ExecutionMethod
-    public ResponseEntity<String> httpRequest(@MandatoryParam final String url,
-                                              @OptionalParam final String method,
-                                              @OptionalParam final String body,
-                                              @OptionalParam final Map<String, String> headers,
-                                              @OptionalParam final Long connectionTimeout,
-                                              @OptionalParam final Long readTimeout) {
+    public ResponseEntity<String> httpRequest(@MandatoryParam String url,
+                                              @OptionalParam String method,
+                                              @OptionalParam String body,
+                                              @OptionalParam Map<String, String> headers,
+                                              @OptionalParam Long connectionTimeout,
+                                              @OptionalParam Long readTimeout) {
         final var resolvedMethod = ofNullable(method).map(item -> valueOf(item.toUpperCase())).orElse(GET);
         final var resolvedBody = ofNullable(body).orElse("");
         final var resolvedHeaders = ofNullable(headers).orElse(Map.of());
@@ -41,16 +41,14 @@ public final class HttpRequestCommand extends AbstractCommand {
                         createHttpEntity(resolvedBody, resolvedHeaders), String.class);
     }
 
-    private RestTemplate createRestTemplate(final long connectionTimeout,
-                                            final long readTimeout) {
+    private RestTemplate createRestTemplate(long connectionTimeout, long readTimeout) {
         return new RestTemplateBuilder()
                 .setConnectTimeout(ofMillis(connectionTimeout))
                 .setReadTimeout(ofMillis(readTimeout))
                 .build();
     }
 
-    private HttpEntity<String> createHttpEntity(final String body,
-                                                final Map<String, String> headers) {
+    private HttpEntity<String> createHttpEntity(String body, Map<String, String> headers) {
         final var httpHeaders = new HttpHeaders();
         headers.forEach(httpHeaders::set);
         return new HttpEntity<>(body, httpHeaders);

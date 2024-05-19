@@ -27,7 +27,7 @@ public final class ExecutionContext {
     private final Set<String> printedKeys = new LinkedHashSet<>();
 
     @Getter
-    private final UUID workflowId;
+    private final UUID workflowId = UUID.randomUUID();
 
     private final int totalCommands;
 
@@ -41,19 +41,17 @@ public final class ExecutionContext {
     private long duration;
 
     public ExecutionContext() {
-        workflowId = UUID.randomUUID();
         totalCommands = 0;
         commandNames = List.of();
     }
 
-    public ExecutionContext(final WorkflowDefinition workflowDefinition) {
-        workflowId = workflowDefinition.getId();
-        totalCommands = workflowDefinition.getCommands().size() + workflowDefinition.getFinallyCommands().size();
+    public ExecutionContext(WorkflowDefinitionScript workflowDefinitionScript) {
+        totalCommands = workflowDefinitionScript.getCommands().size() + workflowDefinitionScript.getFinallyCommands().size();
         commandNames = new ArrayList<>(totalCommands);
-        for (AbstractCommand command : workflowDefinition.getCommands()) {
+        for (AbstractCommand command : workflowDefinitionScript.getCommands()) {
             commandNames.add(command.getName());
         }
-        for (AbstractCommand command : workflowDefinition.getFinallyCommands()) {
+        for (AbstractCommand command : workflowDefinitionScript.getFinallyCommands()) {
             commandNames.add(command.getName());
         }
     }
@@ -64,17 +62,17 @@ public final class ExecutionContext {
 
     public List<ExecutionPrint> getAllPrints() {
         return printedKeys.stream()
-                .flatMap(item -> cache.find(item).map(value -> new ExecutionPrint(item, value)).stream())
-                .collect(Collectors.toList());
+            .flatMap(item -> cache.find(item).map(value -> new ExecutionPrint(item, value)).stream())
+            .collect(Collectors.toList());
     }
 
-    public boolean markKeyAsPrinted(final String key) {
+    public boolean markKeyAsPrinted(String key) {
         return cache.find(key)
-                .map(value -> printedKeys.add(key))
-                .orElse(false);
+            .map(value -> printedKeys.add(key))
+            .orElse(false);
     }
 
-    public void markCommandAsFailed(final Throwable throwable) {
+    public void markCommandAsFailed(Throwable throwable) {
         completedCommands = totalCommands;
         this.failureMessage = ExceptionUtil.getMessageAndCause(throwable);
     }
@@ -83,7 +81,7 @@ public final class ExecutionContext {
         completedCommands++;
     }
 
-    public void markAsCompleted(final long duration) {
+    public void markAsCompleted(long duration) {
         this.duration = duration;
     }
 

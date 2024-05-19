@@ -21,8 +21,7 @@ public final class WorkflowTemplateOnDeleteEventService implements EventListener
 
     @Override
     public void onEventReceived(WorkflowTemplateOnDeleteEvent event) {
-        applicationManager.getBeanOfType(WorkflowTemplateRepository.class)
-                .delete(event.getWorkflowTemplate());
+        applicationManager.getBeanOfType(WorkflowTemplateRepository.class).delete(event.getWorkflowTemplate());
     }
 
     @Override

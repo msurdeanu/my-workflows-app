@@ -3,10 +3,6 @@
   "title": "Workflow",
   "type": "object",
   "properties": {
-    "name": {
-      "type": "string",
-      "description": "The name of the workflow."
-    },
     "commands": {
       "type": "array",
       "items": { "$ref": "#/$defs/command" }

@@ -35,16 +35,16 @@ public class ExpressionNameValue {
     @JsonProperty("@type")
     private RuntimeEvaluator runtimeEvaluator = RuntimeEvaluator.PLAIN;
 
-    public Object evaluate(final Map<String, Object> variables) {
+    public Object evaluate(Map<String, Object> variables) {
         return recursiveEvaluation(value, variables);
     }
 
     @SuppressWarnings("unchecked")
-    private Object recursiveEvaluation(final Object object, final Map<String, Object> variables) {
-        if (object instanceof String) {
-            return runtimeEvaluator.evaluate((String) object, variables);
-        } else if (object instanceof List) {
-            return ((List<?>) object).stream().map(item -> recursiveEvaluation(item, variables)).collect(toList());
+    private Object recursiveEvaluation(Object object, Map<String, Object> variables) {
+        if (object instanceof String objectAsStr) {
+            return runtimeEvaluator.evaluate(objectAsStr, variables);
+        } else if (object instanceof List<?> objectAsList) {
+            return objectAsList.stream().map(item -> recursiveEvaluation(item, variables)).collect(toList());
         } else if (object instanceof Map) {
             final var copyOfInitialMap = new HashMap<>((Map<?, Object>) object);
             for (Map.Entry<?, Object> entry : copyOfInitialMap.entrySet()) {

@@ -23,12 +23,12 @@ import static java.util.Optional.ofNullable;
 public final class SshShellCommand extends AbstractCommand {
 
     @ExecutionMethod
-    public SshCommandOutput sshShell(@MandatoryParam final String host,
-                                     @MandatoryParam final String username,
-                                     @MandatoryParam final String password,
-                                     @MandatoryParam final List<String> commands,
-                                     @OptionalParam final Integer port,
-                                     @OptionalParam final Long timeout) throws IOException, SshException {
+    public SshCommandOutput sshShell(@MandatoryParam String host,
+                                     @MandatoryParam String username,
+                                     @MandatoryParam String password,
+                                     @MandatoryParam List<String> commands,
+                                     @OptionalParam Integer port,
+                                     @OptionalParam Long timeout) throws IOException, SshException {
         final var resolvedPort = ofNullable(port).orElse(22);
         final var resolvedTimeout = ofNullable(timeout).orElse(60_000L);
 

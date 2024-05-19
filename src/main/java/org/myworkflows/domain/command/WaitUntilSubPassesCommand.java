@@ -14,9 +14,9 @@ import static java.util.Optional.ofNullable;
 public final class WaitUntilSubPassesCommand extends AbstractSubCommand {
 
     @ExecutionMethod
-    public int waitUntilSubPasses(@MandatoryParam final ExecutionContext executionContext,
-                                  @OptionalParam final Number iterations,
-                                  @OptionalParam final Number backoffPeriod) {
+    public int waitUntilSubPasses(@MandatoryParam ExecutionContext executionContext,
+                                  @OptionalParam Number iterations,
+                                  @OptionalParam Number backoffPeriod) {
         final var resolvedIterations = ofNullable(iterations).orElse(3).intValue();
         final var resolvedBackoffPeriod = ofNullable(backoffPeriod).orElse(1_000).longValue();
 

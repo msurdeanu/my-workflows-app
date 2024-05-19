@@ -10,7 +10,7 @@ import org.myworkflows.domain.command.api.MandatoryParam;
 public final class SleepCommand extends AbstractCommand {
 
     @ExecutionMethod
-    public long sleep(@MandatoryParam final Number sleepTime) throws InterruptedException {
+    public long sleep(@MandatoryParam Number sleepTime) throws InterruptedException {
         final var startTime = System.currentTimeMillis();
         Thread.sleep(sleepTime.longValue());
         return System.currentTimeMillis() - startTime;

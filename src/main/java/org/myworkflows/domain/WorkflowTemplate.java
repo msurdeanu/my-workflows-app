@@ -1,16 +1,24 @@
 package org.myworkflows.domain;
 
-import jakarta.persistence.Convert;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-import org.myworkflows.converter.WorkflowDefinitionToStringConverter;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
@@ -37,9 +45,15 @@ public class WorkflowTemplate {
     private String cron;
 
     @Getter
-    @Setter
-    @Convert(converter = WorkflowDefinitionToStringConverter.class)
-    private WorkflowDefinition definition;
+    @ManyToMany(cascade = {
+        CascadeType.PERSIST,
+        CascadeType.MERGE
+    }, fetch = FetchType.EAGER)
+    @JoinTable(name = "workflow_templates_workflow_definitions",
+        joinColumns = @JoinColumn(name = "workflow_template_id"),
+        inverseJoinColumns = @JoinColumn(name = "workflow_definition_id")
+    )
+    private List<WorkflowDefinition> workflowDefinitions;
 
     @Getter
     @Setter
@@ -48,6 +62,14 @@ public class WorkflowTemplate {
 
     public boolean isEnabledForScheduling() {
         return enabled && !StringUtils.isEmpty(cron);
+    }
+
+    public List<WorkflowDefinitionScript> getWorkflowDefinitionScripts() {
+        return ofNullable(workflowDefinitions)
+            .orElse(List.of())
+            .stream()
+            .map(WorkflowDefinition::getScript)
+            .collect(Collectors.toList());
     }
 
     public void toggleOnEnabling() {

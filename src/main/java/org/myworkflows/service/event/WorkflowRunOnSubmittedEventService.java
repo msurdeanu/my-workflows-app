@@ -3,7 +3,7 @@ package org.myworkflows.service.event;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.event.EventListener;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
-import org.myworkflows.service.WorkflowRunCacheService;
+import org.myworkflows.service.WorkflowRunService;
 import org.springframework.stereotype.Service;
 
 import static java.util.Optional.ofNullable;
@@ -16,11 +16,11 @@ import static java.util.Optional.ofNullable;
 @RequiredArgsConstructor
 public final class WorkflowRunOnSubmittedEventService implements EventListener<WorkflowDefinitionOnSubmittedEvent> {
 
-    private final WorkflowRunCacheService workflowRunCacheService;
+    private final WorkflowRunService workflowRunService;
 
     @Override
     public void onEventReceived(WorkflowDefinitionOnSubmittedEvent event) {
-        ofNullable(event.getExecutionContext()).ifPresent(workflowRunCacheService::add);
+        ofNullable(event.getExecutionContext()).ifPresent(workflowRunService::add);
     }
 
     @Override
