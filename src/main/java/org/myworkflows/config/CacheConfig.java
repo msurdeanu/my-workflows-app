@@ -29,15 +29,25 @@ public class CacheConfig {
         return cacheManager;
     }
 
+    @Bean("workflowTemplateCacheManager")
+    public CacheManager workflowTemplateCacheManager() {
+        // maximum number of workflow templates is set to 10k
+        final var cacheManager = new CustomCacheManager(10_000, ofSeconds(0), ofSeconds(0));
+        cacheManager.setCacheNames(List.of("workflow-templates"));
+        return cacheManager;
+    }
+
     @Bean("workflowDefinitionCacheManager")
     public CacheManager workflowDefinitionCacheManager() {
-        final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(0));
+        // maximum number of workflow definitions is set to 10k
+        final var cacheManager = new CustomCacheManager(10_000, ofSeconds(0), ofSeconds(0));
         cacheManager.setCacheNames(List.of("workflow-definitions"));
         return cacheManager;
     }
 
     @Bean("menuItemCacheManager")
     public CacheManager menuItemCacheManager() {
+        // menu items cache are refreshed every day
         final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(86_400));
         cacheManager.setCacheNames(List.of("menu-items"));
         return cacheManager;
@@ -45,6 +55,7 @@ public class CacheConfig {
 
     @Bean("placeholderCacheManager")
     public CacheManager placeholderCacheManager() {
+        // placeholders cache are refreshed every day
         final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(86_400));
         cacheManager.setCacheNames(List.of("placeholders"));
         return cacheManager;

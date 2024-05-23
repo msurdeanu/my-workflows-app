@@ -1,23 +1,20 @@
 package org.myworkflows.service;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
+import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.event.WorkflowTemplateOnDeleteEvent;
 import org.myworkflows.domain.event.WorkflowTemplateOnUpdateEvent;
 import org.myworkflows.domain.filter.WorkflowTemplateFilter;
-import org.myworkflows.repository.WorkflowTemplateRepository;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
@@ -27,35 +24,38 @@ import static java.util.Optional.ofNullable;
  * @since 1.0.0
  */
 @Service
-@RequiredArgsConstructor
 public final class WorkflowTemplateService extends AbstractDataService<WorkflowTemplate, WorkflowTemplateFilter> {
-
-    private static final Map<Integer, WorkflowTemplate> ALL_WORKFLOWS = new HashMap<>();
 
     private final Lock lock = new ReentrantLock();
 
     private final ApplicationManager applicationManager;
 
-    @Order(10)
-    @EventListener(ApplicationReadyEvent.class)
-    public void loadAll() {
-        applicationManager.getBeanOfType(WorkflowTemplateRepository.class)
-            .findAll()
-            .forEach(this::loadAndSchedule);
+    private final CaffeineCache cache;
+
+    public WorkflowTemplateService(ApplicationManager applicationManager) {
+        this.applicationManager = applicationManager;
+        cache = (CaffeineCache) applicationManager
+            .getBeanOfTypeAndName(CacheManager.class, "workflowTemplateCacheManager")
+            .getCache("workflow-templates");
     }
 
     @Override
     public Stream<WorkflowTemplate> getAllItems() {
-        return ALL_WORKFLOWS.values().stream();
+        return cache.getNativeCache().asMap().values().stream()
+            .filter(item -> item instanceof WorkflowTemplate)
+            .map(item -> (WorkflowTemplate) item);
     }
 
     public void loadAndSchedule(@NonNull WorkflowTemplate workflowTemplate) {
         lock.lock();
         try {
-            ofNullable(ALL_WORKFLOWS.put(workflowTemplate.getId(), workflowTemplate))
+            final var previousWorkflowTemplate = cache.get(workflowTemplate.getId(), WorkflowTemplate.class);
+            ofNullable(previousWorkflowTemplate)
                 .filter(WorkflowTemplate::isEnabledForScheduling)
                 .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                     .unschedule(workflowTemplate));
+            cache.evictIfPresent(workflowTemplate.getId());
+            cache.put(workflowTemplate.getId(), workflowTemplate);
             if (workflowTemplate.isEnabled()) {
                 applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                     .schedule(workflowTemplate);
@@ -68,7 +68,7 @@ public final class WorkflowTemplateService extends AbstractDataService<WorkflowT
     public void changeActivation(@NonNull Integer workflowId) {
         lock.lock();
         try {
-            ofNullable(ALL_WORKFLOWS.get(workflowId)).ifPresent(workflowTemplate -> {
+            ofNullable(cache.get(workflowId, WorkflowTemplate.class)).ifPresent(workflowTemplate -> {
                 workflowTemplate.toggleOnEnabling();
                 if (workflowTemplate.isEnabled()) {
                     applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
@@ -88,7 +88,7 @@ public final class WorkflowTemplateService extends AbstractDataService<WorkflowT
     public void changeCron(Integer workflowId, String newCron) {
         lock.lock();
         try {
-            ofNullable(ALL_WORKFLOWS.get(workflowId)).ifPresent(workflowTemplate -> {
+            ofNullable(cache.get(workflowId, WorkflowTemplate.class)).ifPresent(workflowTemplate -> {
                 if (workflowTemplate.isEnabled()) {
                     applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                         .unschedule(workflowTemplate);
@@ -109,7 +109,7 @@ public final class WorkflowTemplateService extends AbstractDataService<WorkflowT
     public boolean changeName(Integer workflowId, String newName) {
         lock.lock();
         try {
-            return ofNullable(ALL_WORKFLOWS.get(workflowId)).map(workflowTemplate -> {
+            return ofNullable(cache.get(workflowId, WorkflowTemplate.class)).map(workflowTemplate -> {
                 workflowTemplate.setName(newName);
                 applicationManager.getBeanOfType(EventBroadcaster.class)
                     .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
@@ -122,10 +122,24 @@ public final class WorkflowTemplateService extends AbstractDataService<WorkflowT
         }
     }
 
+    public void updateDefinition(Integer workflowId, Stream<WorkflowDefinition> newDefinitions) {
+        lock.lock();
+        try {
+            ofNullable(cache.get(workflowId, WorkflowTemplate.class)).ifPresent(workflowTemplate -> {
+                workflowTemplate.setWorkflowDefinitions(newDefinitions.collect(Collectors.toList()));
+                applicationManager.getBeanOfType(EventBroadcaster.class)
+                    .broadcast(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(workflowTemplate).build());
+            });
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public void delete(Integer workflowId) {
         lock.lock();
         try {
-            final var workflowTemplate = ALL_WORKFLOWS.remove(workflowId);
+            final var workflowTemplate = cache.get(workflowId, WorkflowTemplate.class);
+            cache.evictIfPresent(workflowId);
             if (workflowTemplate.isEnabled()) {
                 applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                     .unschedule(workflowTemplate);
@@ -138,7 +152,7 @@ public final class WorkflowTemplateService extends AbstractDataService<WorkflowT
     }
 
     public void scheduleNow(Integer workflowId) {
-        ofNullable(ALL_WORKFLOWS.get(workflowId)).ifPresent(workflowTemplate -> {
+        ofNullable(cache.get(workflowId, WorkflowTemplate.class)).ifPresent(workflowTemplate -> {
             applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                 .scheduleNowAsync(workflowTemplate);
         });

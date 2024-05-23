@@ -20,15 +20,17 @@ import com.vaadin.flow.theme.lumo.LumoIcon;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.UserRole;
+import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
 import org.myworkflows.view.WorkflowDefinitionView;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 import static java.util.Optional.ofNullable;
+import static org.myworkflows.util.StreamUtil.substract;
 
 /**
  * @author Mihai Surdeanu
@@ -40,6 +42,8 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
     private final PaginatedGrid<WorkflowTemplate, ?> paginatedGrid = new PaginatedGrid<>();
 
     private final WorkflowTemplateEventHandler workflowTemplateEventHandler;
+
+    private final List<WorkflowDefinition> allWorkflowDefinitions;
 
     private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
 
@@ -68,8 +72,9 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
             .setHeader(getTranslation("workflow-templates.main-grid.actions.column"))
             .setAutoWidth(true);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(
-            () -> new WorkflowTemplateDetails(new ArrayList<>()),
-            WorkflowTemplateDetails::setDetails)
+            () -> new WorkflowTemplateDetails(workflowTemplateEventHandler),
+            (instance, workflowTemplate) -> instance.setDetails(workflowTemplate,
+                substract(allWorkflowDefinitions, workflowTemplate.getWorkflowDefinitions())))
         );
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);

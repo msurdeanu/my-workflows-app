@@ -13,15 +13,19 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
 import org.myworkflows.domain.filter.WorkflowTemplateFilter;
+import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.service.WorkflowTemplateService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowTemplateGrid;
 
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
 
@@ -42,7 +46,8 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
 
     private final WorkflowTemplateGrid workflowDefinitionGrid;
 
-    public WorkflowTemplateView(WorkflowTemplateService workflowTemplateService) {
+    public WorkflowTemplateView(WorkflowTemplateService workflowTemplateService,
+                                WorkflowDefinitionService workflowDefinitionService) {
         super();
         this.workflowTemplateService = workflowTemplateService;
 
@@ -51,7 +56,7 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
             .withConfigurableFilter();
         configurableFilterDataProvider.setFilter(workflowTemplateFilter);
 
-        workflowDefinitionGrid = new WorkflowTemplateGrid(this);
+        workflowDefinitionGrid = new WorkflowTemplateGrid(this, workflowDefinitionService.getAllItems().collect(Collectors.toList()));
         workflowDefinitionGrid.setDataProvider(configurableFilterDataProvider);
 
         add(createHeader(getTranslation("workflow-templates.page.title"), createFilterByName()));
@@ -73,6 +78,11 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
     public void onActivationChanged(Integer workflowTemplateId) {
         workflowTemplateService.changeActivation(workflowTemplateId);
         workflowDefinitionGrid.refreshPage();
+    }
+
+    @Override
+    public void onDefinitionUpdated(Integer workflowTemplateId, Stream<WorkflowDefinition> newDefinitions) {
+        workflowTemplateService.updateDefinition(workflowTemplateId, newDefinitions);
     }
 
     @Override

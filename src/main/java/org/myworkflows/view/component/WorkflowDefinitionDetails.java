@@ -48,7 +48,7 @@ public final class WorkflowDefinitionDetails extends Composite<VerticalLayout> {
         editor.setValue(JsonFactory.toPrettyString(workflowDefinition.getScript(), ""));
         editor.addAceChangedListener(event -> saveButton.setEnabled(isNewDefinition(workflowDefinition, event.getValue())));
 
-        saveButton.addClickListener(event -> workflowDefinitionEventHandler.onScriptChange(workflowDefinition.getId(), editor.getValue()));
+        saveButton.addClickListener(event -> workflowDefinitionEventHandler.onScriptUpdated(workflowDefinition.getId(), editor.getValue()));
     }
 
     private boolean isNewDefinition(WorkflowDefinition workflowDefinition, String newScript) {
