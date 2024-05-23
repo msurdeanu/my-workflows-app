@@ -6,6 +6,6 @@ package org.myworkflows.domain;
  */
 public interface WorkflowDefinitionEventHandler {
 
-    void onScriptChange(Integer workflowTemplateId, String newScript);
+    void onScriptUpdated(Integer workflowDefinitionId, String newScript);
 
 }

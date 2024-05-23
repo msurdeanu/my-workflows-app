@@ -45,6 +45,7 @@ public class WorkflowTemplate {
     private String cron;
 
     @Getter
+    @Setter
     @ManyToMany(cascade = {
         CascadeType.PERSIST,
         CascadeType.MERGE

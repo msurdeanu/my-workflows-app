@@ -1,5 +1,7 @@
 package org.myworkflows.domain;
 
+import java.util.stream.Stream;
+
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
@@ -7,6 +9,8 @@ package org.myworkflows.domain;
 public interface WorkflowTemplateEventHandler {
 
     void onActivationChanged(Integer workflowTemplateId);
+
+    void onDefinitionUpdated(Integer workflowTemplateId, Stream<WorkflowDefinition> items);
 
     void onDelete(Integer workflowTemplateId);
 

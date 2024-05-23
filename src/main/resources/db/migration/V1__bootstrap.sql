@@ -32,8 +32,11 @@ CREATE TABLE workflow_definitions
 );
 
 INSERT INTO workflow_definitions ("name", "script")
-VALUES ('Simple script',
-        '{"name":"Test","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":5000}],"outputs":[{"name":"$$(TEST)","value":5000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$$(TEST)"]}]}]}');
+VALUES ('Simple script 1',
+        '{"name":"Test 1","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":1000}],"outputs":[{"name":"$$(TEST)","value":1000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$$(TEST)"]}]}]}');
+INSERT INTO workflow_definitions ("name", "script")
+VALUES ('Simple script 2',
+        '{"name":"Test 2","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":2000}],"outputs":[{"name":"$$(TEST)","value":2000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$$(TEST)"]}]}]}');
 
 CREATE TABLE workflow_templates
 (
