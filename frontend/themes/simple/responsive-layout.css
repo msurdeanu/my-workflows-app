@@ -18,8 +18,13 @@
 }
 
 #responsiveLayout .header-right {
-    float: right;
     margin-top: 12px;
+}
+
+@media (min-width: 600px) {
+    #responsiveLayout .header-right {
+        float: right;
+    }
 }
 
 #responsiveLayout .header-right > * {

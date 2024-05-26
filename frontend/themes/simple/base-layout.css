@@ -24,41 +24,6 @@ vaadin-scroller[slot="drawer"] {
     max-height: 180px;
 }
 
-.passed {
-    color: var(--lumo-primary-text-color);
-}
-
-.failed {
-    color: var(--lumo-error-text-color);;
-    text-decoration: underline;
-}
-
-.disabled {
-    color: var(--lumo-tertiary-text-color);
-    text-decoration: line-through;
-}
-
-.chat-messages {
-    width: 100%;
-    height: 500px;
-}
-
-.chat-field {
-    width: 95%;
-}
-
-.chat-button {
-    width: 5%;
-}
-
-.editable-field {
-    width: 250px;
-}
-
-.small-suffix {
-    font-size: 10px;
-}
-
 footer > span {
     width: 100%;
     text-align: center;
