@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -15,7 +16,6 @@ import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.theme.lumo.LumoIcon;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +23,6 @@ import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
-import org.myworkflows.view.WorkflowDefinitionView;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
@@ -131,9 +130,9 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
     }
 
     private Component getOnlyName(WorkflowTemplate workflowTemplate) {
-        final var routerLink = new RouterLink(workflowTemplate.getName(), WorkflowDefinitionView.class, workflowTemplate.getId());
-        routerLink.getElement().getThemeList().add("badge" + (workflowTemplate.isEnabled() ? "" : " contrast"));
-        return routerLink;
+        final var nativeLabel = new NativeLabel(workflowTemplate.getName());
+        nativeLabel.getElement().getThemeList().add("badge" + (workflowTemplate.isEnabled() ? "" : " contrast"));
+        return nativeLabel;
     }
 
     private Component renderActions(WorkflowTemplate workflowTemplate) {

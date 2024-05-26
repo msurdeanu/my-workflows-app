@@ -1,5 +1,6 @@
 package org.myworkflows.view.component;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.dnd.GridDragEndEvent;
@@ -8,10 +9,13 @@ import com.vaadin.flow.component.grid.dnd.GridDropLocation;
 import com.vaadin.flow.component.grid.dnd.GridDropMode;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.RouterLink;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
+import org.myworkflows.view.WorkflowDevelopmentView;
 
 import java.util.List;
 
@@ -41,9 +45,9 @@ public final class WorkflowTemplateDetails extends Composite<VerticalLayout> {
     public void setDetails(WorkflowTemplate workflowTemplate, List<WorkflowDefinition> availableWorkflowDefinitions) {
         final var templateWorkflowDefinitions = workflowTemplate.getWorkflowDefinitions();
 
-        final var currentWorkflowDefinitionsGrid = setupGrid("Current workflow definitions", BETWEEN);
+        final var currentWorkflowDefinitionsGrid = setupGrid(getTranslation("workflow-templates.main-grid.details.current"), BETWEEN);
         final var currentDataView = currentWorkflowDefinitionsGrid.setItems(templateWorkflowDefinitions);
-        final var availableWorkflowDefinitionsGrid = setupGrid("Available workflow definitions", ON_GRID);
+        final var availableWorkflowDefinitionsGrid = setupGrid(getTranslation("workflow-templates.main-grid.details.available"), ON_GRID);
         final var availableDataView = availableWorkflowDefinitionsGrid.setItems(availableWorkflowDefinitions);
 
         currentWorkflowDefinitionsGrid.addDropListener(event -> {
@@ -67,16 +71,28 @@ public final class WorkflowTemplateDetails extends Composite<VerticalLayout> {
         setContainerStyles(container);
     }
 
-    private Grid<WorkflowDefinition> setupGrid(String header, GridDropMode dropMode) {
+    private Grid<WorkflowDefinition> setupGrid(String footerText, GridDropMode dropMode) {
         final var grid = new Grid<>(WorkflowDefinition.class, false);
-        grid.addColumn(WorkflowDefinition::getName).setHeader(header);
+        final var idColumn = grid.addColumn(WorkflowDefinition::getId)
+            .setHeader(getTranslation("workflow-definitions.main-grid.id.column"))
+            .setAutoWidth(true);
+        final var nameColumn = grid.addColumn(new ComponentRenderer<>(this::renderName))
+            .setHeader(getTranslation("workflow-definitions.main-grid.name.column"))
+            .setAutoWidth(true);
         setGridStyles(grid);
+        grid.prependHeaderRow().join(idColumn, nameColumn).setText(footerText);
 
         grid.setDropMode(dropMode);
         grid.setRowsDraggable(true);
         grid.addDragStartListener(this::handleDragStart);
         grid.addDragEndListener(this::handleDragEnd);
         return grid;
+    }
+
+    private Component renderName(WorkflowDefinition workflowDefinition) {
+        final var routerLink = new RouterLink(workflowDefinition.getName(), WorkflowDevelopmentView.class, workflowDefinition.getId());
+        routerLink.getElement().getThemeList().add("badge");
+        return routerLink;
     }
 
     private void handleDragStart(GridDragStartEvent<WorkflowDefinition> event) {
