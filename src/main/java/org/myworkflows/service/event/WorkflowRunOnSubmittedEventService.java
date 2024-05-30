@@ -20,7 +20,7 @@ public final class WorkflowRunOnSubmittedEventService implements EventListener<W
 
     @Override
     public void onEventReceived(WorkflowDefinitionOnSubmittedEvent event) {
-        ofNullable(event.getExecutionContext()).ifPresent(workflowRunService::add);
+        ofNullable(event.getExecutionContext()).ifPresent(workflowRunService::addToCache);
     }
 
     @Override

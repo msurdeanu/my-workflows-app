@@ -14,9 +14,7 @@ public interface WorkflowTemplateEventHandler {
 
     void onDelete(Integer workflowTemplateId);
 
-    void onRename(Integer workflowTemplateId, String newName);
-
-    void onReschedule(Integer workflowTemplateId, String newCron);
+    void onNameAndCronUpdated(Integer workflowTemplateId, String newName, String newCron);
 
     void onScheduleNow(Integer workflowTemplateId);
 

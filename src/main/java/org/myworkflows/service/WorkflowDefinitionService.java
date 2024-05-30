@@ -6,13 +6,7 @@ import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionScript;
 import org.myworkflows.domain.event.WorkflowDefinitionOnUpdateEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
@@ -22,36 +16,16 @@ import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
  * @since 1.0.0
  */
 @Service
-public final class WorkflowDefinitionService extends AbstractDataService<WorkflowDefinition, WorkflowDefinitionFilter> {
-
-    private final Lock lock = new ReentrantLock();
-
-    private final ApplicationManager applicationManager;
-
-    private final CaffeineCache cache;
+public final class WorkflowDefinitionService extends CacheableDataService<WorkflowDefinition, WorkflowDefinitionFilter> {
 
     public WorkflowDefinitionService(ApplicationManager applicationManager) {
-        this.applicationManager = applicationManager;
-        cache = (CaffeineCache) applicationManager
-            .getBeanOfTypeAndName(CacheManager.class, "workflowDefinitionCacheManager")
-            .getCache("workflow-definitions");
+        super(applicationManager, "workflowDefinitionCacheManager", "workflow-definitions");
     }
 
-    public void addToCache(WorkflowDefinition workflowDefinition) {
-        cache.put(workflowDefinition.getId(), workflowDefinition);
-    }
-
-    @Override
-    public Stream<WorkflowDefinition> getAllItems() {
-        return cache.getNativeCache().asMap().values().stream()
-            .filter(item -> item instanceof WorkflowDefinition)
-            .map(item -> (WorkflowDefinition) item);
-    }
-
-    public boolean changeDefinition(Integer id, String newScript) {
+    public boolean updateDefinition(Integer workflowDefinitionId, String newScript) {
         lock.lock();
         try {
-            return ofNullable(cache.get(id, WorkflowDefinition.class)).map(workflowDefinition -> {
+            return ofNullable(cache.get(workflowDefinitionId, WorkflowDefinition.class)).map(workflowDefinition -> {
                 workflowDefinition.setScript(fromJsonToObject(newScript, WorkflowDefinitionScript.class));
                 applicationManager.getBeanOfType(EventBroadcaster.class)
                     .broadcast(WorkflowDefinitionOnUpdateEvent.builder().workflowDefinition(workflowDefinition).build());
@@ -64,9 +38,23 @@ public final class WorkflowDefinitionService extends AbstractDataService<Workflo
         }
     }
 
+    public void updateName(Integer workflowDefinitionId, String newName) {
+        lock.lock();
+        try {
+            ofNullable(cache.get(workflowDefinitionId, WorkflowDefinition.class)).ifPresent(workflowDefinition -> {
+                workflowDefinition.setName(newName);
+                applicationManager.getBeanOfType(EventBroadcaster.class)
+                    .broadcast(WorkflowDefinitionOnUpdateEvent.builder().workflowDefinition(workflowDefinition).build());
+            });
+        } finally {
+            lock.unlock();
+        }
+    }
+
     @Override
     protected WorkflowDefinitionFilter createFilter() {
         return new WorkflowDefinitionFilter();
     }
+
 
 }
