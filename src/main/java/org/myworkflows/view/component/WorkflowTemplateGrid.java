@@ -110,21 +110,16 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         nameTextField.setSuffixComponent(VaadinIcon.ENTER.create());
         nameTextField.setValue(workflowTemplate.getName());
         layout.add(nameTextField);
-        addShortcutListener(layout, () -> {
-            workflowTemplateEventHandler.onRename(workflowTemplate.getId(), nameTextField.getValue());
-            onUpdated(workflowTemplate);
-        }, Key.ENTER);
-        addShortcutListener(layout, () -> onUpdated(workflowTemplate), Key.ESCAPE);
-
         final var cronTextField = new TextField();
         cronTextField.setSuffixComponent(VaadinIcon.ENTER.create());
         cronTextField.setValue(ofNullable(workflowTemplate.getCron()).orElse(StringUtils.EMPTY));
         layout.add(cronTextField);
-        addShortcutListener(cronTextField, () -> {
-            workflowTemplateEventHandler.onReschedule(workflowTemplate.getId(), cronTextField.getValue());
+
+        addShortcutListener(layout, () -> {
+            workflowTemplateEventHandler.onNameAndCronUpdated(workflowTemplate.getId(), nameTextField.getValue(), cronTextField.getValue());
             onUpdated(workflowTemplate);
         }, Key.ENTER);
-        addShortcutListener(cronTextField, () -> onUpdated(workflowTemplate), Key.ESCAPE);
+        addShortcutListener(layout, () -> onUpdated(workflowTemplate), Key.ESCAPE);
 
         return layout;
     }

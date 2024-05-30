@@ -1,6 +1,5 @@
 package org.myworkflows.view;
 
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
@@ -76,7 +75,7 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
 
     @Override
     public void onActivationChanged(Integer workflowTemplateId) {
-        workflowTemplateService.changeActivation(workflowTemplateId);
+        workflowTemplateService.updateActivation(workflowTemplateId);
         workflowDefinitionGrid.refreshPage();
     }
 
@@ -86,21 +85,14 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
     }
 
     @Override
-    public void onReschedule(Integer workflowTemplateId, String newCron) {
-        workflowTemplateService.changeCron(workflowTemplateId, newCron);
-    }
-
-    @Override
     public void onDelete(Integer workflowTemplateId) {
         workflowTemplateService.delete(workflowTemplateId);
         workflowDefinitionGrid.refreshPage();
     }
 
     @Override
-    public void onRename(Integer workflowTemplateId, @NonNull String newName) {
-        if (workflowTemplateService.changeName(workflowTemplateId, newName)) {
-            Notification.show("Workflow template name changed successfully to '" + newName + "'.");
-        }
+    public void onNameAndCronUpdated(Integer workflowTemplateId, @NonNull String newName, String newCron) {
+        workflowTemplateService.updateNameAndCron(workflowTemplateId, newName, newCron);
     }
 
     @Override

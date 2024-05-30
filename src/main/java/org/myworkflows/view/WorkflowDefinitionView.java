@@ -65,8 +65,18 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
     }
 
     @Override
+    public void onDelete(Integer workflowDefinitionId) {
+        // TODO
+    }
+
+    @Override
+    public void onNameUpdated(Integer workflowDefinitionId, String newName) {
+        workflowDefinitionService.updateName(workflowDefinitionId, newName);
+    }
+
+    @Override
     public void onScriptUpdated(Integer workflowDefinitionId, String newScript) {
-        if (workflowDefinitionService.changeDefinition(workflowDefinitionId, newScript)) {
+        if (workflowDefinitionService.updateDefinition(workflowDefinitionId, newScript)) {
             Notification.show("Workflow definition script was changed successfully.");
         }
     }

@@ -19,7 +19,7 @@ import static org.myworkflows.util.LangUtil.pluralize;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-public final class ExecutionContext {
+public final class ExecutionContext implements CacheableEntry {
 
     @Getter
     private final ExecutionCache cache = new ExecutionCache();
@@ -99,6 +99,11 @@ public final class ExecutionContext {
         pluralize("sec", remainingDuration.toSeconds(), true).ifPresent(parts::add);
 
         return join(" and ", parts);
+    }
+
+    @Override
+    public Object key() {
+        return workflowId;
     }
 
 }
