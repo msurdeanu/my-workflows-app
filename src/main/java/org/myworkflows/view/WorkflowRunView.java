@@ -1,5 +1,6 @@
 package org.myworkflows.view;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
@@ -30,13 +31,10 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
 
     private final ExecutionContextFilter executionContextFilter = new ExecutionContextFilter();
 
-    private final WorkflowRunService workflowRunService;
-
     private final WorkflowRunGrid workflowRunGrid;
 
     public WorkflowRunView(WorkflowRunService workflowRunService) {
         super();
-        this.workflowRunService = workflowRunService;
 
         final ConfigurableFilterDataProvider<ExecutionContext, Void, ExecutionContextFilter> configurableFilterDataProvider = DataProvider
             .fromFilteringCallbacks(workflowRunService::findBy, workflowRunService::countBy)
@@ -51,13 +49,12 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
         add(createFooter());
     }
 
-
     @Override
     public String getPageTitle() {
         return getTranslation("site.base.title", getTranslation("menu.main.workflow-runs"));
     }
 
-    private TextField createFilterById() {
+    private Component createFilterById() {
         final var filterByIdTextField = new TextField();
         filterByIdTextField.setPlaceholder(getTranslation("workflow-runs.filter.by-id.placeholder"));
         filterByIdTextField.setHelperText(getTranslation("workflow-runs.filter.by-id.helper"));

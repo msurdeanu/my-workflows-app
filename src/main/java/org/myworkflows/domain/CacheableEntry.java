@@ -7,6 +7,6 @@ package org.myworkflows.domain;
 @FunctionalInterface
 public interface CacheableEntry {
 
-    Object key();
+    Object getCacheableKey();
 
 }

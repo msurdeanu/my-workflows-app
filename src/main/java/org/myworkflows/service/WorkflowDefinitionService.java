@@ -56,5 +56,4 @@ public final class WorkflowDefinitionService extends CacheableDataService<Workfl
         return new WorkflowDefinitionFilter();
     }
 
-
 }

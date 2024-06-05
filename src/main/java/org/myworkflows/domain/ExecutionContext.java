@@ -102,7 +102,7 @@ public final class ExecutionContext implements CacheableEntry {
     }
 
     @Override
-    public Object key() {
+    public Object getCacheableKey() {
         return workflowId;
     }
 

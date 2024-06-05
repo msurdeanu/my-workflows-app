@@ -35,8 +35,7 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
     public void loadAndSchedule(@NonNull WorkflowTemplate workflowTemplate) {
         lock.lock();
         try {
-            final var previousWorkflowTemplate = cache.get(workflowTemplate.getId(), WorkflowTemplate.class);
-            ofNullable(previousWorkflowTemplate)
+            ofNullable(cache.get(workflowTemplate.getId(), WorkflowTemplate.class))
                 .filter(WorkflowTemplate::isEnabledForScheduling)
                 .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                     .unschedule(workflowTemplate));
@@ -51,7 +50,17 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
         }
     }
 
-    public void updateActivation(@NonNull Integer workflowId) {
+    public void delete(Integer workflowId) {
+        doAction(workflowId, workflowTemplate -> {
+            cache.evictIfPresent(workflowTemplate.getId());
+            if (workflowTemplate.isEnabled()) {
+                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
+                    .unschedule(workflowTemplate);
+            }
+        }, DELETE_EVENT_FUNCTION);
+    }
+
+    public void updateActivation(Integer workflowId) {
         doAction(workflowId, workflowTemplate -> {
             workflowTemplate.toggleOnEnabling();
             if (workflowTemplate.isEnabled()) {
@@ -62,6 +71,14 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
                     .schedule(workflowTemplate);
             }
         }, UPDATE_EVENT_FUNCTION);
+    }
+
+    public void updateDefinition(Integer workflowId, Stream<WorkflowDefinition> newDefinitions) {
+        doAction(
+            workflowId,
+            workflowTemplate -> workflowTemplate.setWorkflowDefinitions(newDefinitions.collect(Collectors.toList())),
+            UPDATE_EVENT_FUNCTION
+        );
     }
 
     public void updateNameAndCron(Integer workflowId, String newName, String newCron) {
@@ -77,28 +94,6 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
                     .schedule(workflowTemplate);
             }
         }, UPDATE_EVENT_FUNCTION);
-    }
-
-    public void updateDefinition(Integer workflowId, Stream<WorkflowDefinition> newDefinitions) {
-        doAction(
-            workflowId,
-            workflowTemplate -> workflowTemplate.setWorkflowDefinitions(newDefinitions.collect(Collectors.toList())),
-            UPDATE_EVENT_FUNCTION
-        );
-    }
-
-    public void delete(Integer workflowId) {
-        doAction(
-            workflowId,
-            workflowTemplate -> {
-                cache.evictIfPresent(workflowTemplate.getId());
-                if (workflowTemplate.isEnabled()) {
-                    applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
-                        .unschedule(workflowTemplate);
-                }
-            },
-            DELETE_EVENT_FUNCTION
-        );
     }
 
     public void scheduleNow(Integer workflowId) {
