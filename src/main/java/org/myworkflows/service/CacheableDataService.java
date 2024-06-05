@@ -80,7 +80,7 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
     }
 
     public void addToCache(CacheableEntry entry) {
-        cache.put(entry.key(), entry);
+        cache.put(entry.getCacheableKey(), entry);
     }
 
     protected void doAction(Object key, Consumer<T> action, EventFunction<T> eventFunction) {

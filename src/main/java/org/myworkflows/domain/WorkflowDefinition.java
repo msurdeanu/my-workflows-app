@@ -40,7 +40,7 @@ public class WorkflowDefinition implements CacheableEntry {
     private boolean editable = false;
 
     @Override
-    public Object key() {
+    public Object getCacheableKey() {
         return id;
     }
 

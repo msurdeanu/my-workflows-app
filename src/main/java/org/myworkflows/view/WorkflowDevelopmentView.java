@@ -63,6 +63,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
 
     private final ApplicationManager applicationManager;
     private final SplitLayout splitLayout;
+    private final Select<WorkflowDefinition> filterByTemplate;
 
     private Registration onSubmittedRegistration;
     private Registration onProgressRegistration;
@@ -77,7 +78,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         currentWorkflowStatus.setVisible(false);
 
         splitLayout = createBody();
-        add(createHeader(getTranslation("workflow-development.page.title"), createFilterByTemplate()),
+        filterByTemplate = createFilterByTemplate();
+        add(createHeader(getTranslation("workflow-development.page.title"), filterByTemplate),
             createContent(splitLayout),
             createFooter());
     }
@@ -135,7 +137,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         super.onDetach(detachEvent);
     }
 
-    private Component createFilterByTemplate() {
+    private Select<WorkflowDefinition> createFilterByTemplate() {
         final var filterByTemplateSelect = new Select<WorkflowDefinition>();
         filterByTemplateSelect.setItems(applicationManager.getBeanOfType(WorkflowDefinitionService.class)
             .getAll().toList());
@@ -147,6 +149,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     }
 
     private void onFilteringByDefinition(WorkflowDefinition workflowDefinition) {
+        filterByTemplate.setValue(workflowDefinition);
         editor.setValue(JsonFactory.toPrettyString(workflowDefinition.getScript(), ""));
     }
 

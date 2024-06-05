@@ -36,8 +36,6 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
 
     private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
 
-    private final boolean isLogged = UserRole.LOGGED.validate();
-
     public void refreshPage() {
         paginatedGrid.refreshPaginator();
     }
@@ -58,10 +56,6 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
             .setHeader(getTranslation("workflow-definitions.main-grid.actions.column"))
             .setAutoWidth(true);
-        paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(
-            () -> new WorkflowDefinitionDetails(workflowDefinitionEventHandler),
-            WorkflowDefinitionDetails::setDetails)
-        );
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
         paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
