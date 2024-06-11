@@ -2,6 +2,11 @@ package org.myworkflows.domain;
 
 import org.myworkflows.exception.WorkflowRuntimeException;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +18,14 @@ import static java.util.Optional.ofNullable;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-public final class ExecutionCache {
+public final class WorkflowRunCache implements Serializable {
 
-    private final Map<String, Object> cachedObjectMap = new HashMap<>();
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private Map<String, Object> cachedObjectMap = new HashMap<>();
+
+    private boolean cacheObjectMapComplete = true;
 
     @SuppressWarnings("checkstyle:LineLength")
     public <T> T get(String key, Class<T> clazz) {
@@ -63,6 +73,43 @@ public final class ExecutionCache {
 
     public Object remove(String key) {
         return cachedObjectMap.remove(key);
+    }
+
+    private void writeObject(ObjectOutputStream objectOutputStream) throws IOException {
+        final var serializedObjectMap = getSerializedObjectMap();
+        if (serializedObjectMap.size() != cachedObjectMap.size()) {
+            cacheObjectMapComplete = false;
+        }
+
+        objectOutputStream.defaultWriteObject();
+        objectOutputStream.writeBoolean(cacheObjectMapComplete);
+        objectOutputStream.writeInt(serializedObjectMap.size());
+        for (var entry : serializedObjectMap.entrySet()) {
+            objectOutputStream.writeObject(entry.getKey());
+            objectOutputStream.writeObject(entry.getValue());
+        }
+    }
+
+    private void readObject(ObjectInputStream objectInputStream) throws IOException, ClassNotFoundException {
+        objectInputStream.defaultReadObject();
+        cacheObjectMapComplete = objectInputStream.readBoolean();
+        final var size = objectInputStream.readInt();
+        cachedObjectMap = new HashMap<>(size);
+        for (int i = 0; i < size; i++) {
+            final var key = (String) objectInputStream.readObject();
+            final var value = (Serializable) objectInputStream.readObject();
+            cachedObjectMap.put(key, value);
+        }
+    }
+
+    private Map<String, Serializable> getSerializedObjectMap() {
+        final var objectMap = new HashMap<String, Serializable>();
+        cachedObjectMap.forEach((key, value) -> {
+            if (value instanceof Serializable serializedValue) {
+                objectMap.put(key, serializedValue);
+            }
+        });
+        return objectMap;
     }
 
 }

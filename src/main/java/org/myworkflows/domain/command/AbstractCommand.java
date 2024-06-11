@@ -7,9 +7,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
-import org.myworkflows.domain.ExecutionCache;
-import org.myworkflows.domain.ExecutionContext;
+import org.myworkflows.domain.WorkflowRunCache;
 import org.myworkflows.domain.ExpressionNameValue;
+import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.command.api.ExecutionMethod;
 import org.myworkflows.domain.command.api.OptionalParam;
 import org.myworkflows.exception.WorkflowRuntimeException;
@@ -47,7 +47,7 @@ import static java.util.stream.IntStream.range;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class AbstractCommand {
 
-    private static final String EXECUTION_CACHE = "executionCache";
+    private static final String WORKFLOW_CACHE = "workflowCache";
 
     private static final String OUTPUT = "output";
 
@@ -75,75 +75,75 @@ public abstract class AbstractCommand {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Set<ExpressionNameValue> outputs = Set.of();
 
-    public final void run(ExecutionContext executionContext) {
-        if (!runIfs(executionContext.getCache())) {
+    public final void run(WorkflowRun workflowRun) {
+        if (!runIfs(workflowRun.getCache())) {
             return;
         }
 
-        runInputs(executionContext.getCache());
+        runInputs(workflowRun.getCache());
         stream(getClass().getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(ExecutionMethod.class))
                 .findFirst()
-                .ifPresent(method -> runMethodWithAssertsAndOutputs(method, executionContext));
+                .ifPresent(method -> runMethodWithAssertsAndOutputs(method, workflowRun));
     }
 
-    public boolean runIfs(ExecutionCache executionCache) {
-        return ifs.stream().allMatch(item -> Boolean.TRUE.equals(item.evaluate(Map.of(EXECUTION_CACHE, executionCache))));
+    public boolean runIfs(WorkflowRunCache workflowRunCache) {
+        return ifs.stream().allMatch(item -> Boolean.TRUE.equals(item.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache))));
     }
 
-    private void runInputs(ExecutionCache executionCache) {
-        inputs.forEach(input -> executionCache.put(input.getName(), input.evaluate(Map.of(EXECUTION_CACHE, executionCache))));
+    private void runInputs(WorkflowRunCache workflowRunCache) {
+        inputs.forEach(input -> workflowRunCache.put(input.getName(), input.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache))));
     }
 
-    private void runMethodWithAssertsAndOutputs(Method method, ExecutionContext executionContext) {
-        runMethod(method, executionContext).ifPresent(output -> {
-            runAsserts(output, executionContext.getCache());
-            runOutputs(output, executionContext.getCache());
+    private void runMethodWithAssertsAndOutputs(Method method, WorkflowRun workflowRun) {
+        runMethod(method, workflowRun).ifPresent(output -> {
+            runAsserts(output, workflowRun.getCache());
+            runOutputs(output, workflowRun.getCache());
         });
     }
 
-    private Optional<Object> runMethod(Method method, ExecutionContext executionContext) {
+    private Optional<Object> runMethod(Method method, WorkflowRun workflowRun) {
         try {
-            return ofNullable(method.invoke(this, resolveParameters(method, executionContext)));
+            return ofNullable(method.invoke(this, resolveParameters(method, workflowRun)));
         } catch (IllegalAccessException | InvocationTargetException exception) {
             throw new WorkflowRuntimeException(exception);
         }
     }
 
-    private Object[] resolveParameters(Method method, ExecutionContext executionContext) {
+    private Object[] resolveParameters(Method method, WorkflowRun workflowRun) {
         final var parameters = method.getParameters();
         final var resolvedParameters = new Object[parameters.length];
         range(0, parameters.length)
-                .forEach(index -> resolvedParameters[index] = resolveParameter(parameters[index], executionContext));
+                .forEach(index -> resolvedParameters[index] = resolveParameter(parameters[index], workflowRun));
         return resolvedParameters;
     }
 
-    private Object resolveParameter(Parameter parameter, ExecutionContext executionContext) {
+    private Object resolveParameter(Parameter parameter, WorkflowRun workflowRun) {
         final var parameterIsMandatory = ofNullable(parameter.getDeclaredAnnotation(OptionalParam.class)).isEmpty();
         final var parameterType = parameter.getType();
         final var parameterizedType = parameter.getParameterizedType();
         if (parameterizedType instanceof ParameterizedType && List.class.equals(parameterType)) {
             final var actualTypeArguments = ((ParameterizedType) parameterizedType).getActualTypeArguments();
-            return executionContext.getCache()
+            return workflowRun.getCache()
                     .lookupList(parameter.getName(), (Class<?>) actualTypeArguments[0], parameterIsMandatory);
-        } else if (ExecutionContext.class.equals(parameterType)) {
-            return executionContext;
+        } else if (WorkflowRun.class.equals(parameterType)) {
+            return workflowRun;
         } else {
-            return executionContext.getCache().lookup(parameter.getName(), parameterType, parameterIsMandatory);
+            return workflowRun.getCache().lookup(parameter.getName(), parameterType, parameterIsMandatory);
         }
     }
 
-    private void runAsserts(Object output, ExecutionCache executionCache) {
+    private void runAsserts(Object output, WorkflowRunCache workflowRunCache) {
         asserts.stream()
-                .filter(assertion -> !Boolean.TRUE.equals(assertion.evaluate(Map.of(EXECUTION_CACHE, executionCache, OUTPUT, output))))
+                .filter(assertion -> !Boolean.TRUE.equals(assertion.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache, OUTPUT, output))))
                 .findFirst()
                 .ifPresent(assertion -> {
                     throw new WorkflowRuntimeException("Assertion name '" + assertion.getName() + "' with body '" + assertion.getValue() + "' failed.");
                 });
     }
 
-    private void runOutputs(Object output, ExecutionCache executionCache) {
-        outputs.forEach(out -> executionCache.put(out.getName(), out.evaluate(Map.of(EXECUTION_CACHE, executionCache, OUTPUT, output))));
+    private void runOutputs(Object output, WorkflowRunCache workflowRunCache) {
+        outputs.forEach(out -> workflowRunCache.put(out.getName(), out.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache, OUTPUT, output))));
     }
 
 }

@@ -1,7 +1,7 @@
 package org.myworkflows.domain.command;
 
 import org.junit.jupiter.api.Test;
-import org.myworkflows.domain.ExecutionContext;
+import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.exception.WorkflowRuntimeException;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -16,21 +16,21 @@ public final class SleepCommandTest {
     @Test
     public void whenMandatoryParameterIsSet_thenNoExceptionIsExpected() {
         // given
-        final var executionContext = new ExecutionContext();
-        executionContext.getCache().put("sleepTime", 100L);
+        final var workflowRun = new WorkflowRun();
+        workflowRun.getCache().put("sleepTime", 100L);
 
         // when & then
-        assertDoesNotThrow(() -> new SleepCommand().run(executionContext));
+        assertDoesNotThrow(() -> new SleepCommand().run(workflowRun));
     }
 
     @Test
     public void whenMandatoryParameterIsNotSet_thenAnExceptionIsExpected() {
         // given
-        final var executionContext = new ExecutionContext();
-        executionContext.getCache().put("sleep", 100L);
+        final var workflowRun = new WorkflowRun();
+        workflowRun.getCache().put("sleep", 100L);
 
         // when & then
-        assertThrows(WorkflowRuntimeException.class, () -> new SleepCommand().run(executionContext));
+        assertThrows(WorkflowRuntimeException.class, () -> new SleepCommand().run(workflowRun));
     }
 
 }

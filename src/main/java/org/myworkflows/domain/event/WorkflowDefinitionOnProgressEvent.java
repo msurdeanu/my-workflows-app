@@ -2,7 +2,7 @@ package org.myworkflows.domain.event;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.myworkflows.domain.ExecutionContext;
+import org.myworkflows.domain.WorkflowRun;
 
 import java.util.UUID;
 
@@ -15,6 +15,6 @@ import java.util.UUID;
 public class WorkflowDefinitionOnProgressEvent implements Event {
 
     private final UUID token;
-    private final ExecutionContext executionContext;
+    private final WorkflowRun workflowRun;
 
 }

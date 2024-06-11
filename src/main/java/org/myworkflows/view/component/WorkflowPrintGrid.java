@@ -8,7 +8,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import lombok.NoArgsConstructor;
-import org.myworkflows.domain.ExecutionPrint;
+import org.myworkflows.domain.WorkflowRunPrint;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
@@ -22,13 +22,13 @@ import static com.vaadin.flow.component.UI.getCurrent;
 @NoArgsConstructor
 public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> {
 
-    private final PaginatedGrid<ExecutionPrint, ?> paginatedGrid = new PaginatedGrid<>();
+    private final PaginatedGrid<WorkflowRunPrint, ?> paginatedGrid = new PaginatedGrid<>();
 
-    public WorkflowPrintGrid(List<ExecutionPrint> prints) {
+    public WorkflowPrintGrid(List<WorkflowRunPrint> prints) {
         setItems(prints);
     }
 
-    public void setItems(List<ExecutionPrint> prints) {
+    public void setItems(List<WorkflowRunPrint> prints) {
         paginatedGrid.setItems(prints);
         final var sizeOfPrints = prints.size();
         if (sizeOfPrints > 1) {
@@ -82,13 +82,13 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
         return layout;
     }
 
-    private Component renderName(ExecutionPrint print) {
+    private Component renderName(WorkflowRunPrint print) {
         final var span = new Span(print.name());
         span.getElement().getThemeList().add("badge");
         return span;
     }
 
-    private Component renderValueAndType(ExecutionPrint print) {
+    private Component renderValueAndType(WorkflowRunPrint print) {
         final var span = new Span(print.abbrValue());
         span.getElement().getThemeList().add("badge");
         Tooltip.forComponent(span)

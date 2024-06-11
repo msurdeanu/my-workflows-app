@@ -1,6 +1,6 @@
 package org.myworkflows.domain.command;
 
-import org.myworkflows.domain.ExecutionContext;
+import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.command.api.ExecutionMethod;
 import org.myworkflows.domain.command.api.MandatoryParam;
 
@@ -13,10 +13,10 @@ import java.util.List;
 public final class PrintCommand extends AbstractCommand {
 
     @ExecutionMethod
-    public int print(@MandatoryParam ExecutionContext executionContext,
+    public int print(@MandatoryParam WorkflowRun workflowRun,
                      @MandatoryParam List<String> keys) {
         return keys.stream()
-            .map(executionContext::markKeyAsPrinted)
+            .map(workflowRun::markKeyAsPrinted)
             .mapToInt(isPrinted -> isPrinted ? 1 : 0)
             .sum();
     }

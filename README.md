@@ -106,7 +106,7 @@ Example of a dummy command:
     {
       "name": "scriptLines",
       "value": [
-        "def run(executionCache) {",
+        "def run(workflowRunCache) {",
         "}"
       ]
     },

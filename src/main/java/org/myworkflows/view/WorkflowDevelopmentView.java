@@ -28,8 +28,8 @@ import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
-import org.myworkflows.domain.ExecutionContext;
 import org.myworkflows.domain.WorkflowDefinition;
+import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
@@ -44,6 +44,7 @@ import org.myworkflows.view.component.WorkflowPrintGrid;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -123,8 +124,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             final var workflowResultEvent = (WorkflowDefinitionOnProgressEvent) event;
             if (workflowResultEvent.getToken().equals(lastSubmittedUuid)) {
                 ui.access(() -> {
-                    updateWorkflowProgress(workflowResultEvent.getExecutionContext());
-                    workflowPrintGrid.setItems(workflowResultEvent.getExecutionContext().getAllPrints());
+                    updateWorkflowProgress(workflowResultEvent.getWorkflowRun());
+                    workflowPrintGrid.setItems(workflowResultEvent.getWorkflowRun().getAllPrints());
                 });
             }
         }, WorkflowDefinitionOnProgressEvent.class);
@@ -211,24 +212,24 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         currentWorkflowStatus.setVisible(true);
     }
 
-    private void updateWorkflowProgress(ExecutionContext executionContext) {
+    private void updateWorkflowProgress(WorkflowRun workflowRun) {
         currentWorkflowStatus.removeAll();
 
-        if (executionContext.isRunCompleted()) {
-            ofNullable(executionContext.getFailureMessage()).ifPresentOrElse(error -> {
+        if (workflowRun.isCompleted()) {
+            ofNullable(workflowRun.getFailureMessage()).ifPresentOrElse(error -> {
                 currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.ERROR);
                 currentWorkflowStatus.add(new Span(getTranslation("workflow-development.error.message",
-                    executionContext.getWorkflowId().toString(), executionContext.getHumanReadableDuration(),
-                    executionContext.getFailureMessage())));
+                    valueOf(workflowRun.getId()), workflowRun.getHumanReadableDuration(),
+                    workflowRun.getFailureMessage())));
             }, () -> {
                 currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.SUCCESS);
                 currentWorkflowStatus.add(new Span(getTranslation("workflow-development.success.message",
-                    executionContext.getWorkflowId().toString(), executionContext.getHumanReadableDuration())));
+                    valueOf(workflowRun.getId()), workflowRun.getHumanReadableDuration())));
             });
         } else {
             currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.INFO);
             currentWorkflowStatus.add(new Span(getTranslation("workflow-development.in-progress.message",
-                executionContext.getWorkflowId().toString())));
+                valueOf(workflowRun.getId()))));
         }
 
         currentWorkflowStatus.setVisible(true);
