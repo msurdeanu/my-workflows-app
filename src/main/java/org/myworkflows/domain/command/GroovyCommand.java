@@ -1,7 +1,7 @@
 package org.myworkflows.domain.command;
 
 import groovy.lang.GroovyShell;
-import org.myworkflows.domain.ExecutionContext;
+import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.command.api.ExecutionMethod;
 import org.myworkflows.domain.command.api.MandatoryParam;
 import org.myworkflows.domain.command.api.OptionalParam;
@@ -21,13 +21,13 @@ public final class GroovyCommand extends AbstractCommand {
     private static final GroovyShell GROOVY_SHELL = new GroovyShell();
 
     @ExecutionMethod
-    public Object groovy(@MandatoryParam ExecutionContext executionContext,
+    public Object groovy(@MandatoryParam WorkflowRun workflowRun,
                          @MandatoryParam List<String> scriptLines,
                          @OptionalParam String methodName) {
         final var resolvedMethodName = ofNullable(methodName).orElse("run");
 
         final var script = GROOVY_SHELL.parse(scriptLines.stream().collect(joining(lineSeparator())));
-        return script.invokeMethod(resolvedMethodName, executionContext);
+        return script.invokeMethod(resolvedMethodName, workflowRun);
     }
 
 }

@@ -59,6 +59,17 @@ CREATE TABLE workflow_templates_workflow_definitions
 INSERT INTO workflow_templates_workflow_definitions ("workflow_template_id", "workflow_definition_id")
 VALUES (1, 1);
 
+CREATE TABLE workflow_runs
+(
+    id                   BLOB PRIMARY KEY NOT NULL,
+    workflow_template_id INTEGER,
+    cache                BLOB,
+    printed_keys         TEXT,
+    failure_message      TEXT,
+    duration             INTEGER          NOT NULL DEFAULT (0),
+    created              DATETIME         NOT NULL
+);
+
 CREATE TABLE users
 (
     id       INTEGER PRIMARY KEY AUTOINCREMENT,

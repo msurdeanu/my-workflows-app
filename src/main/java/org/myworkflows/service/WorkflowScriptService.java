@@ -3,9 +3,9 @@ package org.myworkflows.service;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
-import org.myworkflows.domain.ExecutionContext;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.WorkflowDefinitionScript;
+import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.command.AbstractCommand;
 import org.myworkflows.domain.command.AbstractSubCommand;
 import org.myworkflows.domain.event.EventListener;
@@ -59,9 +59,9 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
                 applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
                 return;
             }
-            onSubmittedEventBuilder.executionContext(submit(fromJsonToObject(workflowAsString, WorkflowDefinitionScript.class), onSubmitEvent));
+            onSubmittedEventBuilder.workflowRun(submit(fromJsonToObject(workflowAsString, WorkflowDefinitionScript.class), onSubmitEvent));
         } else if (workflowDefScriptObject instanceof WorkflowDefinitionScript workflowDefinitionScript) {
-            onSubmittedEventBuilder.executionContext(submit(workflowDefinitionScript, onSubmitEvent));
+            onSubmittedEventBuilder.workflowRun(submit(workflowDefinitionScript, onSubmitEvent));
         }
 
         applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
@@ -72,42 +72,44 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
         return WorkflowDefinitionOnSubmitEvent.class;
     }
 
-    private ExecutionContext submit(WorkflowDefinitionScript workflowDefinitionScript, WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
-        final var executionContext = ofNullable(onSubmitEvent.getExecutionContext())
-            .orElseGet(() -> new ExecutionContext(workflowDefinitionScript));
+    private WorkflowRun submit(WorkflowDefinitionScript workflowDefinitionScript, WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
+        final var workflowRun = ofNullable(onSubmitEvent.getWorkflowRun())
+            .orElseGet(WorkflowRun::new);
         final var onProgressEventBuilder = WorkflowDefinitionOnProgressEvent.builder();
         onProgressEventBuilder.token(onSubmitEvent.getToken());
-        onProgressEventBuilder.executionContext(executionContext);
+        onProgressEventBuilder.workflowRun(workflowRun);
         threadPoolExecutor.submit(() -> runSynchronously(workflowDefinitionScript, onProgressEventBuilder.build()));
-        return executionContext;
+        return workflowRun;
     }
 
     private void runSynchronously(WorkflowDefinitionScript workflowDefinitionScript,
                                   WorkflowDefinitionOnProgressEvent workflowResultEvent) {
-        final var executionContext = workflowResultEvent.getExecutionContext();
+        final var workflowRun = workflowResultEvent.getWorkflowRun();
         final var startTime = System.currentTimeMillis();
         applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
         try {
             workflowDefinitionScript.getCommands().forEach(command -> {
                 resolveCommandPlaceholders(command);
-                command.run(executionContext);
-                executionContext.markCommandAsCompleted();
+                command.run(workflowRun);
+                // TODO
+                //workflowRun.markCommandAsCompleted();
                 applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
             });
         } catch (Exception exception) {
-            executionContext.markCommandAsFailed(exception);
+            workflowRun.markAsFailed(exception);
         } finally {
             try {
                 workflowDefinitionScript.getFinallyCommands().forEach(command -> {
                     resolveCommandPlaceholders(command);
-                    command.run(executionContext);
-                    executionContext.markCommandAsCompleted();
+                    command.run(workflowRun);
+                    // TODO
+                    //workflowRun.markCommandAsCompleted();
                     applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
                 });
             } catch (Exception exception) {
-                executionContext.markCommandAsFailed(exception);
+                workflowRun.markAsFailed(exception);
             }
-            executionContext.markAsCompleted(System.currentTimeMillis() - startTime);
+            workflowRun.markAsCompleted(System.currentTimeMillis() - startTime);
             applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
         }
     }

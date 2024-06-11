@@ -4,13 +4,13 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextAreaVariant;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import org.myworkflows.domain.ExecutionPrint;
+import org.myworkflows.domain.WorkflowRunPrint;
 
 import java.util.ArrayList;
 import java.util.Map;
 
 import static java.util.Optional.ofNullable;
-import static org.myworkflows.domain.ExecutionPrint.NULL_AS_STR;
+import static org.myworkflows.domain.WorkflowRunPrint.NULL_AS_STR;
 
 /**
  * @author Mihai Surdeanu
@@ -25,16 +25,16 @@ public final class WorkflowTemplateDetailsFormLayout extends FormLayout {
         setResponsiveSteps(new ResponsiveStep("0", COLUMNS));
     }
 
-    public void setExecutionPrint(ExecutionPrint executionPrint) {
+    public void setExecutionPrint(WorkflowRunPrint workflowRunPrint) {
         removeAll();
 
         final var textAreas = new ArrayList<TextArea>();
-        if (executionPrint.value() instanceof Map<?, ?> executionPrintAsMap) {
+        if (workflowRunPrint.value() instanceof Map<?, ?> executionPrintAsMap) {
             executionPrintAsMap.forEach((key, value) -> textAreas.add(createTextArea(key.toString(),
                 ofNullable(value).map(item -> item.getClass().getSimpleName().toLowerCase()).orElse(NULL_AS_STR),
                 ofNullable(value).map(Object::toString).orElse(NULL_AS_STR))));
         } else {
-            textAreas.add(createTextArea(executionPrint.name(), executionPrint.type(), executionPrint.fullValue()));
+            textAreas.add(createTextArea(workflowRunPrint.name(), workflowRunPrint.type(), workflowRunPrint.fullValue()));
         }
         textAreas.forEach(textArea -> {
             textArea.setReadOnly(true);

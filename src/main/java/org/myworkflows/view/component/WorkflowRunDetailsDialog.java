@@ -4,10 +4,11 @@ import com.flowingcode.vaadin.addons.granitealert.GraniteAlert;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import org.myworkflows.domain.ExecutionContext;
+import org.myworkflows.domain.WorkflowRun;
 
 import java.util.Optional;
 
+import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -16,34 +17,34 @@ import static java.util.Optional.ofNullable;
  */
 public final class WorkflowRunDetailsDialog extends ResponsiveDialog {
 
-    public WorkflowRunDetailsDialog(ExecutionContext executionContext) {
+    public WorkflowRunDetailsDialog(WorkflowRun workflowRun) {
         super("workflow-run-details");
 
-        add(createBody(executionContext));
+        add(createBody(workflowRun));
     }
 
-    private Component createBody(ExecutionContext executionContext) {
+    private Component createBody(WorkflowRun workflowRun) {
         final var layout = new VerticalLayout();
-        createFailureAlert(executionContext).ifPresent(layout::add);
-        layout.add(createPrintGrid(executionContext));
+        createFailureAlert(workflowRun).ifPresent(layout::add);
+        layout.add(createPrintGrid(workflowRun));
         return layout;
     }
 
-    private Optional<Component> createFailureAlert(ExecutionContext executionContext) {
-        return ofNullable(executionContext.getFailureMessage())
+    private Optional<Component> createFailureAlert(WorkflowRun workflowRun) {
+        return ofNullable(workflowRun.getFailureMessage())
             .map(failureMessage -> {
                 final var alert = new GraniteAlert();
                 alert.setLevel(GraniteAlert.GraniteAlertLevel.ERROR);
                 alert.add(new Span(failureMessage));
                 alert.add(new Span(getTranslation("workflow-development.error.message",
-                    executionContext.getWorkflowId().toString(), executionContext.getHumanReadableDuration(),
-                    executionContext.getFailureMessage())));
+                    valueOf(workflowRun.getId()), workflowRun.getHumanReadableDuration(),
+                    workflowRun.getFailureMessage())));
                 return alert;
             });
     }
 
-    private Component createPrintGrid(ExecutionContext executionContext) {
-        return new WorkflowPrintGrid(executionContext.getAllPrints());
+    private Component createPrintGrid(WorkflowRun workflowRun) {
+        return new WorkflowPrintGrid(workflowRun.getAllPrints());
     }
 
 }

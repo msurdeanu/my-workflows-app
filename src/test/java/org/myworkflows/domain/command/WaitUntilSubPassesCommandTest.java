@@ -1,7 +1,7 @@
 package org.myworkflows.domain.command;
 
 import org.junit.jupiter.api.Test;
-import org.myworkflows.domain.ExecutionContext;
+import org.myworkflows.domain.WorkflowRun;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
@@ -14,10 +14,10 @@ public final class WaitUntilSubPassesCommandTest {
     @Test
     public void whenMandatoryParameterIsSet_thenNoExceptionIsExpected() {
         // given
-        final var executionContext = new ExecutionContext();
+        final var workflowRun = new WorkflowRun();
 
         // when & then
-        assertDoesNotThrow(() -> new WaitUntilSubPassesCommand().run(executionContext));
+        assertDoesNotThrow(() -> new WaitUntilSubPassesCommand().run(workflowRun));
     }
 
 }
