@@ -16,7 +16,7 @@ public class UuidToByteArrayConverter implements AttributeConverter<UUID, Byte[]
 
     @Override
     public Byte[] convertToDatabaseColumn(UUID attribute) {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[16]);
+        final var byteBuffer = ByteBuffer.wrap(new byte[16]);
         byteBuffer.putLong(attribute.getMostSignificantBits());
         byteBuffer.putLong(attribute.getLeastSignificantBits());
         return ByteArrayUtil.toObject(byteBuffer.array());
@@ -24,9 +24,9 @@ public class UuidToByteArrayConverter implements AttributeConverter<UUID, Byte[]
 
     @Override
     public UUID convertToEntityAttribute(Byte[] data) {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(ByteArrayUtil.toPrimitive(data));
-        long high = byteBuffer.getLong();
-        long low = byteBuffer.getLong();
+        final var byteBuffer = ByteBuffer.wrap(ByteArrayUtil.toPrimitive(data));
+        final var high = byteBuffer.getLong();
+        final var low = byteBuffer.getLong();
         return new UUID(high, low);
     }
 

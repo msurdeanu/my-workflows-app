@@ -12,7 +12,7 @@ import static java.util.Optional.ofNullable;
  * @since 1.0.0
  */
 @Converter
-public final class WorkflowDefinitionToStringConverter implements AttributeConverter<WorkflowDefinitionScript, String> {
+public final class WorkflowDefinitionScriptToStringConverter implements AttributeConverter<WorkflowDefinitionScript, String> {
 
     @Override
     public String convertToDatabaseColumn(WorkflowDefinitionScript attribute) {
