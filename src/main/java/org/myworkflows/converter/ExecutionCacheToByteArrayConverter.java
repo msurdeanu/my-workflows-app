@@ -23,10 +23,10 @@ public class ExecutionCacheToByteArrayConverter implements AttributeConverter<Wo
 
     @Override
     public Byte[] convertToDatabaseColumn(WorkflowRunCache attribute) {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-            oos.writeObject(attribute);
-            return toObject(baos.toByteArray());
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
+            objectOutputStream.writeObject(attribute);
+            return toObject(byteArrayOutputStream.toByteArray());
         } catch (IOException e) {
             throw new WorkflowRuntimeException(e);
         }
@@ -34,9 +34,9 @@ public class ExecutionCacheToByteArrayConverter implements AttributeConverter<Wo
 
     @Override
     public WorkflowRunCache convertToEntityAttribute(Byte[] data) {
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(ByteArrayUtil.toPrimitive(data));
-             ObjectInputStream ois = new ObjectInputStream(bais)) {
-            return (WorkflowRunCache) ois.readObject();
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(ByteArrayUtil.toPrimitive(data));
+             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
+            return (WorkflowRunCache) objectInputStream.readObject();
         } catch (IOException | ClassNotFoundException e) {
             throw new WorkflowRuntimeException(e);
         }

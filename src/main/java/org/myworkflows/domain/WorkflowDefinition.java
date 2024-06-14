@@ -10,7 +10,7 @@ import jakarta.persistence.Transient;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.myworkflows.converter.WorkflowDefinitionToStringConverter;
+import org.myworkflows.converter.WorkflowDefinitionScriptToStringConverter;
 
 /**
  * @author Mihai Surdeanu
@@ -31,7 +31,7 @@ public class WorkflowDefinition implements CacheableEntry {
     private String name;
 
     @Setter
-    @Convert(converter = WorkflowDefinitionToStringConverter.class)
+    @Convert(converter = WorkflowDefinitionScriptToStringConverter.class)
     private WorkflowDefinitionScript script;
 
     @Getter
