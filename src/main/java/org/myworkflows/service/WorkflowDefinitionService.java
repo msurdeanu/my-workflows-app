@@ -2,12 +2,18 @@ package org.myworkflows.service;
 
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
+import org.myworkflows.domain.Parameter;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionScript;
+import org.myworkflows.domain.event.EventFunction;
 import org.myworkflows.domain.event.WorkflowDefinitionOnUpdateEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.springframework.stereotype.Service;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 
@@ -17,6 +23,9 @@ import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
  */
 @Service
 public final class WorkflowDefinitionService extends CacheableDataService<WorkflowDefinition, WorkflowDefinitionFilter> {
+
+    private static final EventFunction<WorkflowDefinition> UPDATE_EVENT_FUNCTION = item ->
+        of(WorkflowDefinitionOnUpdateEvent.builder().workflowDefinition(item).build());
 
     public WorkflowDefinitionService(ApplicationManager applicationManager) {
         super(applicationManager, "workflowDefinitionCacheManager", "workflow-definitions");
@@ -49,6 +58,14 @@ public final class WorkflowDefinitionService extends CacheableDataService<Workfl
         } finally {
             lock.unlock();
         }
+    }
+
+    public void updateParameter(Integer workflowDefinitionId, Stream<Parameter> newParameters) {
+        doAction(
+            workflowDefinitionId,
+            workflowDefinition -> workflowDefinition.setParameters(newParameters.collect(Collectors.toList())),
+            UPDATE_EVENT_FUNCTION
+        );
     }
 
     @Override

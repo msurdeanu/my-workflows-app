@@ -124,10 +124,7 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
     }
 
     private void resolveItemPlaceholders(Collection<ExpressionNameValue> items) {
-        items.forEach(item -> {
-            item.setName((String) resolvePlaceholders(item.getName()));
-            item.setValue(resolvePlaceholders(item.getValue()));
-        });
+        items.forEach(item -> item.setValue(resolvePlaceholders(item.getValue())));
     }
 
     private Object resolvePlaceholders(Object value) {

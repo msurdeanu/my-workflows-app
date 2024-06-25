@@ -33,7 +33,7 @@ CREATE TABLE workflow_definitions
 
 INSERT INTO workflow_definitions ("name", "script")
 VALUES ('Simple script 1',
-        '{"name":"Test 1","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":1000}],"outputs":[{"name":"$$(TEST)","value":1000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$$(TEST)"]}]}]}');
+        '{"name":"Test 1","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[],"outputs":[{"name":"test","value":1000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$$(TEST)"]}]}]}');
 INSERT INTO workflow_definitions ("name", "script")
 VALUES ('Simple script 2',
         '{"name":"Test 2","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":2000}],"outputs":[{"name":"$$(TEST)","value":2000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$$(TEST)"]}]}]}');
@@ -85,6 +85,26 @@ INSERT INTO users ("username", "password", "role")
 VALUES ('admin', '$2a$10$omNibHqZ1p6kx4/bLMNWJ.82c30oAdg0asgGWr9jB9o2zwhim3G7O', 'ROLE_ADMIN');
 
 CREATE UNIQUE INDEX users_username_index ON users (username);
+
+CREATE TABLE parameters
+(
+    name          TEXT PRIMARY KEY NOT NULL,
+    type          TEXT             NOT NULL,
+    default_value TEXT             NOT NULL
+);
+
+INSERT INTO parameters ("name", "type", "default_value")
+VALUES ('sleepTime', 'int', '5000');
+
+CREATE TABLE workflow_definitions_parameters
+(
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    workflow_definition_id INTEGER NOT NULL,
+    parameter_name         TEXT    NOT NULL
+);
+
+INSERT INTO workflow_definitions_parameters ("workflow_definition_id", "parameter_name")
+VALUES (1, 'sleepTime');
 
 CREATE TABLE placeholders
 (

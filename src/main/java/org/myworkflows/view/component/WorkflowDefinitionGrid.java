@@ -15,13 +15,17 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.RouterLink;
 import lombok.RequiredArgsConstructor;
+import org.myworkflows.domain.Parameter;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionEventHandler;
 import org.myworkflows.view.WorkflowDevelopmentView;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import java.util.List;
+
 import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
+import static org.myworkflows.util.StreamUtil.substract;
 
 /**
  * @author Mihai Surdeanu
@@ -33,6 +37,8 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
     private final PaginatedGrid<WorkflowDefinition, ?> paginatedGrid = new PaginatedGrid<>();
 
     private final WorkflowDefinitionEventHandler workflowDefinitionEventHandler;
+
+    private final List<Parameter> allParameters;
 
     private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
 
@@ -56,6 +62,11 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
             .setHeader(getTranslation("workflow-definitions.main-grid.actions.column"))
             .setAutoWidth(true);
+        paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(
+            () -> new WorkflowDefinitionDetails(workflowDefinitionEventHandler),
+            (instance, workflowDefinition) -> instance.setDetails(workflowDefinition,
+                substract(allParameters, workflowDefinition.getParameters())))
+        );
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
         paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);

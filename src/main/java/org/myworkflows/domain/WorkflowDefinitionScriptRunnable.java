@@ -6,7 +6,10 @@ import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+import static org.myworkflows.domain.WorkflowDefinitionScript.of;
 
 /**
  * @author Mihai Surdeanu
@@ -17,15 +20,18 @@ public final class WorkflowDefinitionScriptRunnable implements Runnable {
 
     private final ApplicationManager applicationManager;
 
+    private final Map<String, Object> parameters;
+
     private final List<WorkflowDefinitionScript> workflowDefinitionScripts;
 
     @Override
     public void run() {
+        // TODO: Inject parameters
         applicationManager.getBeanOfType(EventBroadcaster.class)
             .broadcast(WorkflowDefinitionOnSubmitEvent.builder()
                 .isManual(false)
                 .token(UUID.randomUUID())
-                .workflowDefinitionScript(WorkflowDefinitionScript.of(workflowDefinitionScripts))
+                .workflowDefinitionScript(of(workflowDefinitionScripts))
                 .build());
     }
 

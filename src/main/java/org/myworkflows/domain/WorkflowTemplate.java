@@ -16,6 +16,7 @@ import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
@@ -63,6 +64,14 @@ public class WorkflowTemplate {
 
     public boolean isEnabledForScheduling() {
         return enabled && !StringUtils.isEmpty(cron);
+    }
+
+    public Map<String, Object> getWorkflowDefinitionParameters() {
+        return ofNullable(workflowDefinitions)
+            .orElse(List.of())
+            .stream()
+            .flatMap(item -> item.getParameters().stream())
+            .collect(Collectors.toMap(Parameter::getName, Parameter::getComputedDefaultValue, (it1, it2) -> it2));
     }
 
     public List<WorkflowDefinitionScript> getWorkflowDefinitionScripts() {

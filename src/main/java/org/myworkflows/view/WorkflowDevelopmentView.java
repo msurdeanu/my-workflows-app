@@ -6,6 +6,7 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.ListItem;
@@ -13,6 +14,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
@@ -30,11 +32,10 @@ import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowRun;
-import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
-import org.myworkflows.serializer.JsonFactory;
+import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.HasResizeableWidth;
@@ -46,6 +47,7 @@ import java.util.UUID;
 
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
+import static org.myworkflows.serializer.JsonFactory.toPrettyString;
 
 /**
  * @author Mihai Surdeanu
@@ -69,6 +71,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private Registration onSubmittedRegistration;
     private Registration onProgressRegistration;
     private UUID lastSubmittedUuid;
+    private final Button updateWorkflowButton = new Button(getTranslation("workflow-development.update.button"),
+        new Icon(VaadinIcon.UPLOAD));
 
     public WorkflowDevelopmentView(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
@@ -151,7 +155,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
 
     private void onFilteringByDefinition(WorkflowDefinition workflowDefinition) {
         filterByTemplate.setValue(workflowDefinition);
-        editor.setValue(JsonFactory.toPrettyString(workflowDefinition.getScript(), ""));
+        editor.setValue(toPrettyString(workflowDefinition.getScript(), ""));
+        updateWorkflowButton.setEnabled(true);
     }
 
     private SplitLayout createBody() {
@@ -182,7 +187,21 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         });
         runWorkflowButton.setWidthFull();
 
-        layout.add(inputDetails, new Hr(), runWorkflowButton);
+        final var horizontalLayout = new HorizontalLayout();
+        horizontalLayout.setSpacing(true);
+        updateWorkflowButton.setEnabled(false);
+        updateWorkflowButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        updateWorkflowButton.getStyle().set("flex", "1 1 50%");
+        // TODO : call updateDefinition from WorkflowDefinitionService
+        final var createWorkflowButton = new Button(getTranslation("workflow-development.create.button"),
+            new Icon(VaadinIcon.PLUS_CIRCLE));
+        createWorkflowButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        createWorkflowButton.getStyle().set("flex", "1 1 50%");
+        // TODO : call create from WorkflowDefinitionService
+        horizontalLayout.add(updateWorkflowButton, createWorkflowButton);
+        horizontalLayout.setWidth("100%");
+
+        layout.add(inputDetails, new Hr(), runWorkflowButton, horizontalLayout);
         return layout;
     }
 

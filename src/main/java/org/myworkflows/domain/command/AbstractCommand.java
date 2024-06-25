@@ -87,7 +87,7 @@ public abstract class AbstractCommand {
                 .ifPresent(method -> runMethodWithAssertsAndOutputs(method, workflowRun));
     }
 
-    public boolean runIfs(WorkflowRunCache workflowRunCache) {
+    private boolean runIfs(WorkflowRunCache workflowRunCache) {
         return ifs.stream().allMatch(item -> Boolean.TRUE.equals(item.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache))));
     }
 

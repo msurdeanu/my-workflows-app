@@ -12,6 +12,8 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.myworkflows.domain.WorkflowRun;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import static java.lang.String.valueOf;
+
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
@@ -52,7 +54,7 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
     }
 
     private Component renderWorkflowId(WorkflowRun workflowRun) {
-        return new Span(String.valueOf(workflowRun.getId()));
+        return new Span(valueOf(workflowRun.getId()));
     }
 
     private Component renderDuration(WorkflowRun workflowRun) {
@@ -60,7 +62,7 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
     }
 
     private Component renderDetails(WorkflowRun workflowRun) {
-        final var button = new Button("TODO"); // TODO
+        final var button = new Button(getTranslation("pretty.time.format", workflowRun.getCreated()));
         button.addThemeVariants(ButtonVariant.LUMO_SMALL);
         button.setTooltipText(workflowRun.getCreated().toString());
         button.addClickListener(event -> new WorkflowRunDetailsDialog(workflowRun).open());

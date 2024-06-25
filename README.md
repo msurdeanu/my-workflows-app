@@ -207,7 +207,7 @@ Example of a dummy command:
       ],
       "outputs": [
         {
-          "name": "$$(TEST)",
+          "name": "test",
           "value": 5000
         }
       ]
