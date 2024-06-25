@@ -36,8 +36,11 @@ public final class WorkflowTemplateSchedulerService {
 
     public void schedule(WorkflowTemplate workflowTemplate) {
         final var scheduledTask = applicationManager.getBeanOfType(TaskScheduler.class)
-            .schedule(new WorkflowDefinitionScriptRunnable(applicationManager, workflowTemplate.getWorkflowDefinitionScripts()),
-                new CronTrigger(workflowTemplate.getCron(), TimeZone.getTimeZone(TimeZone.getDefault().getID())));
+            .schedule(new WorkflowDefinitionScriptRunnable(applicationManager,
+                    workflowTemplate.getWorkflowDefinitionParameters(),
+                    workflowTemplate.getWorkflowDefinitionScripts()),
+                new CronTrigger(workflowTemplate.getCron(),
+                    TimeZone.getTimeZone(TimeZone.getDefault().getID())));
 
         lock.lock();
         try {
@@ -53,7 +56,9 @@ public final class WorkflowTemplateSchedulerService {
 
     public void scheduleNowAsync(WorkflowTemplate workflowTemplate) {
         applicationManager.getBeanOfType(TaskScheduler.class)
-            .schedule(new WorkflowDefinitionScriptRunnable(applicationManager, workflowTemplate.getWorkflowDefinitionScripts()), Instant.now());
+            .schedule(new WorkflowDefinitionScriptRunnable(applicationManager,
+                workflowTemplate.getWorkflowDefinitionParameters(),
+                workflowTemplate.getWorkflowDefinitionScripts()), Instant.now());
     }
 
     public void unschedule(WorkflowTemplate workflowTemplate) {

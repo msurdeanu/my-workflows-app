@@ -1,16 +1,23 @@
 package org.myworkflows.domain;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.myworkflows.converter.WorkflowDefinitionScriptToStringConverter;
+
+import java.util.List;
 
 /**
  * @author Mihai Surdeanu
@@ -29,6 +36,18 @@ public class WorkflowDefinition implements CacheableEntry {
 
     @Setter
     private String name;
+
+    @Getter
+    @Setter
+    @ManyToMany(cascade = {
+        CascadeType.PERSIST,
+        CascadeType.MERGE
+    }, fetch = FetchType.EAGER)
+    @JoinTable(name = "workflow_definitions_parameters",
+        joinColumns = @JoinColumn(name = "workflow_definition_id"),
+        inverseJoinColumns = @JoinColumn(name = "parameter_name")
+    )
+    private List<Parameter> parameters;
 
     @Setter
     @Convert(converter = WorkflowDefinitionScriptToStringConverter.class)
