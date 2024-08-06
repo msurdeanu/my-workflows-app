@@ -16,6 +16,7 @@ import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.theme.lumo.LumoIcon;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -23,6 +24,7 @@ import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
+import org.myworkflows.view.WorkflowDevelopmentView;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
@@ -71,8 +73,17 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
             .setHeader(getTranslation("workflow-templates.main-grid.actions.column"))
             .setAutoWidth(true);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(
-            () -> new WorkflowTemplateDetails(workflowTemplateEventHandler),
+            () -> new DraggableGrid<WorkflowTemplate, WorkflowDefinition>("template",
+                definition -> new NativeLabel(definition.getId().toString()),
+                definition -> {
+                    final var routerLink = new RouterLink(definition.getName(), WorkflowDevelopmentView.class, definition.getId());
+                    routerLink.getElement().getThemeList().add("badge");
+                    return routerLink;
+                },
+                WorkflowDefinition.class),
             (instance, workflowTemplate) -> instance.setDetails(workflowTemplate,
+                (key, value) -> workflowTemplateEventHandler.onDefinitionUpdated(key.getId(), value),
+                WorkflowTemplate::getWorkflowDefinitions,
                 substract(allWorkflowDefinitions, workflowTemplate.getWorkflowDefinitions())))
         );
         paginatedGrid.setPageSize(10);

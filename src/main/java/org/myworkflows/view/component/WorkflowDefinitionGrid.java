@@ -6,6 +6,7 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -63,8 +64,13 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
             .setHeader(getTranslation("workflow-definitions.main-grid.actions.column"))
             .setAutoWidth(true);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(
-            () -> new WorkflowDefinitionDetails(workflowDefinitionEventHandler),
+            () -> new DraggableGrid<WorkflowDefinition, Parameter>("definition",
+                parameter -> new NativeLabel(parameter.getName()),
+                parameter -> new NativeLabel(parameter.getType().getValue()),
+                Parameter.class),
             (instance, workflowDefinition) -> instance.setDetails(workflowDefinition,
+                (key, value) -> workflowDefinitionEventHandler.onParameterUpdated(key.getId(), value),
+                WorkflowDefinition::getParameters,
                 substract(allParameters, workflowDefinition.getParameters())))
         );
         paginatedGrid.setPageSize(10);

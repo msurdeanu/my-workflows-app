@@ -26,11 +26,11 @@ public final class WorkflowDefinitionScriptRunnable implements Runnable {
 
     @Override
     public void run() {
-        // TODO: Inject parameters
         applicationManager.getBeanOfType(EventBroadcaster.class)
             .broadcast(WorkflowDefinitionOnSubmitEvent.builder()
                 .isManual(false)
                 .token(UUID.randomUUID())
+                .workflowParameters(parameters)
                 .workflowDefinitionScript(of(workflowDefinitionScripts))
                 .build());
     }
