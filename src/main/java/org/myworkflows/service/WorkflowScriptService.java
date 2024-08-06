@@ -47,6 +47,7 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
     @Override
     public void onEventReceived(WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var workflowDefScriptObject = onSubmitEvent.getWorkflowDefinitionScript();
+        final var workflowParameters = onSubmitEvent.getWorkflowParameters();
 
         final var onSubmittedEventBuilder = WorkflowDefinitionOnSubmittedEvent.builder();
         onSubmittedEventBuilder.token(onSubmitEvent.getToken());
@@ -59,9 +60,9 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
                 applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
                 return;
             }
-            onSubmittedEventBuilder.workflowRun(submit(fromJsonToObject(workflowAsString, WorkflowDefinitionScript.class), onSubmitEvent));
+            onSubmittedEventBuilder.workflowRun(submit(fromJsonToObject(workflowAsString, WorkflowDefinitionScript.class), workflowParameters, onSubmitEvent));
         } else if (workflowDefScriptObject instanceof WorkflowDefinitionScript workflowDefinitionScript) {
-            onSubmittedEventBuilder.workflowRun(submit(workflowDefinitionScript, onSubmitEvent));
+            onSubmittedEventBuilder.workflowRun(submit(workflowDefinitionScript, workflowParameters, onSubmitEvent));
         }
 
         applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
@@ -72,14 +73,22 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
         return WorkflowDefinitionOnSubmitEvent.class;
     }
 
-    private WorkflowRun submit(WorkflowDefinitionScript workflowDefinitionScript, WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
+    private WorkflowRun submit(WorkflowDefinitionScript workflowDefinitionScript,
+                               Map<String, Object> workflowParameters,
+                               WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var workflowRun = ofNullable(onSubmitEvent.getWorkflowRun())
             .orElseGet(WorkflowRun::new);
+        injectParametersIntoRun(workflowParameters, workflowRun);
         final var onProgressEventBuilder = WorkflowDefinitionOnProgressEvent.builder();
         onProgressEventBuilder.token(onSubmitEvent.getToken());
         onProgressEventBuilder.workflowRun(workflowRun);
         threadPoolExecutor.submit(() -> runSynchronously(workflowDefinitionScript, onProgressEventBuilder.build()));
         return workflowRun;
+    }
+
+    private void injectParametersIntoRun(Map<String, Object> workflowParameters, WorkflowRun workflowRun) {
+        final var workflowRunCache = workflowRun.getCache();
+        ofNullable(workflowParameters).orElse(Map.of()).forEach(workflowRunCache::put);
     }
 
     private void runSynchronously(WorkflowDefinitionScript workflowDefinitionScript,

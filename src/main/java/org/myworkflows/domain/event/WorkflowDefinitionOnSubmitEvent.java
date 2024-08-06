@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.myworkflows.domain.WorkflowRun;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -16,6 +17,7 @@ public class WorkflowDefinitionOnSubmitEvent implements Event {
 
     private final boolean isManual;
     private final UUID token;
+    private final Map<String, Object> workflowParameters;
     private final Object workflowDefinitionScript; // allowed object types: WorkflowDefinitionScript or String
     private final WorkflowRun workflowRun;
 
