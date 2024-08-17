@@ -75,6 +75,7 @@ public final class WorkflowRunCache implements Serializable {
         return cachedObjectMap.remove(key);
     }
 
+    @Serial
     private void writeObject(ObjectOutputStream objectOutputStream) throws IOException {
         final var serializedObjectMap = getSerializedObjectMap();
         if (serializedObjectMap.size() != cachedObjectMap.size()) {
@@ -90,6 +91,7 @@ public final class WorkflowRunCache implements Serializable {
         }
     }
 
+    @Serial
     private void readObject(ObjectInputStream objectInputStream) throws IOException, ClassNotFoundException {
         objectInputStream.defaultReadObject();
         cacheObjectMapComplete = objectInputStream.readBoolean();

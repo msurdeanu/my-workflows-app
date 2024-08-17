@@ -192,7 +192,9 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         updateWorkflowButton.setEnabled(false);
         updateWorkflowButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         updateWorkflowButton.getStyle().set("flex", "1 1 50%");
-        // TODO : call updateDefinition from WorkflowDefinitionService
+        updateWorkflowButton.addClickListener(event -> ofNullable(filterByTemplate.getValue())
+            .ifPresent(workflowDefinition -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
+                .updateDefinition(workflowDefinition.getId(), editor.getValue())));
         final var createWorkflowButton = new Button(getTranslation("workflow-development.create.button"),
             new Icon(VaadinIcon.PLUS_CIRCLE));
         createWorkflowButton.addThemeVariants(ButtonVariant.LUMO_SMALL);

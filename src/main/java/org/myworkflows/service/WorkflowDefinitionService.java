@@ -1,7 +1,6 @@
 package org.myworkflows.service;
 
 import org.myworkflows.ApplicationManager;
-import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.Parameter;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionScript;
@@ -14,7 +13,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Optional.of;
-import static java.util.Optional.ofNullable;
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 
 /**
@@ -31,33 +29,20 @@ public final class WorkflowDefinitionService extends CacheableDataService<Workfl
         super(applicationManager, "workflowDefinitionCacheManager", "workflow-definitions");
     }
 
-    public boolean updateDefinition(Integer workflowDefinitionId, String newScript) {
-        lock.lock();
-        try {
-            return ofNullable(cache.get(workflowDefinitionId, WorkflowDefinition.class)).map(workflowDefinition -> {
-                workflowDefinition.setScript(fromJsonToObject(newScript, WorkflowDefinitionScript.class));
-                applicationManager.getBeanOfType(EventBroadcaster.class)
-                    .broadcast(WorkflowDefinitionOnUpdateEvent.builder().workflowDefinition(workflowDefinition).build());
-                return true;
-            }).orElse(false);
-        } catch (Exception notUsed) {
-            return false;
-        } finally {
-            lock.unlock();
-        }
+    public void updateDefinition(Integer workflowDefinitionId, String newScript) {
+        doAction(
+            workflowDefinitionId,
+            workflowDefinition -> workflowDefinition.setScript(fromJsonToObject(newScript, WorkflowDefinitionScript.class)),
+            UPDATE_EVENT_FUNCTION
+        );
     }
 
     public void updateName(Integer workflowDefinitionId, String newName) {
-        lock.lock();
-        try {
-            ofNullable(cache.get(workflowDefinitionId, WorkflowDefinition.class)).ifPresent(workflowDefinition -> {
-                workflowDefinition.setName(newName);
-                applicationManager.getBeanOfType(EventBroadcaster.class)
-                    .broadcast(WorkflowDefinitionOnUpdateEvent.builder().workflowDefinition(workflowDefinition).build());
-            });
-        } finally {
-            lock.unlock();
-        }
+        doAction(
+            workflowDefinitionId,
+            workflowDefinition -> workflowDefinition.setName(newName),
+            UPDATE_EVENT_FUNCTION
+        );
     }
 
     public void updateParameter(Integer workflowDefinitionId, Stream<Parameter> newParameters) {
