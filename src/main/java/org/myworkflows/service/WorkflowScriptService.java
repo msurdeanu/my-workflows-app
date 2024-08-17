@@ -100,8 +100,6 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
             workflowDefinitionScript.getCommands().forEach(command -> {
                 resolveCommandPlaceholders(command);
                 command.run(workflowRun);
-                // TODO
-                //workflowRun.markCommandAsCompleted();
                 applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
             });
         } catch (Exception exception) {
@@ -111,8 +109,6 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
                 workflowDefinitionScript.getFinallyCommands().forEach(command -> {
                     resolveCommandPlaceholders(command);
                     command.run(workflowRun);
-                    // TODO
-                    //workflowRun.markCommandAsCompleted();
                     applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
                 });
             } catch (Exception exception) {

@@ -1,6 +1,5 @@
 package org.myworkflows.view;
 
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.router.BeforeEvent;
@@ -86,9 +85,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
 
     @Override
     public void onScriptUpdated(Integer workflowDefinitionId, String newScript) {
-        if (workflowDefinitionService.updateDefinition(workflowDefinitionId, newScript)) {
-            Notification.show("Workflow definition script was changed successfully.");
-        }
+        workflowDefinitionService.updateDefinition(workflowDefinitionId, newScript);
     }
 
     private void onFilterById(int value) {
