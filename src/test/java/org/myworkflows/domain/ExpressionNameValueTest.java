@@ -16,14 +16,36 @@ import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 public final class ExpressionNameValueTest {
 
     @Test
-    public void testSPelEvaluationForString() {
+    public void testConstructorSPelEvaluationForString() {
+        final var expressionNameValue = new ExpressionNameValue("test", "'a'", RuntimeEvaluator.SPEL);
+        assertEquals("a", expressionNameValue.evaluate(Map.of()));
+    }
+
+    @Test
+    public void testConstructorSPelEvaluationForList() {
+        final var expressionNameValue = new ExpressionNameValue("test", List.of("'a'", "'b'"), RuntimeEvaluator.SPEL);
+        final var result = expressionNameValue.evaluate(Map.of());
+        assertInstanceOf(List.class, result);
+        assertEquals(2, ((List<?>) result).size());
+    }
+
+    @Test
+    public void testConstructorSPelEvaluationForMap() {
+        final var expressionNameValue = new ExpressionNameValue("test", Map.of("'a'","'b'"), RuntimeEvaluator.SPEL);
+        final var result = expressionNameValue.evaluate(Map.of());
+        assertInstanceOf(Map.class, result);
+        assertEquals(1, ((Map<?, ?>) result).size());
+    }
+
+    @Test
+    public void testJsonSPelEvaluationForString() {
         final var expressionNameValue = fromJsonToObject("{\"name\":\"test\",\"value\":\"'a'\",\"@type\":\"spel\"}",
                 ExpressionNameValue.class);
         assertEquals("a", expressionNameValue.evaluate(Map.of()));
     }
 
     @Test
-    public void testSPelEvaluationForList() {
+    public void testJsonSPelEvaluationForList() {
         final var expressionNameValue = fromJsonToObject("{\"name\":\"test\",\"value\":[\"'a'\", \"'b'\"],\"@type\":\"spel\"}",
                 ExpressionNameValue.class);
         final var result = expressionNameValue.evaluate(Map.of());
@@ -32,7 +54,7 @@ public final class ExpressionNameValueTest {
     }
 
     @Test
-    public void testSPelEvaluationForMap() {
+    public void testJsonSPelEvaluationForMap() {
         final var expressionNameValue = fromJsonToObject("{\"name\":\"test\",\"value\":{\"'a'\":\"'b'\"},\"@type\":\"spel\"}",
                 ExpressionNameValue.class);
         final var result = expressionNameValue.evaluate(Map.of());
