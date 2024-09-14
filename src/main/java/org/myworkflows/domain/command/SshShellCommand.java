@@ -6,6 +6,8 @@ import com.sshtools.client.shell.ExpectShell;
 import com.sshtools.client.shell.ShellTimeoutException;
 import com.sshtools.client.tasks.ShellTask;
 import com.sshtools.common.ssh.SshException;
+import lombok.NoArgsConstructor;
+import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.command.api.ExecutionMethod;
 import org.myworkflows.domain.command.api.MandatoryParam;
 import org.myworkflows.domain.command.api.OptionalParam;
@@ -13,6 +15,7 @@ import org.myworkflows.domain.command.output.SshCommandOutput;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Optional.ofNullable;
 
@@ -20,7 +23,16 @@ import static java.util.Optional.ofNullable;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@NoArgsConstructor
 public final class SshShellCommand extends AbstractCommand {
+
+    public SshShellCommand(String name,
+                           Set<ExpressionNameValue> ifs,
+                           Set<ExpressionNameValue> inputs,
+                           Set<ExpressionNameValue> asserts,
+                           Set<ExpressionNameValue> outputs) {
+        super(name, ifs, inputs, asserts, outputs);
+    }
 
     @ExecutionMethod
     public SshCommandOutput sshShell(@MandatoryParam String host,
@@ -35,7 +47,12 @@ public final class SshShellCommand extends AbstractCommand {
         final var outputBuilder = new StringBuilder();
         final var commandOutputBuilder = SshCommandOutput.builder();
 
-        try (SshClient sshclient = new SshClient(host, resolvedPort, username, password.toCharArray())) {
+        try (SshClient sshclient = SshClient.SshClientBuilder.create()
+            .withHostname(host)
+            .withPort(resolvedPort)
+            .withUsername(username)
+            .withPassword(password.toCharArray())
+            .build()) {
             sshclient.runTask(new ShellTask(sshclient) {
                 @Override
                 protected void onOpenSession(SessionChannelNG sessionChannelNG) throws IOException, SshException, ShellTimeoutException {

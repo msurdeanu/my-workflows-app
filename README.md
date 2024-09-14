@@ -118,6 +118,45 @@ Example of a dummy command:
 }
 ```
 
+### Java command
+
+Provides ability to run Java code at runtime.
+Like for Groovy command, this command is also very powerful.
+
+| `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                 | Output                             |
+|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| `java`  | <ul><li><strong>scriptLines</strong>: Mandatory. Represents source code which contains definition of a `methodName` (or `run`) method inside a class `className` (or `DynamicClass`) which will be executed.</li><li><em>methodName</em>: Optional. Represents the method name invoked when code is executed.</li><li><em>className</em>: Optional. Represents the class name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
+
+Example of a dummy command:
+
+```json
+{
+  "name": "Run method which returns 0",
+  "@type": "java",
+  "inputs": [
+    {
+      "name": "scriptLines",
+      "value": [
+        "import org.myworkflows.domain.WorkflowRunCache;",
+        "public class DynamicClass {",
+        "  public int run(WorkflowRunCache cache) {",
+        "    return 0;",
+        "  }",
+        "}"
+      ]
+    },
+    {
+      "name": "methodName",
+      "value": "run"
+    },
+    {
+      "name": "className",
+      "value": "DynamicClass"
+    }
+  ]
+}
+```
+
 ### Nothing command
 
 This command is not doing anything.

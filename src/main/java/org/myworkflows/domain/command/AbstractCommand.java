@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.myworkflows.domain.WorkflowRunCache;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.WorkflowRun;
@@ -32,11 +34,14 @@ import static java.util.stream.IntStream.range;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = GroovyCommand.class, name = "groovy"),
     @JsonSubTypes.Type(value = HttpRequestCommand.class, name = "httpRequest"),
+    @JsonSubTypes.Type(value = JavaCommand.class, name = "java"),
     @JsonSubTypes.Type(value = NothingCommand.class, name = "nothing"),
     @JsonSubTypes.Type(value = PrintCommand.class, name = "print"),
     @JsonSubTypes.Type(value = SleepCommand.class, name = "sleep"),

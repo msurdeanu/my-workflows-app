@@ -31,7 +31,6 @@ public class CacheConfig {
 
     @Bean("workflowTemplateCacheManager")
     public CacheManager workflowTemplateCacheManager() {
-        // limit number of workflow templates to 10k
         final var cacheManager = new CustomCacheManager(10_000, ofSeconds(0), ofSeconds(0));
         cacheManager.setCacheNames(List.of("workflow-templates"));
         return cacheManager;
@@ -39,7 +38,6 @@ public class CacheConfig {
 
     @Bean("workflowDefinitionCacheManager")
     public CacheManager workflowDefinitionCacheManager() {
-        // limit number of workflow definitions to 10k
         final var cacheManager = new CustomCacheManager(10_000, ofSeconds(0), ofSeconds(0));
         cacheManager.setCacheNames(List.of("workflow-definitions"));
         return cacheManager;
@@ -47,7 +45,6 @@ public class CacheConfig {
 
     @Bean("menuItemCacheManager")
     public CacheManager menuItemCacheManager() {
-        // all menu items are refreshed daily
         final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(86_400));
         cacheManager.setCacheNames(List.of("menu-items"));
         return cacheManager;
@@ -55,7 +52,6 @@ public class CacheConfig {
 
     @Bean("placeholderCacheManager")
     public CacheManager placeholderCacheManager() {
-        // all placeholders are also refreshed daily
         final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(86_400));
         cacheManager.setCacheNames(List.of("placeholders"));
         return cacheManager;
