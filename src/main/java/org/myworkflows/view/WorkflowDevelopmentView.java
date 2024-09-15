@@ -40,6 +40,7 @@ import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.HasResizeableWidth;
 import org.myworkflows.view.component.ResponsiveLayout;
+import org.myworkflows.view.component.WorkflowParameterGrid;
 import org.myworkflows.view.component.WorkflowPrintGrid;
 
 import java.util.Set;
@@ -62,6 +63,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
 
     private final AceEditor editor = new AceEditor();
     private final GraniteAlert currentWorkflowStatus = new GraniteAlert();
+    private final WorkflowParameterGrid workflowParameterGrid = new WorkflowParameterGrid();
     private final WorkflowPrintGrid workflowPrintGrid = new WorkflowPrintGrid();
 
     private final ApplicationManager applicationManager;
@@ -170,9 +172,9 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         final var layout = new VerticalLayout();
         layout.setDefaultHorizontalComponentAlignment(Alignment.START);
 
-        final var inputDetails = new Details(getTranslation("workflow-development.input.label"), editor);
-        inputDetails.setOpened(true);
-        inputDetails.setWidthFull();
+        final var defDetails = new Details(getTranslation("workflow-development.def.label"), editor);
+        defDetails.setOpened(true);
+        defDetails.setWidthFull();
 
         final var runWorkflowButton = new Button(getTranslation("workflow-development.run.button"),
             new Icon(VaadinIcon.PLAY));
@@ -182,6 +184,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
                 .isManual(true)
                 .token(lastSubmittedUuid)
+                .workflowParameters(workflowParameterGrid.getParametersAsMap())
                 .workflowDefinitionScript(editor.getValue())
                 .build());
         });
@@ -203,7 +206,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         horizontalLayout.add(updateWorkflowButton, createWorkflowButton);
         horizontalLayout.setWidth("100%");
 
-        layout.add(inputDetails, new Hr(), runWorkflowButton, horizontalLayout);
+        layout.add(currentWorkflowStatus, defDetails, new Hr(), runWorkflowButton, horizontalLayout);
         return layout;
     }
 
@@ -211,11 +214,15 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         final var layout = new VerticalLayout();
         layout.setDefaultHorizontalComponentAlignment(Alignment.START);
 
-        final var outputDetails = new Details(getTranslation("workflow-development.output.label"), workflowPrintGrid);
-        outputDetails.setOpened(true);
-        outputDetails.setWidthFull();
+        final var inputDetails = new Details(getTranslation("workflow-development.input.label"), workflowParameterGrid);
+        inputDetails.setOpened(true);
+        inputDetails.setWidthFull();
 
-        layout.add(currentWorkflowStatus, outputDetails);
+        final var printDetails = new Details(getTranslation("workflow-development.print.label"), workflowPrintGrid);
+        printDetails.setOpened(true);
+        printDetails.setWidthFull();
+
+        layout.add(inputDetails, printDetails);
         return layout;
     }
 
@@ -236,7 +243,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private void updateWorkflowProgress(WorkflowRun workflowRun) {
         currentWorkflowStatus.removeAll();
 
-        if (workflowRun.isCompleted()) {
+        if (workflowRun.getDuration() > 0) {
             ofNullable(workflowRun.getFailureMessage()).ifPresentOrElse(error -> {
                 currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.ERROR);
                 currentWorkflowStatus.add(new Span(getTranslation("workflow-development.error.message",

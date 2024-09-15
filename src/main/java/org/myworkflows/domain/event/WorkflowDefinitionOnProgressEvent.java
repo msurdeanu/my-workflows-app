@@ -16,5 +16,6 @@ public class WorkflowDefinitionOnProgressEvent implements Event {
 
     private final UUID token;
     private final WorkflowRun workflowRun;
+    private final boolean persisted;
 
 }

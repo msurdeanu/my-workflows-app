@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
@@ -79,10 +80,7 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
         final var workflowRun = ofNullable(onSubmitEvent.getWorkflowRun())
             .orElseGet(WorkflowRun::new);
         injectParametersIntoRun(workflowParameters, workflowRun);
-        final var onProgressEventBuilder = WorkflowDefinitionOnProgressEvent.builder();
-        onProgressEventBuilder.token(onSubmitEvent.getToken());
-        onProgressEventBuilder.workflowRun(workflowRun);
-        threadPoolExecutor.submit(() -> runSynchronously(workflowDefinitionScript, onProgressEventBuilder.build()));
+        threadPoolExecutor.submit(() -> runSynchronously(workflowDefinitionScript, workflowRun, onSubmitEvent.getToken()));
         return workflowRun;
     }
 
@@ -92,15 +90,17 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
     }
 
     private void runSynchronously(WorkflowDefinitionScript workflowDefinitionScript,
-                                  WorkflowDefinitionOnProgressEvent workflowResultEvent) {
-        final var workflowRun = workflowResultEvent.getWorkflowRun();
+                                  WorkflowRun workflowRun,
+                                  UUID token) {
         final var startTime = System.currentTimeMillis();
-        applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
+        applicationManager.getBeanOfType(EventBroadcaster.class)
+            .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, false));
         try {
             workflowDefinitionScript.getCommands().forEach(command -> {
                 resolveCommandPlaceholders(command);
                 command.run(workflowRun);
-                applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
+                applicationManager.getBeanOfType(EventBroadcaster.class)
+                    .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, false));
             });
         } catch (Exception exception) {
             workflowRun.markAsFailed(exception);
@@ -109,13 +109,15 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
                 workflowDefinitionScript.getFinallyCommands().forEach(command -> {
                     resolveCommandPlaceholders(command);
                     command.run(workflowRun);
-                    applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
+                    applicationManager.getBeanOfType(EventBroadcaster.class)
+                        .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, false));
                 });
             } catch (Exception exception) {
                 workflowRun.markAsFailed(exception);
             }
             workflowRun.markAsCompleted(System.currentTimeMillis() - startTime);
-            applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(workflowResultEvent);
+            applicationManager.getBeanOfType(EventBroadcaster.class)
+                .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, true));
         }
     }
 
@@ -149,6 +151,14 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
         }
 
         return value;
+    }
+
+    private WorkflowDefinitionOnProgressEvent createWorkflowDefinitionOnProgressEvent(WorkflowRun workflowRun, UUID token, boolean persisted) {
+        final var onProgressEventBuilder = WorkflowDefinitionOnProgressEvent.builder();
+        onProgressEventBuilder.workflowRun(workflowRun);
+        onProgressEventBuilder.token(token);
+        onProgressEventBuilder.persisted(persisted);
+        return onProgressEventBuilder.build();
     }
 
 }

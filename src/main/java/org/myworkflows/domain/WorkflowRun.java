@@ -119,9 +119,5 @@ public class WorkflowRun implements CacheableEntry, Persistable<UUID> {
         this.duration = duration;
     }
 
-    public boolean isCompleted() {
-        return duration > 0;
-    }
-
 }
 

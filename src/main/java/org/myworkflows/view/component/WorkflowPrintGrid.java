@@ -72,7 +72,7 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
         paginatedGrid.setPaginatorSize(5);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(WorkflowTemplateDetailsFormLayout::new,
             WorkflowTemplateDetailsFormLayout::setExecutionPrint));
-        paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
+        paginatedGrid.addThemeVariants(GridVariant.LUMO_COMPACT);
         layout.add(paginatedGrid);
 
         final var contextMenu = paginatedGrid.addContextMenu();
