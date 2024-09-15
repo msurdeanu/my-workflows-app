@@ -33,7 +33,7 @@ CREATE TABLE workflow_definitions
 
 INSERT INTO workflow_definitions ("name", "script")
 VALUES ('Simple script 1',
-        '{"name":"Test 1","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[],"outputs":[{"name":"test","value":1000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$$(TEST)"]}]}]}');
+        '{"name":"Test 1","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":2000}],"outputs":[{"name":"test","value":2000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["test"]}]}]}');
 INSERT INTO workflow_definitions ("name", "script")
 VALUES ('Simple script 2',
         '{"name":"Test 2","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":2000}],"outputs":[{"name":"$$(TEST)","value":2000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$$(TEST)"]}]}]}');
@@ -47,7 +47,7 @@ CREATE TABLE workflow_templates
 );
 
 INSERT INTO workflow_templates ("enabled", "name", "cron")
-VALUES ('1', 'Simple template', '0 0 0 * * MON-FRI');
+VALUES ('1', 'Simple template', '0 * * * * SAT-SUN');
 
 CREATE TABLE workflow_templates_workflow_definitions
 (
@@ -88,12 +88,12 @@ CREATE UNIQUE INDEX users_username_index ON users (username);
 
 CREATE TABLE parameters
 (
-    name          TEXT PRIMARY KEY NOT NULL,
-    type          TEXT             NOT NULL,
-    default_value TEXT             NOT NULL
+    name  TEXT PRIMARY KEY NOT NULL,
+    type  TEXT             NOT NULL,
+    value TEXT             NOT NULL
 );
 
-INSERT INTO parameters ("name", "type", "default_value")
+INSERT INTO parameters ("name", "type", "value")
 VALUES ('sleepTime', 'int', '5000');
 
 CREATE TABLE workflow_definitions_parameters

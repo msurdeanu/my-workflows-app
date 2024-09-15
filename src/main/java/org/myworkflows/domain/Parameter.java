@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import org.myworkflows.converter.ParameterTypeToStringConverter;
 
 /**
@@ -15,6 +16,7 @@ import org.myworkflows.converter.ParameterTypeToStringConverter;
  */
 @Entity
 @Getter
+@Setter
 @Table(name = "parameters")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Parameter {
@@ -26,11 +28,11 @@ public class Parameter {
     @Convert(converter = ParameterTypeToStringConverter.class)
     private ParameterType type;
 
-    @Column(name = "default_value")
-    private String defaultValue;
+    @Column(name = "value")
+    private String value;
 
-    public Object getComputedDefaultValue() {
-        return type.getComputedDefaultValue(defaultValue);
+    public Object getComputedValue() {
+        return type.getComputedValue(value);
     }
 
 }

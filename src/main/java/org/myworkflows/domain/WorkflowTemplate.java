@@ -71,7 +71,7 @@ public class WorkflowTemplate {
             .orElse(List.of())
             .stream()
             .flatMap(item -> item.getParameters().stream())
-            .collect(Collectors.toMap(Parameter::getName, Parameter::getComputedDefaultValue, (it1, it2) -> it2));
+            .collect(Collectors.toMap(Parameter::getName, Parameter::getComputedValue, (it1, it2) -> it2));
     }
 
     public List<WorkflowDefinitionScript> getWorkflowDefinitionScripts() {
