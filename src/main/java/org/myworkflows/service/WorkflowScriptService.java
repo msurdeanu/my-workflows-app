@@ -39,8 +39,8 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
 
     private final ApplicationManager applicationManager;
 
-    public WorkflowScriptService(final @Qualifier("workflow-pool") ThreadPoolExecutor threadPoolExecutor,
-                                 final ApplicationManager applicationManager) {
+    public WorkflowScriptService(@Qualifier("workflow-pool") ThreadPoolExecutor threadPoolExecutor,
+                                 ApplicationManager applicationManager) {
         this.threadPoolExecutor = threadPoolExecutor;
         this.applicationManager = applicationManager;
     }
@@ -48,7 +48,6 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
     @Override
     public void onEventReceived(WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var workflowDefScriptObject = onSubmitEvent.getWorkflowDefinitionScript();
-        final var workflowParameters = onSubmitEvent.getWorkflowParameters();
 
         final var onSubmittedEventBuilder = WorkflowDefinitionOnSubmittedEvent.builder();
         onSubmittedEventBuilder.token(onSubmitEvent.getToken());
@@ -61,9 +60,9 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
                 applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
                 return;
             }
-            onSubmittedEventBuilder.workflowRun(submit(fromJsonToObject(workflowAsString, WorkflowDefinitionScript.class), workflowParameters, onSubmitEvent));
+            onSubmittedEventBuilder.workflowRun(submit(fromJsonToObject(workflowAsString, WorkflowDefinitionScript.class), onSubmitEvent));
         } else if (workflowDefScriptObject instanceof WorkflowDefinitionScript workflowDefinitionScript) {
-            onSubmittedEventBuilder.workflowRun(submit(workflowDefinitionScript, workflowParameters, onSubmitEvent));
+            onSubmittedEventBuilder.workflowRun(submit(workflowDefinitionScript, onSubmitEvent));
         }
 
         applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
@@ -75,11 +74,9 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
     }
 
     private WorkflowRun submit(WorkflowDefinitionScript workflowDefinitionScript,
-                               Map<String, Object> workflowParameters,
                                WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
-        final var workflowRun = ofNullable(onSubmitEvent.getWorkflowRun())
-            .orElseGet(WorkflowRun::new);
-        injectParametersIntoRun(workflowParameters, workflowRun);
+        final var workflowRun = new WorkflowRun(onSubmitEvent.getWorkflowTemplateId());
+        injectParametersIntoRun(onSubmitEvent.getWorkflowParameters(), workflowRun);
         threadPoolExecutor.submit(() -> runSynchronously(workflowDefinitionScript, workflowRun, onSubmitEvent.getToken()));
         return workflowRun;
     }

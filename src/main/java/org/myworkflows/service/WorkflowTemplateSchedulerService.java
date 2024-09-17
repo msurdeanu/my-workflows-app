@@ -37,6 +37,7 @@ public final class WorkflowTemplateSchedulerService {
     public void schedule(WorkflowTemplate workflowTemplate) {
         final var scheduledTask = applicationManager.getBeanOfType(TaskScheduler.class)
             .schedule(new WorkflowDefinitionScriptRunnable(applicationManager,
+                    workflowTemplate.getId(),
                     workflowTemplate.getWorkflowDefinitionParameters(),
                     workflowTemplate.getWorkflowDefinitionScripts()),
                 new CronTrigger(workflowTemplate.getCron(),
@@ -57,6 +58,7 @@ public final class WorkflowTemplateSchedulerService {
     public void scheduleNowAsync(WorkflowTemplate workflowTemplate) {
         applicationManager.getBeanOfType(TaskScheduler.class)
             .schedule(new WorkflowDefinitionScriptRunnable(applicationManager,
+                workflowTemplate.getId(),
                 workflowTemplate.getWorkflowDefinitionParameters(),
                 workflowTemplate.getWorkflowDefinitionScripts()), Instant.now());
     }

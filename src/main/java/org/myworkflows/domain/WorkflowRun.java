@@ -66,6 +66,10 @@ public class WorkflowRun implements CacheableEntry, Persistable<UUID> {
     @Getter
     private Instant created = Instant.now();
 
+    public WorkflowRun(Integer workflowTemplateId) {
+        this.workflowTemplateId = workflowTemplateId;
+    }
+
     @Override
     public UUID getId() {
         return id;

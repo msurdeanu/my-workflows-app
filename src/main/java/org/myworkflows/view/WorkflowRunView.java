@@ -41,7 +41,7 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
             .withConfigurableFilter();
         configurableFilterDataProvider.setFilter(workflowRunFilter);
 
-        workflowRunGrid = new WorkflowRunGrid();
+        workflowRunGrid = new WorkflowRunGrid(workflowRunService);
         workflowRunGrid.setDataProvider(configurableFilterDataProvider);
 
         add(createHeader(getTranslation("workflow-runs.page.title"), createFilterById()));

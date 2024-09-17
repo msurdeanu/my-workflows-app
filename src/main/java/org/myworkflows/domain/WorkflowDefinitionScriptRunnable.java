@@ -20,6 +20,8 @@ public final class WorkflowDefinitionScriptRunnable implements Runnable {
 
     private final ApplicationManager applicationManager;
 
+    private final Integer workflowTemplateId;
+
     private final Map<String, Object> parameters;
 
     private final List<WorkflowDefinitionScript> workflowDefinitionScripts;
@@ -28,8 +30,8 @@ public final class WorkflowDefinitionScriptRunnable implements Runnable {
     public void run() {
         applicationManager.getBeanOfType(EventBroadcaster.class)
             .broadcast(WorkflowDefinitionOnSubmitEvent.builder()
-                .isManual(false)
                 .token(UUID.randomUUID())
+                .workflowTemplateId(workflowTemplateId)
                 .workflowParameters(parameters)
                 .workflowDefinitionScript(of(workflowDefinitionScripts))
                 .build());

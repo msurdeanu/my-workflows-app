@@ -40,6 +40,10 @@
           "type": "array",
           "items": { "$ref": "#/$defs/expression" }
         }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^_comment.*": {}
       }
     },
     "expression": {
@@ -57,7 +61,15 @@
         "@type": {
           "enum": ["groovy", "plain", "spel"]
         }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^_comment.*": {}
       }
     }
+  },
+  "additionalProperties": false,
+  "patternProperties": {
+    "^_comment.*": {}
   }
 }

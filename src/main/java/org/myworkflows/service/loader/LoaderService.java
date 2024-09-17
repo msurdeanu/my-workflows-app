@@ -8,4 +8,8 @@ public interface LoaderService {
 
     void load();
 
+    default void unload() {
+        // Nothing to do
+    }
+
 }

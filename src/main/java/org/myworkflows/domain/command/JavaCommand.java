@@ -35,8 +35,8 @@ public final class JavaCommand extends AbstractCommand {
     @ExecutionMethod
     public Object java(@MandatoryParam WorkflowRun workflowRun,
                        @MandatoryParam List<String> scriptLines,
-                       @OptionalParam String className,
-                       @OptionalParam String methodName) {
+                       @OptionalParam String methodName,
+                       @OptionalParam String className) {
         if (scriptLines.isEmpty()) {
             return null;
         }
