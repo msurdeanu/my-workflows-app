@@ -29,18 +29,21 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
 
     private final Grid<Parameter> grid = new Grid<>(Parameter.class, false);
 
-    private final List<Parameter> workflowParameters = new ArrayList<>();
+    private final List<Parameter> parameters = new ArrayList<>();
 
     public WorkflowParameterGrid() {
+        grid.getElement().getStyle().set("max-height", "250px");
+        grid.getElement().getStyle().set("overflow", "auto");
+
         Parameter parameter = new Parameter();
         parameter.setName("sleepTime");
         parameter.setValue("5000");
         parameter.setType(ParameterType.INT);
-        workflowParameters.add(parameter);
+        parameters.add(parameter);
     }
 
     public Map<String, Object> getParametersAsMap() {
-        return workflowParameters.stream()
+        return parameters.stream()
             .collect(Collectors.toMap(Parameter::getName, Parameter::getComputedValue, (it1, it2) -> it2));
     }
 
@@ -88,7 +91,7 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
         final var actionColumn = grid.addComponentColumn(parameter -> createActionComponent(parameter, editor));
         actionColumn.setEditorComponent(actions);
 
-        grid.setItems(workflowParameters);
+        grid.setItems(parameters);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
 
         layout.add(grid);
@@ -97,21 +100,21 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
 
     private Component createActionComponent(Parameter parameter, Editor<Parameter> editor) {
         final var horizontalLayout = new HorizontalLayout();
-        final var editButton = new Button("Edit");
-        editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        final var editButton = new Button(VaadinIcon.EDIT.create());
+        editButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
         editButton.addClickListener(event -> {
             if (editor.isOpen()) {
                 editor.cancel();
             }
             grid.getEditor().editItem(parameter);
         });
-        final var deleteButton = new Button("Delete");
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        final var deleteButton = new Button(VaadinIcon.TRASH.create());
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
         deleteButton.addClickListener(event -> {
             if (editor.isOpen()) {
                 editor.cancel();
             }
-            workflowParameters.remove(parameter);
+            parameters.remove(parameter);
             grid.getDataProvider().refreshAll();
         });
         horizontalLayout.add(editButton, deleteButton);

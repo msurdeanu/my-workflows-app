@@ -47,7 +47,7 @@ CREATE TABLE workflow_templates
 );
 
 INSERT INTO workflow_templates ("enabled", "name", "cron")
-VALUES ('1', 'Simple template', '0 * * * * SAT-SUN');
+VALUES ('1', 'Simple template', '0 * * * * MON-FRI');
 
 CREATE TABLE workflow_templates_workflow_definitions
 (

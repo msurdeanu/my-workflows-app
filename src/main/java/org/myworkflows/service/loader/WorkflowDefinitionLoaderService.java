@@ -19,7 +19,7 @@ public final class WorkflowDefinitionLoaderService implements LoaderService {
 
     private final ApplicationManager applicationManager;
 
-    @Order(5)
+    @Order(10)
     @EventListener(ApplicationReadyEvent.class)
     @Override
     public void load() {
