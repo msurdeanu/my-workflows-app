@@ -29,7 +29,7 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
         of(WorkflowTemplateOnDeleteEvent.builder().workflowTemplate(item).build());
 
     public WorkflowTemplateService(ApplicationManager applicationManager) {
-        super(applicationManager, "workflowTemplateCacheManager", "workflow-templates");
+        super(applicationManager, "workflowTemplateCache");
     }
 
     public void loadAndSchedule(@NonNull WorkflowTemplate workflowTemplate) {
@@ -39,7 +39,7 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
                 .filter(WorkflowTemplate::isEnabledForScheduling)
                 .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                     .unschedule(workflowTemplate));
-            cache.evictIfPresent(workflowTemplate.getId());
+            cache.invalidate(workflowTemplate.getId());
             cache.put(workflowTemplate.getId(), workflowTemplate);
             if (workflowTemplate.isEnabled()) {
                 applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
@@ -52,7 +52,7 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
 
     public void delete(Integer workflowTemplateId) {
         doAction(workflowTemplateId, workflowTemplate -> {
-            cache.evictIfPresent(workflowTemplate.getId());
+            cache.invalidate(workflowTemplate.getId());
             if (workflowTemplate.isEnabled()) {
                 applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                     .unschedule(workflowTemplate);

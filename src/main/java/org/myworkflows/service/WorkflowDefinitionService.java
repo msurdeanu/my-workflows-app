@@ -26,7 +26,7 @@ public final class WorkflowDefinitionService extends CacheableDataService<Workfl
         of(WorkflowDefinitionOnUpdateEvent.builder().workflowDefinition(item).build());
 
     public WorkflowDefinitionService(ApplicationManager applicationManager) {
-        super(applicationManager, "workflowDefinitionCacheManager", "workflow-definitions");
+        super(applicationManager, "workflowDefinitionCache");
     }
 
     public void updateDefinition(Integer workflowDefinitionId, String newScript) {

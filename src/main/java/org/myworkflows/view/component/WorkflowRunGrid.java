@@ -17,6 +17,7 @@ import org.myworkflows.view.WorkflowTemplateView;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import static java.lang.String.valueOf;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
@@ -49,12 +50,13 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderTemplateId))
             .setHeader(getTranslation("workflow-runs.main-grid.template.column"))
             .setAutoWidth(true);
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderDuration))
-            .setHeader(getTranslation("workflow-runs.main-grid.duration.column"))
+        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderStatus))
+            .setHeader(getTranslation("workflow-runs.main-grid.status.column"))
             .setAutoWidth(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderDetails))
             .setHeader(getTranslation("workflow-runs.main-grid.details.column"))
             .setAutoWidth(true);
+        paginatedGrid.setEmptyStateText(getTranslation("workflow-runs.main-grid.no-result"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
         paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
@@ -79,8 +81,22 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         });
     }
 
-    private Component renderDuration(WorkflowRun workflowRun) {
-        return new Span(workflowRun.getHumanReadableDuration());
+    private Component renderStatus(WorkflowRun workflowRun) {
+        return ofNullable(workflowRun.getFailureMessage()).map(item -> {
+            final var errorSpan = new Span(getTranslation("workflow-runs.main-grid.status.error", workflowRun.getHumanReadableDuration()));
+            errorSpan.getElement().getThemeList().add("badge error small");
+            return errorSpan;
+        }).orElseGet(() -> {
+            if (workflowRun.getDuration() >= 0) {
+                final var successSpan = new Span(getTranslation("workflow-runs.main-grid.status.success", workflowRun.getHumanReadableDuration()));
+                successSpan.getElement().getThemeList().add("badge success small");
+                return successSpan;
+            } else {
+                final var pendingSpan = new Span(getTranslation("workflow-runs.main-grid.status.pending", workflowRun.getHumanReadableDuration()));
+                pendingSpan.getElement().getThemeList().add("badge contrast small");
+                return pendingSpan;
+            }
+        });
     }
 
     private Component renderDetails(WorkflowRun workflowRun) {

@@ -4,11 +4,10 @@ import com.google.common.reflect.TypeToken;
 import com.vaadin.flow.data.provider.Query;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
+import org.myworkflows.cache.InternalCache;
 import org.myworkflows.domain.CacheableEntry;
 import org.myworkflows.domain.event.EventFunction;
 import org.myworkflows.domain.filter.Filter;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.caffeine.CaffeineCache;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -27,15 +26,13 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
 
     protected final ApplicationManager applicationManager;
 
-    protected final CaffeineCache cache;
+    protected final InternalCache<Object, Object> cache;
 
     private final Class<T> typeClass;
 
-    public CacheableDataService(ApplicationManager applicationManager, String cacheManagerName, String cacheName) {
+    public CacheableDataService(ApplicationManager applicationManager, String cacheName) {
         this.applicationManager = applicationManager;
-        cache = (CaffeineCache) applicationManager
-            .getBeanOfTypeAndName(CacheManager.class, cacheManagerName)
-            .getCache(cacheName);
+        cache = applicationManager.getBeanOfTypeAndName(InternalCache.class, cacheName);
         TypeToken<T> typeToken = new TypeToken<>(getClass()) {
         };
         this.typeClass = (Class<T>) typeToken.getRawType();
@@ -74,7 +71,7 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
     }
 
     public Stream<T> getAllItems() {
-        return cache.getNativeCache().asMap().values().stream()
+        return cache.getAllValues().stream()
             .filter(typeClass::isInstance)
             .map(typeClass::cast);
     }

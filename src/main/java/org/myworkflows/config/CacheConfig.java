@@ -1,15 +1,12 @@
 package org.myworkflows.config;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.cache.CacheManager;
+import org.myworkflows.cache.InternalCache;
+import org.myworkflows.cache.InternalCache.InternalCacheConfig;
+import org.myworkflows.domain.Placeholder;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-
-import java.time.Duration;
-import java.util.List;
 
 import static java.time.Duration.ofSeconds;
 
@@ -22,62 +19,34 @@ import static java.time.Duration.ofSeconds;
 public class CacheConfig {
 
     @Primary
-    @Bean("workflowRunCacheManager")
-    public CacheManager workflowRunCacheManager() {
-        final var cacheManager = new CustomCacheManager(1_000, ofSeconds(0), ofSeconds(86_400));
-        cacheManager.setCacheNames(List.of("workflow-runs"));
-        return cacheManager;
+    @Bean("workflowRunCache")
+    public InternalCache<Object, Object> workflowRunCache() {
+        return new InternalCache<>("workflowRunCache",
+            InternalCacheConfig.builder().ordered(true).maxSize(1_000).expireAfterWrite(ofSeconds(86_400)).build());
     }
 
-    @Bean("workflowTemplateCacheManager")
-    public CacheManager workflowTemplateCacheManager() {
-        final var cacheManager = new CustomCacheManager(10_000, ofSeconds(0), ofSeconds(0));
-        cacheManager.setCacheNames(List.of("workflow-templates"));
-        return cacheManager;
+    @Bean("workflowTemplateCache")
+    public InternalCache<Object, Object> workflowTemplateCache() {
+        return new InternalCache<>("workflowTemplateCache",
+            InternalCacheConfig.builder().maxSize(1_000).expireAfterWrite(ofSeconds(0)).build());
     }
 
-    @Bean("workflowDefinitionCacheManager")
-    public CacheManager workflowDefinitionCacheManager() {
-        final var cacheManager = new CustomCacheManager(10_000, ofSeconds(0), ofSeconds(0));
-        cacheManager.setCacheNames(List.of("workflow-definitions"));
-        return cacheManager;
+    @Bean("workflowDefinitionCache")
+    public InternalCache<Object, Object> workflowDefinitionCache() {
+        return new InternalCache<>("workflowDefinitionCache",
+            InternalCacheConfig.builder().maxSize(10_000).expireAfterWrite(ofSeconds(0)).build());
     }
 
-    @Bean("menuItemCacheManager")
-    public CacheManager menuItemCacheManager() {
-        final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(86_400));
-        cacheManager.setCacheNames(List.of("menu-items"));
-        return cacheManager;
+    @Bean("menuItemCache")
+    public InternalCache<Object, Object> menuItemCache() {
+        return new InternalCache<>("menuItemCache",
+            InternalCacheConfig.builder().maxSize(0).expireAfterWrite(ofSeconds(86_400)).build());
     }
 
-    @Bean("placeholderCacheManager")
-    public CacheManager placeholderCacheManager() {
-        final var cacheManager = new CustomCacheManager(0, ofSeconds(0), ofSeconds(86_400));
-        cacheManager.setCacheNames(List.of("placeholders"));
-        return cacheManager;
-    }
-
-    private static class CustomCacheManager extends CaffeineCacheManager {
-
-        public CustomCacheManager(long maxSize, Duration expireAfterAccess, Duration expireAfterWrite) {
-            final var caffeine = Caffeine.newBuilder()
-                .recordStats();
-
-            if (maxSize > 0) {
-                caffeine.maximumSize(maxSize);
-            }
-
-            if (expireAfterAccess.getSeconds() > 0) {
-                caffeine.expireAfterAccess(expireAfterAccess);
-            }
-
-            if (expireAfterWrite.getSeconds() > 0) {
-                caffeine.expireAfterWrite(expireAfterWrite);
-            }
-
-            setCaffeine(caffeine);
-        }
-
+    @Bean("placeholderCache")
+    public InternalCache<String, Placeholder> placeholderCache() {
+        return new InternalCache<>("placeholderCache",
+            InternalCacheConfig.builder().maxSize(0).expireAfterWrite(ofSeconds(86_400)).build());
     }
 
 }

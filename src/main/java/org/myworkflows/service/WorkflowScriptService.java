@@ -12,7 +12,6 @@ import org.myworkflows.domain.event.EventListener;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
-import org.myworkflows.repository.PlaceholderRepository;
 import org.myworkflows.util.PlaceholderUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -134,7 +133,7 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
     private Object resolvePlaceholders(Object value) {
         if (value instanceof String valueAsString) {
             return PlaceholderUtil.resolvePlaceholders(valueAsString,
-                applicationManager.getBeanOfType(PlaceholderRepository.class).getAllAsMap());
+                applicationManager.getBeanOfType(PlaceholderService.class).getAllAsMap());
         } else if (value instanceof List<?> valueAsList) {
             return valueAsList.stream()
                 .map(this::resolvePlaceholders)

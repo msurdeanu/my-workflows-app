@@ -22,9 +22,9 @@ public class WorkflowDefinitionOnProgressEventService implements EventListener<W
     public void onEventReceived(WorkflowDefinitionOnProgressEvent event) {
         final var workflowRun = event.getWorkflowRun();
 
+        applicationManager.getBeanOfType(WorkflowRunService.class).addToCache(workflowRun);
         if (event.isPersisted()) {
             applicationManager.getBeanOfType(WorkflowRunRepository.class).save(workflowRun);
-            applicationManager.getBeanOfType(WorkflowRunService.class).addToCache(workflowRun);
         }
     }
 
