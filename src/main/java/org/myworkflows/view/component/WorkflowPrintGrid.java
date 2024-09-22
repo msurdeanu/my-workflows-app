@@ -68,6 +68,7 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
             .setHeader(getTranslation("workflow-print.grid.name.column"));
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderValueAndType))
             .setHeader(getTranslation("workflow-print.grid.value.column"));
+        paginatedGrid.setEmptyStateText(getTranslation("workflow-print.grid.empty-state.text"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(WorkflowTemplateDetailsFormLayout::new,

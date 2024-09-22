@@ -1,11 +1,10 @@
 package org.myworkflows.service;
 
 import org.myworkflows.ApplicationManager;
+import org.myworkflows.cache.InternalCache;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.filter.WorkflowRunFilter;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -19,13 +18,11 @@ import static java.util.Optional.ofNullable;
 @Service
 public class WorkflowRunService extends CacheableDataService<WorkflowRun, WorkflowRunFilter> {
 
-    private final CaffeineCache templateCache;
+    private final InternalCache<Object, Object> templateCache;
 
     public WorkflowRunService(ApplicationManager applicationManager) {
-        super(applicationManager, "workflowRunCacheManager", "workflow-runs");
-        templateCache = (CaffeineCache) applicationManager
-            .getBeanOfTypeAndName(CacheManager.class, "workflowTemplateCacheManager")
-            .getCache("workflow-templates");
+        super(applicationManager, "workflowRunCache");
+        templateCache = applicationManager.getBeanOfTypeAndName(InternalCache.class, "workflowTemplateCache");
     }
 
     public Optional<WorkflowTemplate> findWorkflowTemplate(WorkflowRun workflowRun) {

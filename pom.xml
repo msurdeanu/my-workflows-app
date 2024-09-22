@@ -22,7 +22,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <vaadin.version>24.4.12</vaadin.version>
+        <vaadin.version>24.5.0.beta1</vaadin.version>
         <flyway-core.version>9.22.3</flyway-core.version>
         <grid-pagination.version>4.0.0</grid-pagination.version>
         <ace.version>3.4.2</ace.version>
@@ -60,6 +60,11 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <!-- Comment this structure when Vaadin 24.5 is released! -->
+        <repository>
+            <id>Vaadin Pre-releases</id>
+            <url>https://maven.vaadin.com/vaadin-prereleases</url>
+        </repository>
         <repository>
             <id>Vaadin Directory</id>
             <url>https://maven.vaadin.com/vaadin-addons</url>
@@ -68,6 +73,14 @@
             </snapshots>
         </repository>
     </repositories>
+
+    <!-- Comment this structure when Vaadin 24.5 is released! -->
+    <pluginRepositories>
+        <pluginRepository>
+            <id>Vaadin Pre-releases</id>
+            <url>https://maven.vaadin.com/vaadin-prereleases/</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <dependencyManagement>
         <dependencies>
@@ -184,6 +197,12 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>4.2.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
