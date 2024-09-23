@@ -6,6 +6,8 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.codehaus.janino.ExpressionEvaluator;
+import org.myworkflows.exception.WorkflowRuntimeException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
@@ -18,6 +20,7 @@ import static java.util.Arrays.stream;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@Getter
 @RequiredArgsConstructor
 public enum RuntimeEvaluator {
 
@@ -28,6 +31,30 @@ public enum RuntimeEvaluator {
             variables.forEach(binding::setProperty);
             final var groovyShell = new GroovyShell(binding);
             return groovyShell.evaluate(expression);
+        }
+    },
+
+    JAVA("java") {
+        @Override
+        public Object evaluate(String expression, Map<String, Object> variables) {
+            try {
+                final var expressionEvaluator = new ExpressionEvaluator();
+                final var parameterNames = new String[variables.size()];
+                final var parameterTypes = new Class<?>[variables.size()];
+                final var parameterObjects = new Object[variables.size()];
+                int index = 0;
+                for (Map.Entry<String, Object> variable : variables.entrySet()) {
+                    parameterNames[index] = variable.getKey();
+                    parameterTypes[index] = variable.getValue().getClass();
+                    parameterObjects[index] = variable.getValue();
+                    index++;
+                }
+                expressionEvaluator.setParameters(parameterNames, parameterTypes);
+                expressionEvaluator.cook(expression);
+                return expressionEvaluator.evaluate(parameterObjects);
+            } catch (Exception e) {
+                throw new WorkflowRuntimeException(e);
+            }
         }
     },
 
@@ -54,7 +81,6 @@ public enum RuntimeEvaluator {
         stream(RuntimeEvaluator.values()).forEach(item -> ALL_VALUES.put(item.getType(), item));
     }
 
-    @Getter
     @JsonValue
     private final String type;
 

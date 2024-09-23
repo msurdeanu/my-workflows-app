@@ -1,6 +1,5 @@
 package org.myworkflows.service;
 
-import com.google.common.reflect.TypeToken;
 import com.vaadin.flow.data.provider.Query;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
@@ -28,14 +27,9 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
 
     protected final InternalCache<Object, Object> cache;
 
-    private final Class<T> typeClass;
-
     public CacheableDataService(ApplicationManager applicationManager, String cacheName) {
         this.applicationManager = applicationManager;
         cache = applicationManager.getBeanOfTypeAndName(InternalCache.class, cacheName);
-        TypeToken<T> typeToken = new TypeToken<>(getClass()) {
-        };
-        this.typeClass = (Class<T>) typeToken.getRawType();
     }
 
     public Stream<T> findBy(Query<T, F> query) {
@@ -70,22 +64,23 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
         return getAll(filter, 0, Long.MAX_VALUE).count();
     }
 
+    @SuppressWarnings("unchecked")
     public Stream<T> getAllItems() {
         return cache.getAllValues().stream()
-            .filter(typeClass::isInstance)
-            .map(typeClass::cast);
+            .map(item -> (T) item);
     }
 
     public void addToCache(CacheableEntry entry) {
         cache.put(entry.getCacheableKey(), entry);
     }
 
+    @SuppressWarnings("uncheked")
     protected void doAction(Object key, Consumer<T> action, EventFunction<T> eventFunction) {
         lock.lock();
         try {
-            ofNullable(cache.get(key, typeClass)).ifPresent(item -> {
-                action.accept(item);
-                eventFunction.apply(item)
+            ofNullable(cache.get(key)).ifPresent(item -> {
+                action.accept((T) item);
+                eventFunction.apply((T) item)
                     .ifPresent(event -> applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(event));
             });
         } finally {
