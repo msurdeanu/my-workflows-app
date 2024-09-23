@@ -17,8 +17,8 @@
     </parent>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -27,14 +27,14 @@
         <grid-pagination.version>4.0.0</grid-pagination.version>
         <ace.version>3.4.2</ace.version>
         <granite-alert.version>2.0.0</granite-alert.version>
-        <lombok.version>1.18.24</lombok.version>
-        <jool.version>0.9.14</jool.version>
+        <lombok.version>1.18.34</lombok.version>
         <prettytime.version>5.0.9.Final</prettytime.version>
         <groovy.version>4.0.23</groovy.version>
         <janino.version>3.1.12</janino.version>
         <maverick-synergy-client.version>3.1.1</maverick-synergy-client.version>
         <json-schema-validator.version>1.5.1</json-schema-validator.version>
         <junit.version>5.10.2</junit.version>
+        <awaitibility.version>4.2.2</awaitibility.version>
     </properties>
 
     <scm>
@@ -97,17 +97,13 @@
     <dependencies>
         <dependency>
             <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-core</artifactId>
+            <artifactId>vaadin-spring-boot-starter</artifactId>
             <exclusions>
                 <exclusion>
-                    <artifactId>swagger-core</artifactId>
-                    <groupId>io.swagger</groupId>
+                    <artifactId>hilla</artifactId>
+                    <groupId>com.vaadin</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-spring-boot-starter</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -129,10 +125,6 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
             <version>${flyway-core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
@@ -157,11 +149,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jooq</groupId>
-            <artifactId>jool</artifactId>
-            <version>${jool.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ocpsoft.prettytime</groupId>
@@ -202,7 +189,7 @@
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>4.2.2</version>
+            <version>${awaitibility.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
