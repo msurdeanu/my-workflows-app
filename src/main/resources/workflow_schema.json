@@ -22,7 +22,7 @@
           "description": "The name of the command."
         },
         "@type": {
-          "enum": ["groovy", "httpRequest", "java", "nothing", "print", "sleep", "sshExec", "sshShell", "waitUntilSubPasses"]
+          "enum": ["database", "groovy", "httpRequest", "java", "nothing", "print", "sleep", "sshExec", "sshShell", "waitUntilSubPasses"]
         },
         "ifs": {
           "type": "array",
@@ -59,7 +59,7 @@
           "description": "The value of the expression."
         },
         "@type": {
-          "enum": ["groovy", "plain", "spel"]
+          "enum": ["groovy", "java", "plain", "spel"]
         }
       },
       "additionalProperties": false,

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ApplicationReadyManager {
+public final class ApplicationReadyManager {
 
     private final ApplicationManager applicationManager;
 

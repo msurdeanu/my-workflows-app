@@ -21,7 +21,7 @@ import static java.util.Optional.ofNullable;
  */
 @Slf4j
 @Component
-public class EventBroadcaster {
+public final class EventBroadcaster {
 
     private final Map<Class<? extends Event>, List<Consumer<Event>>> consumersMap = new HashMap<>();
 

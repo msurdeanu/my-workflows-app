@@ -5,10 +5,11 @@ import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.myworkflows.converter.ParameterTypeToStringConverter;
+
+import java.util.Optional;
 
 /**
  * @author Mihai Surdeanu
@@ -18,11 +19,9 @@ import org.myworkflows.converter.ParameterTypeToStringConverter;
 @Getter
 @Setter
 @Table(name = "parameters")
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Parameter {
 
     @Id
-    @EqualsAndHashCode.Include
     private String name;
 
     @Convert(converter = ParameterTypeToStringConverter.class)
@@ -30,6 +29,10 @@ public class Parameter {
 
     @Column(name = "value")
     private String value;
+
+    public static Optional<String> validateTypeAndValue(ParameterType type, String value) {
+        return type.validate(value);
+    }
 
     public Object getComputedValue() {
         return type.getComputedValue(value);

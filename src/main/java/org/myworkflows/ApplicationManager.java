@@ -13,7 +13,7 @@ import java.util.stream.Stream;
  */
 @Component
 @RequiredArgsConstructor
-public class ApplicationManager {
+public final class ApplicationManager {
 
     private final ApplicationContext applicationContext;
 
