@@ -64,12 +64,12 @@ The concept of `finally commands` lets you declare some special commands for you
 matter if the workflow failed or not.
 The concept is similar with `try-finally` block functionality from Java.
 
-```java
-try{
-        // Run all commands in a sequential order
-        }finally{
-        // Run all finallyCommands in a sequential order
-        }
+```
+try { 
+  // Run all commands in a sequential order
+} finally {
+  // Run all finallyCommands in a sequential order
+}
 ```
 
 #### Placeholders
@@ -78,7 +78,7 @@ You are allowed to use global `placeholders` to avoid data duplication in your w
 Please note that all placeholders are resolved immediately before workflow running process.
 All placeholders are persisted in a database - a table called `placeholders`.
 
-Inside workflow definition, you can recognize a placeholder by having this format: `$#(NAME)`.
+Inside workflow definition, you can recognize a placeholder by having this format: `$$(NAME)`.
 You are allowed to use placeholders inside any `input`, `assert` and `output` (`name` and `value` fields).
 
 #### JAR loading at runtime

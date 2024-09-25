@@ -9,9 +9,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.myworkflows.domain.WorkflowRunCache;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.WorkflowRun;
+import org.myworkflows.domain.WorkflowRunCache;
 import org.myworkflows.domain.command.api.ExecutionMethod;
 import org.myworkflows.domain.command.api.OptionalParam;
 import org.myworkflows.exception.WorkflowRuntimeException;
@@ -39,6 +39,7 @@ import static java.util.stream.IntStream.range;
 @Getter
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
 @JsonSubTypes({
+    @JsonSubTypes.Type(value = DatabaseCommand.class, name = "database"),
     @JsonSubTypes.Type(value = GroovyCommand.class, name = "groovy"),
     @JsonSubTypes.Type(value = HttpRequestCommand.class, name = "httpRequest"),
     @JsonSubTypes.Type(value = JavaCommand.class, name = "java"),

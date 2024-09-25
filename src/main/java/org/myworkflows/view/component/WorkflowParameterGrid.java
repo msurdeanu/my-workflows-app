@@ -13,6 +13,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.binder.ValidationResult;
+import com.vaadin.flow.data.binder.Validator;
 import org.myworkflows.domain.Parameter;
 import org.myworkflows.domain.ParameterType;
 
@@ -34,12 +36,6 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
     public WorkflowParameterGrid() {
         grid.getElement().getStyle().set("max-height", "250px");
         grid.getElement().getStyle().set("overflow", "auto");
-
-        Parameter parameter = new Parameter();
-        parameter.setName("sleepTime");
-        parameter.setValue("5000");
-        parameter.setType(ParameterType.INT);
-        parameters.add(parameter);
     }
 
     public Map<String, Object> getParametersAsMap() {
@@ -58,7 +54,7 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
         editor.setBinder(binder);
         editor.setBuffered(true);
 
-        TextField nameField = new TextField();
+        final var nameField = new TextField();
         nameField.setWidthFull();
         binder.forField(nameField)
             .asRequired("Parameter name is required")
@@ -74,10 +70,13 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
         final var typeColumn = grid.addColumn(Parameter::getType).setHeader("Type");
         typeColumn.setEditorComponent(typeField);
 
-        TextField valueField = new TextField();
+        final var valueField = new TextField();
         valueField.setWidthFull();
         binder.forField(valueField)
             .asRequired("Parameter value must not be empty")
+            .withValidator((Validator<String>) (value, valueContext) -> Parameter.validateTypeAndValue(typeField.getValue(), value)
+                        .map(ValidationResult::error)
+                        .orElseGet(ValidationResult::ok))
             .bind(Parameter::getValue, Parameter::setValue);
         final var valueColumn = grid.addColumn(Parameter::getValue).setHeader("Value");
         valueColumn.setEditorComponent(valueField);
@@ -86,9 +85,21 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
         saveButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
         final var cancelButton = new Button(VaadinIcon.CLOSE.create(), event -> editor.cancel());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
-        HorizontalLayout actions = new HorizontalLayout(saveButton, cancelButton);
+        final var actions = new HorizontalLayout(saveButton, cancelButton);
         actions.setPadding(false);
-        final var actionColumn = grid.addComponentColumn(parameter -> createActionComponent(parameter, editor));
+
+        final var addButton = new Button(VaadinIcon.PLUS.create());
+        addButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+        addButton.addClickListener(event -> {
+            final var parameter = new Parameter();
+            parameter.setName("name");
+            parameter.setValue("value");
+            parameter.setType(ParameterType.STR);
+            parameters.add(parameter);
+            grid.getDataProvider().refreshAll();
+        });
+        final var actionColumn = grid.addComponentColumn(parameter -> createActionComponent(parameter, editor))
+                .setHeader(addButton);
         actionColumn.setEditorComponent(actions);
 
         grid.setItems(parameters);
@@ -111,9 +122,6 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
         final var deleteButton = new Button(VaadinIcon.TRASH.create());
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
         deleteButton.addClickListener(event -> {
-            if (editor.isOpen()) {
-                editor.cancel();
-            }
             parameters.remove(parameter);
             grid.getDataProvider().refreshAll();
         });

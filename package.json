@@ -31,7 +31,7 @@
     "@preact/signals-react-transform": "0.4.0",
     "@rollup/plugin-replace": "5.0.7",
     "@rollup/pluginutils": "5.1.0",
-    "@types/react": "18.3.5",
+    "@types/react": "18.3.6",
     "@types/react-dom": "18.3.0",
     "@vitejs/plugin-react": "4.3.1",
     "async": "3.2.6",
@@ -41,7 +41,7 @@
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
     "typescript": "5.6.2",
-    "vite": "5.4.4",
+    "vite": "5.4.6",
     "vite-plugin-checker": "0.8.0",
     "workbox-build": "7.1.1",
     "workbox-core": "7.1.0",
@@ -104,7 +104,7 @@
       "@preact/signals-react-transform": "0.4.0",
       "@rollup/plugin-replace": "5.0.7",
       "@rollup/pluginutils": "5.1.0",
-      "@types/react": "18.3.5",
+      "@types/react": "18.3.6",
       "@types/react-dom": "18.3.0",
       "@vitejs/plugin-react": "4.3.1",
       "async": "3.2.6",
@@ -114,12 +114,12 @@
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "5.6.2",
-      "vite": "5.4.4",
+      "vite": "5.4.6",
       "vite-plugin-checker": "0.8.0",
       "workbox-build": "7.1.1",
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "2f674bd1e8a8237e72f03d7c9c7ba66a93a555aa0e3d21bf08de03b65661fd86"
+    "hash": "865d764e2254145c65867e21206b95f88f8408c30759ba686ce55c28bc1a59a9"
   }
 }
