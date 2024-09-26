@@ -40,7 +40,7 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
                 .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                     .unschedule(workflowTemplate));
             cache.invalidate(workflowTemplate.getId());
-            cache.put(workflowTemplate.getId(), workflowTemplate);
+            cache.putFirst(workflowTemplate.getId(), workflowTemplate);
             if (workflowTemplate.isEnabled()) {
                 applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                     .schedule(workflowTemplate);

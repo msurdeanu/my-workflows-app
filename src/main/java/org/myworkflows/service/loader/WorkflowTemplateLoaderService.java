@@ -19,7 +19,7 @@ public final class WorkflowTemplateLoaderService implements LoaderService {
 
     private final ApplicationManager applicationManager;
 
-    @Order(30)
+    @Order(50)
     @EventListener(ApplicationReadyEvent.class)
     @Override
     public void load() {
