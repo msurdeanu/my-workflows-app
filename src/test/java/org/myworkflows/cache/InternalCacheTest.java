@@ -22,10 +22,10 @@ public class InternalCacheTest {
         assertEquals("test", cache.getName());
         assertEquals(0, cache.estimatedSize());
         assertNull(cache.get("key"));
-        cache.put("key", "value");
+        cache.putFirst("key", "value");
         assertEquals("value", cache.get("key"));
         assertEquals(1, cache.estimatedSize());
-        cache.put("key1", "value1");
+        cache.putFirst("key1", "value1");
         await().atMost(5, SECONDS).until(() -> 1 == cache.estimatedSize());
         assertTrue(cache.find("key").isEmpty());
         assertInstanceOf(String.class, cache.get("key1", String.class));
@@ -42,16 +42,16 @@ public class InternalCacheTest {
         final var cache = new InternalCache<String, String>("test", InternalCacheConfig.builder().maxSize(3).ordered(true).build());
 
         // when & then
-        cache.put("key1", "value1");
-        cache.put("key2", "value2");
-        cache.put("key3", "value3");
+        cache.putFirst("key1", "value1");
+        cache.putFirst("key2", "value2");
+        cache.putFirst("key3", "value3");
         assertEquals(3, cache.estimatedSize());
         final var values = cache.getAllValues().toArray();
         assertEquals(3, values.length);
         assertEquals("value3", values[0]);
         assertEquals("value2", values[1]);
         assertEquals("value1", values[2]);
-        cache.put("key2", "other");
+        cache.putFirst("key2", "other");
         await().atMost(5, SECONDS).until(() -> 3 == cache.estimatedSize());
         final var newValues = cache.getAllValues().toArray();
         assertEquals("other", newValues[0]);
