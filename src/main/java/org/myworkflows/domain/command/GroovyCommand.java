@@ -33,9 +33,9 @@ public final class GroovyCommand extends AbstractCommand {
     }
 
     @ExecutionMethod
-    public Object groovyShell(@MandatoryParam WorkflowRun workflowRun,
-                              @MandatoryParam List<String> scriptLines,
-                              @OptionalParam String methodName) {
+    public Object groovy(@MandatoryParam WorkflowRun workflowRun,
+                         @MandatoryParam List<String> scriptLines,
+                         @OptionalParam String methodName) {
         if (scriptLines.isEmpty()) {
             return null;
         }

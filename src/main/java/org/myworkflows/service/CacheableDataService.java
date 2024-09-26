@@ -71,7 +71,11 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
     }
 
     public void addToCache(CacheableEntry entry) {
-        cache.put(entry.getCacheableKey(), entry);
+        cache.putFirst(entry.getCacheableKey(), entry);
+    }
+
+    public void addToCacheAtTheEnd(CacheableEntry entry) {
+        cache.putLast(entry.getCacheableKey(), entry);
     }
 
     @SuppressWarnings("uncheked")

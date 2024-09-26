@@ -286,14 +286,26 @@ Example of a dummy command:
 }
 ```
 
-## Running the application
+## From development perspective
+
+### Running the application
 
 There are two ways to run the application: using `mvn spring-boot:run` or by running the `Application` class directly
 from your IDE.
 
 You can use any IDE of your preference, but I suggest IntelliJ IDEA.
 
-## Structure
+### Application bootstrap phase
+
+During application bootstrap phase, multiple local caches are filled with information found in database.
+The data is loaded in the following order:
+1. Once the **application is ready**, the app will load any kind of **external JAR** provided by the user.
+2. After all **external JARs** are loaded, the app will proceed with the **placeholders**. All of them are loaded from database.
+3. Once all **placeholders** are loaded, the app will continue with **workflow definitions**. Again, all of them are loaded from database.
+4. When all **workflow definitions** are available, the app will load all **workflow templates** found in database. They are also scheduled.
+5. Last but not least, the app is loading all **workflow runs**. In fact, is not all of them. The app will load only the accepted capacity for workflow runs defined in application config. 
+
+### Structure
 
 Vaadin web applications are full-stack and include both client-side and server-side code in the same project.
 

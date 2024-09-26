@@ -103,20 +103,36 @@ public final class InternalCache<K, V> {
         cache.invalidate(key);
     }
 
-    public void put(K key, V value) {
+    public void putFirst(K key, V value) {
         if (ordered) {
             lock.lock();
             try {
-                // in case of a replacement
                 find(key).ifPresentOrElse(item -> {
-                    // remove previous key
                     removeFromTheEnd(key);
                     if (item != value) {
                         cache.put(key, value);
                     }
                 }, () -> cache.put(key, value));
-                // once previous key is removed, insert at the beginning again
                 keysOrdered.addFirst(key);
+            } finally {
+                lock.unlock();
+            }
+        } else {
+            cache.put(key, value);
+        }
+    }
+
+    public void putLast(K key, V value) {
+        if (ordered) {
+            lock.lock();
+            try {
+                find(key).ifPresentOrElse(item -> {
+                    removeFromTheEnd(key);
+                    if (item != value) {
+                        cache.put(key, value);
+                    }
+                }, () -> cache.put(key, value));
+                keysOrdered.addLast(key);
             } finally {
                 lock.unlock();
             }

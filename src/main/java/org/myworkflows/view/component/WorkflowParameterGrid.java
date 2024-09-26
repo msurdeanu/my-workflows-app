@@ -48,18 +48,17 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
         final var layout = super.initContent();
         layout.setSizeFull();
 
-        Editor<Parameter> editor = grid.getEditor();
-
-        Binder<Parameter> binder = new Binder<>(Parameter.class);
+        final var editor = grid.getEditor();
+        final var binder = new Binder<>(Parameter.class);
         editor.setBinder(binder);
         editor.setBuffered(true);
 
         final var nameField = new TextField();
         nameField.setWidthFull();
         binder.forField(nameField)
-            .asRequired("Parameter name is required")
+            .asRequired(getTranslation("workflow-parameter.grid.name.required"))
             .bind(Parameter::getName, Parameter::setName);
-        final var nameColumn = grid.addColumn(Parameter::getName).setHeader("Name");
+        final var nameColumn = grid.addColumn(Parameter::getName).setHeader(getTranslation("workflow-parameter.grid.name.column"));
         nameColumn.setEditorComponent(nameField);
 
         ComboBox<ParameterType> typeField = new ComboBox<>();
@@ -67,18 +66,17 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
         typeField.setWidthFull();
         binder.forField(typeField)
             .bind(Parameter::getType, Parameter::setType);
-        final var typeColumn = grid.addColumn(Parameter::getType).setHeader("Type");
+        final var typeColumn = grid.addColumn(Parameter::getType).setHeader(getTranslation("workflow-parameter.grid.type.column"));
         typeColumn.setEditorComponent(typeField);
 
         final var valueField = new TextField();
         valueField.setWidthFull();
         binder.forField(valueField)
-            .asRequired("Parameter value must not be empty")
             .withValidator((Validator<String>) (value, valueContext) -> Parameter.validateTypeAndValue(typeField.getValue(), value)
                         .map(ValidationResult::error)
                         .orElseGet(ValidationResult::ok))
             .bind(Parameter::getValue, Parameter::setValue);
-        final var valueColumn = grid.addColumn(Parameter::getValue).setHeader("Value");
+        final var valueColumn = grid.addColumn(Parameter::getValue).setHeader(getTranslation("workflow-parameter.grid.value.column"));
         valueColumn.setEditorComponent(valueField);
 
         final var saveButton = new Button(VaadinIcon.CHECK.create(), event -> editor.save());
