@@ -1,6 +1,7 @@
 package org.myworkflows.repository;
 
 import org.myworkflows.domain.MenuItem;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
  */
 public interface MenuItemRepository extends JpaRepository<MenuItem, String> {
 
-    // TODO: Introduce caching to speed-up retrieval
+    @Cacheable(cacheNames = "menuItem")
     List<MenuItem> findByOrderByPosition();
 
 }

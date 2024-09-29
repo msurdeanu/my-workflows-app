@@ -12,7 +12,7 @@ import java.util.UUID;
  * @since 1.0.0
  */
 @Converter
-public class UuidToByteArrayConverter implements AttributeConverter<UUID, Byte[]> {
+public final class UuidToByteArrayConverter implements AttributeConverter<UUID, Byte[]> {
 
     @Override
     public Byte[] convertToDatabaseColumn(UUID attribute) {

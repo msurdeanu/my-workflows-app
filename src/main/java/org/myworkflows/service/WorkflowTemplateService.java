@@ -2,6 +2,7 @@ package org.myworkflows.service;
 
 import lombok.NonNull;
 import org.myworkflows.ApplicationManager;
+import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.event.EventFunction;
@@ -29,7 +30,7 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
         of(WorkflowTemplateOnDeleteEvent.builder().workflowTemplate(item).build());
 
     public WorkflowTemplateService(ApplicationManager applicationManager) {
-        super(applicationManager, "workflowTemplateCache");
+        super(applicationManager, CacheNameEnum.WORKFLOW_TEMPLATE);
     }
 
     public void loadAndSchedule(@NonNull WorkflowTemplate workflowTemplate) {
@@ -39,8 +40,8 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
                 .filter(WorkflowTemplate::isEnabledForScheduling)
                 .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                     .unschedule(workflowTemplate));
-            cache.invalidate(workflowTemplate.getId());
-            cache.putFirst(workflowTemplate.getId(), workflowTemplate);
+            cache.evict(workflowTemplate.getId());
+            cache.put(workflowTemplate.getId(), workflowTemplate);
             if (workflowTemplate.isEnabled()) {
                 applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                     .schedule(workflowTemplate);
@@ -52,7 +53,7 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
 
     public void delete(Integer workflowTemplateId) {
         doAction(workflowTemplateId, workflowTemplate -> {
-            cache.invalidate(workflowTemplate.getId());
+            cache.evict(workflowTemplate.getId());
             if (workflowTemplate.isEnabled()) {
                 applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                     .unschedule(workflowTemplate);

@@ -19,7 +19,7 @@ import static org.myworkflows.util.ByteArrayUtil.toObject;
  * @since 1.0.0
  */
 @Converter
-public class ExecutionCacheToByteArrayConverter implements AttributeConverter<WorkflowRunCache, Byte[]> {
+public final class ExecutionCacheToByteArrayConverter implements AttributeConverter<WorkflowRunCache, Byte[]> {
 
     @Override
     public Byte[] convertToDatabaseColumn(WorkflowRunCache attribute) {

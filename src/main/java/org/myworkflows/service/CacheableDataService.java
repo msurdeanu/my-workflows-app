@@ -4,6 +4,7 @@ import com.vaadin.flow.data.provider.Query;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.cache.InternalCache;
+import org.myworkflows.cache.InternalCacheManager;
 import org.myworkflows.domain.CacheableEntry;
 import org.myworkflows.domain.event.EventFunction;
 import org.myworkflows.domain.filter.Filter;
@@ -12,8 +13,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
@@ -25,11 +24,12 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
 
     protected final ApplicationManager applicationManager;
 
-    protected final InternalCache<Object, Object> cache;
+    protected final InternalCache cache;
 
-    public CacheableDataService(ApplicationManager applicationManager, String cacheName) {
+    public CacheableDataService(ApplicationManager applicationManager, InternalCacheManager.CacheNameEnum cacheName) {
         this.applicationManager = applicationManager;
-        cache = applicationManager.getBeanOfTypeAndName(InternalCache.class, cacheName);
+        cache = (InternalCache) applicationManager.getBeanOfType(InternalCacheManager.class)
+            .getCache(cacheName.getName());
     }
 
     public Stream<T> findBy(Query<T, F> query) {
@@ -71,18 +71,18 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
     }
 
     public void addToCache(CacheableEntry entry) {
-        cache.putFirst(entry.getCacheableKey(), entry);
+        cache.put(entry.getCacheableKey(), entry);
     }
 
     public void addToCacheAtTheEnd(CacheableEntry entry) {
-        cache.putLast(entry.getCacheableKey(), entry);
+        cache.putAtTheEnd(entry.getCacheableKey(), entry);
     }
 
     @SuppressWarnings("uncheked")
     protected void doAction(Object key, Consumer<T> action, EventFunction<T> eventFunction) {
         lock.lock();
         try {
-            ofNullable(cache.get(key)).ifPresent(item -> {
+            cache.find(key).ifPresent(item -> {
                 action.accept((T) item);
                 eventFunction.apply((T) item)
                     .ifPresent(event -> applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(event));

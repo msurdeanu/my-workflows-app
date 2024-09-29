@@ -11,7 +11,7 @@ import static java.util.Optional.ofNullable;
  * @since 1.0.0
  */
 @Converter
-public class UserRoleToStringConverter implements AttributeConverter<UserRole, String> {
+public final class UserRoleToStringConverter implements AttributeConverter<UserRole, String> {
 
     @Override
     public String convertToDatabaseColumn(UserRole attribute) {

@@ -13,7 +13,7 @@ import static java.util.Optional.ofNullable;
  * @since 1.0.0
  */
 @Converter
-public class MenuItemPathToStringConverter implements AttributeConverter<MenuItemPath<?>, String> {
+public final class MenuItemPathToStringConverter implements AttributeConverter<MenuItemPath<?>, String> {
 
     private static final String CLASS_PREFIX = "class://";
 
