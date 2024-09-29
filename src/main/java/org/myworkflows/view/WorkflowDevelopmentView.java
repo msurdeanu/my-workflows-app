@@ -1,6 +1,8 @@
 package org.myworkflows.view;
 
 import com.flowingcode.vaadin.addons.granitealert.GraniteAlert;
+import com.hilerio.ace.AceEditor;
+import com.hilerio.ace.AceMode;
 import com.networknt.schema.ValidationMessage;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -24,8 +26,6 @@ import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
-import de.f0rce.ace.AceEditor;
-import de.f0rce.ace.enums.AceMode;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;

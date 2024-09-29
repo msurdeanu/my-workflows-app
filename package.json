@@ -2,7 +2,7 @@
   "name": "no-name",
   "license": "UNLICENSED",
   "dependencies": {
-    "@f0rce/lit-ace": "1.11.1",
+    "@f0rce/ace-widget": "1.0.2",
     "@polymer/iron-iconset-svg": "^3.0.1",
     "@polymer/paper-button": "^3.0.1",
     "@polymer/paper-icon-button": "^3.0.2",
@@ -66,16 +66,16 @@
     "date-fns": "$date-fns",
     "@polymer/paper-button": "$@polymer/paper-button",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
-    "@f0rce/lit-ace": "$@f0rce/lit-ace",
     "lit-html": "$lit-html",
     "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
     "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles",
-    "@polymer/paper-icon-button": "$@polymer/paper-icon-button"
+    "@polymer/paper-icon-button": "$@polymer/paper-icon-button",
+    "@f0rce/ace-widget": "$@f0rce/ace-widget"
   },
   "type": "module",
   "vaadin": {
     "dependencies": {
-      "@f0rce/lit-ace": "1.11.1",
+      "@f0rce/ace-widget": "1.0.2",
       "@polymer/iron-iconset-svg": "^3.0.1",
       "@polymer/paper-button": "^3.0.1",
       "@polymer/paper-icon-button": "^3.0.2",
@@ -120,6 +120,6 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "865d764e2254145c65867e21206b95f88f8408c30759ba686ce55c28bc1a59a9"
+    "hash": "92ebbf321ddee26cfc8d6aac86c1468c52e9a4072f85e05ec3bc9118bdea7d72"
   }
 }
