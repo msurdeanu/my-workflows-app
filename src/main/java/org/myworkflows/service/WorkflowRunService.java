@@ -2,6 +2,8 @@ package org.myworkflows.service;
 
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.cache.InternalCache;
+import org.myworkflows.cache.InternalCacheManager;
+import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.filter.WorkflowRunFilter;
@@ -16,13 +18,14 @@ import static java.util.Optional.ofNullable;
  * @since 1.0.0
  */
 @Service
-public class WorkflowRunService extends CacheableDataService<WorkflowRun, WorkflowRunFilter> {
+public final class WorkflowRunService extends CacheableDataService<WorkflowRun, WorkflowRunFilter> {
 
-    private final InternalCache<Object, Object> templateCache;
+    private final InternalCache templateCache;
 
     public WorkflowRunService(ApplicationManager applicationManager) {
-        super(applicationManager, "workflowRunCache");
-        templateCache = applicationManager.getBeanOfTypeAndName(InternalCache.class, "workflowTemplateCache");
+        super(applicationManager, CacheNameEnum.WORKFLOW_RUN);
+        templateCache = (InternalCache) applicationManager.getBeanOfType(InternalCacheManager.class)
+            .getCache(CacheNameEnum.WORKFLOW_TEMPLATE.getName());
     }
 
     public Optional<WorkflowTemplate> findWorkflowTemplate(WorkflowRun workflowRun) {

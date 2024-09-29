@@ -1,9 +1,14 @@
 package org.myworkflows.domain.filter;
 
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.WorkflowRun;
 
+import java.util.UUID;
 import java.util.function.Predicate;
+
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
  * @author Mihai Surdeanu
@@ -12,17 +17,17 @@ import java.util.function.Predicate;
 @Getter
 public final class WorkflowRunFilter implements Filter<WorkflowRun> {
 
-    private Integer byWorkflowIdCriteria = 0;
+    private String byIdCriteria = StringUtils.EMPTY;
 
     @Override
     public Predicate<WorkflowRun> getFilterPredicate() {
-        return byWorkflowIdCriteria > 0
-            ? item -> byWorkflowIdCriteria.equals(item.getId())
+        return isNotEmpty(byIdCriteria)
+            ? item -> ofNullable(item.getId()).map(UUID::toString).orElse(StringUtils.EMPTY).contains(byIdCriteria)
             : item -> true;
     }
 
-    public WorkflowRunFilter setByWorkflowIdCriteria(Integer byWorkflowIdCriteria) {
-        this.byWorkflowIdCriteria = byWorkflowIdCriteria;
+    public WorkflowRunFilter setByIdCriteria(String byIdCriteria) {
+        this.byIdCriteria = byIdCriteria;
 
         return this;
     }

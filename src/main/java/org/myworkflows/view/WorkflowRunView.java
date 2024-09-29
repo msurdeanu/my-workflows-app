@@ -1,7 +1,7 @@
 package org.myworkflows.view;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -55,7 +55,7 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
     }
 
     private Component createFilterById() {
-        final var filterByIdTextField = new IntegerField();
+        final var filterByIdTextField = new TextField();
         filterByIdTextField.setPlaceholder(getTranslation("workflow-runs.filter.by-id.placeholder"));
         filterByIdTextField.setHelperText(getTranslation("workflow-runs.filter.by-id.helper"));
         filterByIdTextField.setClearButtonVisible(true);
@@ -65,8 +65,8 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
         return filterByIdTextField;
     }
 
-    private void onFilteringById(int value) {
-        workflowRunFilter.setByWorkflowIdCriteria(value);
+    private void onFilteringById(String value) {
+        workflowRunFilter.setByIdCriteria(value);
 
         workflowRunGrid.refreshPage();
     }

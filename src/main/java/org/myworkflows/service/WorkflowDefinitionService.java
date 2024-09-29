@@ -1,6 +1,7 @@
 package org.myworkflows.service;
 
 import org.myworkflows.ApplicationManager;
+import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
 import org.myworkflows.domain.Parameter;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionScript;
@@ -26,7 +27,7 @@ public final class WorkflowDefinitionService extends CacheableDataService<Workfl
         of(WorkflowDefinitionOnUpdateEvent.builder().workflowDefinition(item).build());
 
     public WorkflowDefinitionService(ApplicationManager applicationManager) {
-        super(applicationManager, "workflowDefinitionCache");
+        super(applicationManager, CacheNameEnum.WORKFLOW_DEFINITION);
     }
 
     public void updateDefinition(Integer workflowDefinitionId, String newScript) {

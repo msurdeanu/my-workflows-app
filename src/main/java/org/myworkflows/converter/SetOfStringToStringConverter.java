@@ -16,7 +16,7 @@ import static java.util.Optional.ofNullable;
  * @since 1.0.0
  */
 @Converter
-public class SetOfStringToStringConverter implements AttributeConverter<Set<String>, String> {
+public final class SetOfStringToStringConverter implements AttributeConverter<Set<String>, String> {
 
     private static final String COMMA_DELIMITER = ",";
 

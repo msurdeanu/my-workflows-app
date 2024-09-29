@@ -15,21 +15,21 @@ public class InternalCacheTest {
     @Test
     public void testNonOrderedCache() {
         // given
-        final var cache = new InternalCache<String, String>("test",
+        final var cache = new InternalCache("test",
             InternalCacheConfig.builder().maxSize(1).build());
 
         // when & then
         assertEquals("test", cache.getName());
         assertEquals(0, cache.estimatedSize());
         assertNull(cache.get("key"));
-        cache.putFirst("key", "value");
-        assertEquals("value", cache.get("key"));
+        cache.put("key", "value");
+        assertEquals("value", cache.get("key", String.class));
         assertEquals(1, cache.estimatedSize());
-        cache.putFirst("key1", "value1");
+        cache.put("key1", "value1");
         await().atMost(5, SECONDS).until(() -> 1 == cache.estimatedSize());
         assertTrue(cache.find("key").isEmpty());
         assertInstanceOf(String.class, cache.get("key1", String.class));
-        cache.invalidate("key1");
+        cache.evict("key1");
         assertEquals(0, cache.estimatedSize());
         final var stats = cache.stats();
         assertEquals(2L, stats.hitCount());
@@ -39,19 +39,19 @@ public class InternalCacheTest {
     @Test
     public void testOrderedCache() {
         // given
-        final var cache = new InternalCache<String, String>("test", InternalCacheConfig.builder().maxSize(3).ordered(true).build());
+        final var cache = new InternalCache("test", InternalCacheConfig.builder().maxSize(3).ordered(true).build());
 
         // when & then
-        cache.putFirst("key1", "value1");
-        cache.putFirst("key2", "value2");
-        cache.putFirst("key3", "value3");
+        cache.put("key1", "value1");
+        cache.put("key2", "value2");
+        cache.put("key3", "value3");
         assertEquals(3, cache.estimatedSize());
         final var values = cache.getAllValues().toArray();
         assertEquals(3, values.length);
         assertEquals("value3", values[0]);
         assertEquals("value2", values[1]);
         assertEquals("value1", values[2]);
-        cache.putFirst("key2", "other");
+        cache.put("key2", "other");
         await().atMost(5, SECONDS).until(() -> 3 == cache.estimatedSize());
         final var newValues = cache.getAllValues().toArray();
         assertEquals("other", newValues[0]);

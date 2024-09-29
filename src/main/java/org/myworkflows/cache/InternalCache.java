@@ -6,12 +6,15 @@ import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.cache.support.SimpleValueWrapper;
+import org.springframework.lang.Nullable;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -21,20 +24,16 @@ import static java.util.Optional.ofNullable;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-public final class InternalCache<K, V> {
+public final class InternalCache implements org.springframework.cache.Cache {
 
-    @Getter
     private final String name;
 
-    private final Cache<K, V> cache;
+    private final Cache<Object, Object> cache;
 
     private final boolean ordered;
-
-    private final LinkedList<K> keysOrdered;
-
+    private final LinkedList<Object> keysOrdered;
     private final Lock lock = new ReentrantLock();
 
-    @SuppressWarnings("unchecked")
     public InternalCache(String name, InternalCacheConfig config) {
         this.name = name;
         this.ordered = config.isOrdered();
@@ -53,7 +52,7 @@ public final class InternalCache<K, V> {
                 if (cause != RemovalCause.REPLACED) {
                     lock.lock();
                     try {
-                        removeFromTheEnd((K) key);
+                        removeFromTheEnd(key);
                     } finally {
                         lock.unlock();
                     }
@@ -65,45 +64,42 @@ public final class InternalCache<K, V> {
         cache = caffeine.build();
     }
 
-    public long estimatedSize() {
-        return cache.estimatedSize();
+    @Override
+    public String getName() {
+        return name;
     }
 
-    public Optional<V> find(K key) {
-        return ofNullable(cache.getIfPresent(key));
+    @Override
+    public Object getNativeCache() {
+        return cache;
     }
 
-    public V get(K key) {
-        return cache.getIfPresent(key);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T get(K key, Class<T> type) {
-        return (T) find(key)
-            .filter(item -> type.isAssignableFrom(item.getClass()))
+    @Override
+    @Nullable
+    public ValueWrapper get(Object key) {
+        return ofNullable(cache.getIfPresent(key))
+            .map(SimpleValueWrapper::new)
             .orElse(null);
     }
 
-    public Collection<V> getAllValues() {
-        if (ordered) {
-            lock.lock();
-            try {
-                final var result = new ArrayList<V>((int) cache.estimatedSize());
-                keysOrdered.forEach(key -> find(key).ifPresent(result::add));
-                return result;
-            } finally {
-                lock.unlock();
-            }
-        }
-        return cache.asMap().values();
+    @Override
+    @Nullable
+    public <T> T get(Object key, Class<T> type) {
+        assert type != null;
+        return ofNullable(cache.getIfPresent(key))
+            .filter(type::isInstance)
+            .map(type::cast)
+            .orElse(null);
     }
 
-    public void invalidate(K key) {
-        // for ordered cache, removal listener will remove stuff from the LinkedList afterward
-        cache.invalidate(key);
+    @Override
+    public <T> T get(Object key, Callable<T> valueLoader) {
+        // TODO
+        return null;
     }
 
-    public void putFirst(K key, V value) {
+    @Override
+    public void put(Object key, Object value) {
         if (ordered) {
             lock.lock();
             try {
@@ -122,7 +118,7 @@ public final class InternalCache<K, V> {
         }
     }
 
-    public void putLast(K key, V value) {
+    public void putAtTheEnd(Object key, Object value) {
         if (ordered) {
             lock.lock();
             try {
@@ -141,11 +137,43 @@ public final class InternalCache<K, V> {
         }
     }
 
+    @Override
+    public void evict(Object key) {
+        cache.invalidate(key);
+    }
+
+    @Override
+    public void clear() {
+        cache.invalidateAll();
+    }
+
+    public long estimatedSize() {
+        return cache.estimatedSize();
+    }
+
+    public Optional<Object> find(Object key) {
+        return ofNullable(cache.getIfPresent(key));
+    }
+
+    public Collection<Object> getAllValues() {
+        if (ordered) {
+            lock.lock();
+            try {
+                final var result = new ArrayList<>((int) cache.estimatedSize());
+                keysOrdered.forEach(key -> find(key).ifPresent(result::add));
+                return result;
+            } finally {
+                lock.unlock();
+            }
+        }
+        return cache.asMap().values();
+    }
+
     public CacheStats stats() {
         return cache.stats();
     }
 
-    private void removeFromTheEnd(K key) {
+    private void removeFromTheEnd(Object key) {
         final var iterator = keysOrdered.listIterator(keysOrdered.size());
         while (iterator.hasPrevious()) {
             final var element = iterator.previous();

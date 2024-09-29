@@ -11,7 +11,7 @@ import static java.util.Optional.ofNullable;
  * @since 1.0.0
  */
 @Converter
-public class ParameterTypeToStringConverter implements AttributeConverter<ParameterType, String> {
+public final class ParameterTypeToStringConverter implements AttributeConverter<ParameterType, String> {
 
     @Override
     public String convertToDatabaseColumn(ParameterType attribute) {
