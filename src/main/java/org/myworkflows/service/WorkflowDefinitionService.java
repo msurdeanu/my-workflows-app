@@ -2,10 +2,11 @@ package org.myworkflows.service;
 
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
-import org.myworkflows.domain.Parameter;
+import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionScript;
 import org.myworkflows.domain.event.EventFunction;
+import org.myworkflows.domain.event.WorkflowDefinitionOnDeleteEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnUpdateEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.springframework.stereotype.Service;
@@ -25,9 +26,18 @@ public final class WorkflowDefinitionService extends CacheableDataService<Workfl
 
     private static final EventFunction<WorkflowDefinition> UPDATE_EVENT_FUNCTION = item ->
         of(WorkflowDefinitionOnUpdateEvent.builder().workflowDefinition(item).build());
+    private static final EventFunction<WorkflowDefinition> DELETE_EVENT_FUNCTION = item ->
+        of(WorkflowDefinitionOnDeleteEvent.builder().workflowDefinition(item).build());
 
     public WorkflowDefinitionService(ApplicationManager applicationManager) {
         super(applicationManager, CacheNameEnum.WORKFLOW_DEFINITION);
+    }
+
+    public void delete(Integer workflowDefinitionId) {
+        doAction(workflowDefinitionId, workflowDefinition -> {
+            cache.evict(workflowDefinition.getId());
+            // TODO
+        }, DELETE_EVENT_FUNCTION);
     }
 
     public void updateDefinition(Integer workflowDefinitionId, String newScript) {
@@ -46,10 +56,10 @@ public final class WorkflowDefinitionService extends CacheableDataService<Workfl
         );
     }
 
-    public void updateParameter(Integer workflowDefinitionId, Stream<Parameter> newParameters) {
+    public void updateParameter(Integer workflowDefinitionId, Stream<WorkflowParameter> newParameters) {
         doAction(
             workflowDefinitionId,
-            workflowDefinition -> workflowDefinition.setParameters(newParameters.collect(Collectors.toList())),
+            workflowDefinition -> workflowDefinition.setWorkflowParameters(newParameters.collect(Collectors.toList())),
             UPDATE_EVENT_FUNCTION
         );
     }

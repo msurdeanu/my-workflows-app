@@ -30,7 +30,7 @@ public final class MenuItemsToSideNavItemsTransformer implements Transformer<Lis
 
     private SideNavItem createRouterLink(MenuItem menuItem) {
         final var menuItemPath = menuItem.getPath();
-        final var value = menuItemPath.getValue();
+        final var value = menuItemPath.value();
         final SideNavItem sideNavItem;
         if (value instanceof String path) {
             sideNavItem = new SideNavItem(menuItem.getLabel(), path,

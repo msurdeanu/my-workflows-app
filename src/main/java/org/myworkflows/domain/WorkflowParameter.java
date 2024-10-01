@@ -18,19 +18,24 @@ import java.util.Optional;
 @Entity
 @Getter
 @Setter
-@Table(name = "parameters")
-public class Parameter {
+@Table(name = "workflow_parameters")
+public class WorkflowParameter implements CacheableEntry {
 
     @Id
     private String name;
 
     @Convert(converter = ParameterTypeToStringConverter.class)
-    private ParameterType type;
+    private WorkflowParameterType type;
 
     @Column(name = "value")
     private String value;
 
-    public static Optional<String> validateTypeAndValue(ParameterType type, String value) {
+    @Override
+    public Object getCacheableKey() {
+        return name;
+    }
+
+    public static Optional<String> validateTypeAndValue(WorkflowParameterType type, String value) {
         return type.validate(value);
     }
 

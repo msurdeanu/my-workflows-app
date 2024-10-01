@@ -23,7 +23,7 @@ public final class MenuItemPathToStringConverter implements AttributeConverter<M
             return null;
         }
 
-        final var value = attribute.getValue();
+        final var value = attribute.value();
         if (value instanceof String attributePath) {
             return attributePath;
         }

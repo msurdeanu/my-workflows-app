@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
@@ -34,6 +35,7 @@ public final class InternalCacheManager implements CacheManager {
     @Getter
     @RequiredArgsConstructor
     public enum CacheNameEnum {
+        WORKFLOW_PARAMETER("workflowParameter"),
         WORKFLOW_DEFINITION("workflowDefinition"),
         WORKFLOW_TEMPLATE("workflowTemplate"),
         WORKFLOW_RUN("workflowRun"),
@@ -44,13 +46,9 @@ public final class InternalCacheManager implements CacheManager {
         private final String name;
 
         public static CacheNameEnum of(String name) {
-            for (CacheNameEnum cacheName : CacheNameEnum.values()) {
-                if (cacheName.name.equals(name)) {
-                    return cacheName;
-                }
-            }
-
-            return DEFAULT;
+            return Arrays.stream(CacheNameEnum.values())
+                .filter(cacheName -> cacheName.name.equals(name))
+                .findFirst().orElse(DEFAULT);
         }
     }
 

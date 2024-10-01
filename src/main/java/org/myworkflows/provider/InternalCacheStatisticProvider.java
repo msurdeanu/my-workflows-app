@@ -17,7 +17,7 @@ import static java.lang.String.format;
  */
 @Component
 @RequiredArgsConstructor
-public class InternalCacheStatisticProvider implements StatisticProvider {
+public final class InternalCacheStatisticProvider implements StatisticProvider {
 
     private final InternalCacheManager cacheManager;
 

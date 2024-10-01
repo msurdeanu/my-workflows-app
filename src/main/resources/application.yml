@@ -22,6 +22,14 @@ spring:
   mustache:
     check-template-location: false
 
+logging:
+  level:
+    # Property for defining root level for application logs.
+    root: INFO # use DEBUG as value for activating DEBUG level
+    # Uncomment the following property if you want to activate debug level only for classes created by this app.
+    #org:
+    #  myworkflows: DEBUG
+
 my-workflows:
   config:
     executor:

@@ -14,15 +14,18 @@ INSERT INTO menu_items ("label", "icon", "path", "role", "position")
 VALUES ('menu.main.workflow-templates', 'cubes', 'class://org.myworkflows.view.WorkflowTemplateView', 'ROLE_GUEST',
         '2');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-definitions', 'cube', 'class://org.myworkflows.view.WorkflowDefinitionView', 'ROLE_ADMIN',
+VALUES ('menu.main.workflow-definitions', 'cube', 'class://org.myworkflows.view.WorkflowDefinitionView', 'ROLE_LOGGED',
         '3');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-development', 'code', 'class://org.myworkflows.view.WorkflowDevelopmentView', 'ROLE_ADMIN',
+VALUES ('menu.main.workflow-params', 'options', 'class://org.myworkflows.view.WorkflowParameterView', 'ROLE_ADMIN',
         '4');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', '5');
+VALUES ('menu.main.workflow-development', 'code', 'class://org.myworkflows.view.WorkflowDevelopmentView', 'ROLE_ADMIN',
+        '5');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.github-myworkflows', 'qrcode', 'https://github.com/msurdeanu/my-workflows-app', 'ROLE_GUEST', '6');
+VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', '6');
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.github-myworkflows', 'qrcode', 'https://github.com/msurdeanu/my-workflows-app', 'ROLE_GUEST', '7');
 
 CREATE TABLE workflow_definitions
 (
@@ -59,6 +62,26 @@ CREATE TABLE workflow_templates_workflow_definitions
 INSERT INTO workflow_templates_workflow_definitions ("workflow_template_id", "workflow_definition_id")
 VALUES (1, 1);
 
+CREATE TABLE workflow_parameters
+(
+    name  TEXT PRIMARY KEY NOT NULL,
+    type  TEXT             NOT NULL,
+    value TEXT             NOT NULL
+);
+
+INSERT INTO workflow_parameters ("name", "type", "value")
+VALUES ('sleepTime', 'int', '5000');
+
+CREATE TABLE workflow_definitions_workflow_parameters
+(
+    id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+    workflow_definition_id  INTEGER NOT NULL,
+    workflow_parameter_name TEXT    NOT NULL
+);
+
+INSERT INTO workflow_definitions_workflow_parameters ("workflow_definition_id", "workflow_parameter_name")
+VALUES (1, 'sleepTime');
+
 CREATE TABLE workflow_runs
 (
     id                   BLOB PRIMARY KEY NOT NULL,
@@ -74,9 +97,9 @@ CREATE TABLE users
 (
     id       INTEGER PRIMARY KEY AUTOINCREMENT,
     enabled  INTEGER(1) NOT NULL DEFAULT (1),
-    username TEXT       NOT NULL,
-    password TEXT       NOT NULL,
-    role     TEXT                DEFAULT 'ROLE_USER'
+    username TEXT NOT NULL,
+    password TEXT NOT NULL,
+    role     TEXT DEFAULT 'ROLE_USER'
 );
 
 INSERT INTO users ("username", "password", "role")
@@ -85,26 +108,6 @@ INSERT INTO users ("username", "password", "role")
 VALUES ('admin', '$2a$10$omNibHqZ1p6kx4/bLMNWJ.82c30oAdg0asgGWr9jB9o2zwhim3G7O', 'ROLE_ADMIN');
 
 CREATE UNIQUE INDEX users_username_index ON users (username);
-
-CREATE TABLE parameters
-(
-    name  TEXT PRIMARY KEY NOT NULL,
-    type  TEXT             NOT NULL,
-    value TEXT             NOT NULL
-);
-
-INSERT INTO parameters ("name", "type", "value")
-VALUES ('sleepTime', 'int', '5000');
-
-CREATE TABLE workflow_definitions_parameters
-(
-    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
-    workflow_definition_id INTEGER NOT NULL,
-    parameter_name         TEXT    NOT NULL
-);
-
-INSERT INTO workflow_definitions_parameters ("workflow_definition_id", "parameter_name")
-VALUES (1, 'sleepTime');
 
 CREATE TABLE placeholders
 (

@@ -70,8 +70,8 @@ public class WorkflowTemplate {
         return ofNullable(workflowDefinitions)
             .orElse(List.of())
             .stream()
-            .flatMap(item -> item.getParameters().stream())
-            .collect(Collectors.toMap(Parameter::getName, Parameter::getComputedValue, (it1, it2) -> it2));
+            .flatMap(item -> item.getWorkflowParameters().stream())
+            .collect(Collectors.toMap(WorkflowParameter::getName, WorkflowParameter::getComputedValue, (it1, it2) -> it2));
     }
 
     public List<WorkflowDefinitionScript> getWorkflowDefinitionScripts() {

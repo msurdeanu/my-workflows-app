@@ -43,11 +43,11 @@ public class WorkflowDefinition implements CacheableEntry {
         CascadeType.PERSIST,
         CascadeType.MERGE
     }, fetch = FetchType.EAGER)
-    @JoinTable(name = "workflow_definitions_parameters",
+    @JoinTable(name = "workflow_definitions_workflow_parameters",
         joinColumns = @JoinColumn(name = "workflow_definition_id"),
-        inverseJoinColumns = @JoinColumn(name = "parameter_name")
+        inverseJoinColumns = @JoinColumn(name = "workflow_parameter_name")
     )
-    private List<Parameter> parameters;
+    private List<WorkflowParameter> workflowParameters;
 
     @Setter
     @Convert(converter = WorkflowDefinitionScriptToStringConverter.class)
