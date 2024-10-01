@@ -119,13 +119,13 @@
         </module>
         <module name="LambdaParameterName">
             <property name="format" value="[a-z][a-z0-9][a-zA-Z0-9]*$"/>
-            <message key="name.invalidPattern" value="Lambda parameter name ''{0}'' must match pattern ''{1}''."/>
+            <message key="name.invalidPattern" value="Lambda workflowParameter name ''{0}'' must match pattern ''{1}''."/>
         </module>
         <module name="MethodName">
             <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9]*$"/>
             <message key="name.invalidPattern" value="Method name ''{0}'' must match pattern ''{1}''."/>
         </module>
-        <!-- Checks that catch parameter names conform to a specified pattern: ^(e|t|ex|[a-z][a-z][a-zA-Z]+)$ -->
+        <!-- Checks that catch workflowParameter names conform to a specified pattern: ^(e|t|ex|[a-z][a-z][a-zA-Z]+)$ -->
         <module name="CatchParameterName"/>
         <module name="LocalVariableName">
             <property name="tokens" value="VARIABLE_DEF"/>
@@ -206,7 +206,7 @@
             <property name="allowSamelineMultipleAnnotations" value="false"/>
             <property name="allowSamelineSingleParameterlessAnnotation" value="false"/>
         </module>
-        <!-- Checks that a local variable or a parameter does not shadow a field that is defined in the same class. -->
+        <!-- Checks that a local variable or a workflowParameter does not shadow a field that is defined in the same class. -->
         <module name="HiddenField">
             <property name="ignoreConstructorParameter" value="true"/>
             <property name="ignoreSetter" value="true"/>

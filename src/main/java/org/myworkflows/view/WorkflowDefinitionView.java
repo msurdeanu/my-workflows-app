@@ -9,11 +9,11 @@ import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
-import org.myworkflows.domain.Parameter;
+import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionEventHandler;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
-import org.myworkflows.repository.ParameterRepository;
+import org.myworkflows.repository.WorkflowParameterRepository;
 import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;
@@ -41,7 +41,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
     private final WorkflowDefinitionService workflowDefinitionService;
 
     public WorkflowDefinitionView(WorkflowDefinitionService workflowDefinitionService,
-                                  ParameterRepository parameterRepository) {
+                                  WorkflowParameterRepository workflowParameterRepository) {
         super();
         this.workflowDefinitionService = workflowDefinitionService;
 
@@ -50,7 +50,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
             .withConfigurableFilter();
         configurableFilterDataProvider.setFilter(workflowDefinitionFilter);
 
-        workflowDefinitionGrid = new WorkflowDefinitionGrid(this, parameterRepository.findAll());
+        workflowDefinitionGrid = new WorkflowDefinitionGrid(this, workflowParameterRepository.findAll());
         workflowDefinitionGrid.setDataProvider(configurableFilterDataProvider);
 
         add(createHeader(getTranslation("workflow-definitions.page.title")));
@@ -70,7 +70,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
 
     @Override
     public void onDelete(Integer workflowDefinitionId) {
-        // TODO
+        workflowDefinitionService.delete(workflowDefinitionId);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
     }
 
     @Override
-    public void onParameterUpdated(Integer workflowDefinitionId, Stream<Parameter> items) {
+    public void onParameterUpdated(Integer workflowDefinitionId, Stream<WorkflowParameter> items) {
         workflowDefinitionService.updateParameter(workflowDefinitionId, items);
     }
 

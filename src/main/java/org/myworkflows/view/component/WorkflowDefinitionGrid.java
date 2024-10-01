@@ -16,7 +16,7 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.RouterLink;
 import lombok.RequiredArgsConstructor;
-import org.myworkflows.domain.Parameter;
+import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionEventHandler;
@@ -39,7 +39,7 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
 
     private final WorkflowDefinitionEventHandler workflowDefinitionEventHandler;
 
-    private final List<Parameter> allParameters;
+    private final List<WorkflowParameter> allWorkflowParameters;
 
     private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
 
@@ -64,14 +64,14 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
             .setHeader(getTranslation("workflow-definitions.main-grid.actions.column"))
             .setAutoWidth(true);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(
-            () -> new DraggableGrid<WorkflowDefinition, Parameter>("definition",
+            () -> new DraggableGrid<WorkflowDefinition, WorkflowParameter>("definition",
                 parameter -> new NativeLabel(parameter.getName()),
                 parameter -> new NativeLabel(parameter.getType().getValue()),
-                Parameter.class),
+                WorkflowParameter.class),
             (instance, workflowDefinition) -> instance.setDetails(workflowDefinition,
                 (key, value) -> workflowDefinitionEventHandler.onParameterUpdated(key.getId(), value),
-                WorkflowDefinition::getParameters,
-                substract(allParameters, workflowDefinition.getParameters())))
+                WorkflowDefinition::getWorkflowParameters,
+                substract(allWorkflowParameters, workflowDefinition.getWorkflowParameters())))
         );
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
@@ -113,8 +113,7 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
 
         if (isLoggedAsAdmin) {
             editButton.addClickListener(event -> onEdit(workflowDefinition));
-            // TODO
-            //deleteButton.addClickListener(event -> workflowDefinitionEventHandler.onDelete(workflowDefinition.getId()));
+            deleteButton.addClickListener(event -> workflowDefinitionEventHandler.onDelete(workflowDefinition.getId()));
         } else {
             editButton.setEnabled(false);
             deleteButton.setEnabled(false);

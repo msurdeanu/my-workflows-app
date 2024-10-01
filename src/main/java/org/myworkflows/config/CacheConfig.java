@@ -36,6 +36,9 @@ public class CacheConfig {
         cacheManager.addCache(CacheNameEnum.WORKFLOW_DEFINITION, InternalCacheConfig.builder()
             .maxSize(0).expireAfterWrite(ofSeconds(0))
             .build());
+        cacheManager.addCache(CacheNameEnum.WORKFLOW_PARAMETER, InternalCacheConfig.builder()
+            .maxSize(0).expireAfterWrite(ofSeconds(0))
+            .build());
         cacheManager.addCache(CacheNameEnum.MENU_ITEM, InternalCacheConfig.builder()
             .maxSize(0).expireAfterWrite(ofSeconds(0))
             .build());

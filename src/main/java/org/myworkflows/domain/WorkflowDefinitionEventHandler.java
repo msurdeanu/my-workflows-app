@@ -12,7 +12,7 @@ public interface WorkflowDefinitionEventHandler {
 
     void onNameUpdated(Integer workflowDefinitionId, String newName);
 
-    void onParameterUpdated(Integer workflowDefinitionId, Stream<Parameter> items);
+    void onParameterUpdated(Integer workflowDefinitionId, Stream<WorkflowParameter> items);
 
     void onScriptUpdated(Integer workflowDefinitionId, String newScript);
 

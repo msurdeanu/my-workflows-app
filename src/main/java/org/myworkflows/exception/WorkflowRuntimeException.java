@@ -4,7 +4,7 @@ package org.myworkflows.exception;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-public class WorkflowRuntimeException extends RuntimeException {
+public final class WorkflowRuntimeException extends RuntimeException {
 
     public WorkflowRuntimeException(String message) {
         super(message);

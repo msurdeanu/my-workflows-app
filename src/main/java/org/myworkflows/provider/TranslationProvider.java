@@ -14,10 +14,14 @@ import java.util.ResourceBundle;
 import static java.lang.String.format;
 import static java.util.Locale.ENGLISH;
 
+/**
+ * @author Mihai Surdeanu
+ * @since 1.0.0
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TranslationProvider implements I18NProvider {
+public final class TranslationProvider implements I18NProvider {
 
     public static final String PRETTY_TIME_FORMAT = "pretty.time.format";
 

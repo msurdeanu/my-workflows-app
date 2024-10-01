@@ -16,12 +16,12 @@ import static org.myworkflows.domain.WorkflowRunPrint.NULL_AS_STR;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-public final class WorkflowTemplateDetailsFormLayout extends FormLayout {
+public final class WorkflowPrintDetailsFormLayout extends FormLayout {
 
     private static final int TEXTAREA_CHAR_LIMIT = 32_768;
     private static final int COLUMNS = 2;
 
-    public WorkflowTemplateDetailsFormLayout() {
+    public WorkflowPrintDetailsFormLayout() {
         setResponsiveSteps(new ResponsiveStep("0", COLUMNS));
     }
 

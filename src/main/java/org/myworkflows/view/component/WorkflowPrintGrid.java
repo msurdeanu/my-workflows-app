@@ -71,8 +71,8 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
         paginatedGrid.setEmptyStateText(getTranslation("workflow-print.grid.empty-state.text"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
-        paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(WorkflowTemplateDetailsFormLayout::new,
-            WorkflowTemplateDetailsFormLayout::setExecutionPrint));
+        paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(WorkflowPrintDetailsFormLayout::new,
+            WorkflowPrintDetailsFormLayout::setExecutionPrint));
         paginatedGrid.addThemeVariants(GridVariant.LUMO_COMPACT);
         layout.add(paginatedGrid);
 

@@ -40,7 +40,7 @@ import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.HasResizeableWidth;
 import org.myworkflows.view.component.ResponsiveLayout;
-import org.myworkflows.view.component.WorkflowParameterGrid;
+import org.myworkflows.view.component.WorkflowDevParamGrid;
 import org.myworkflows.view.component.WorkflowPrintGrid;
 
 import java.util.Set;
@@ -63,7 +63,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
 
     private final AceEditor editor = new AceEditor();
     private final GraniteAlert currentWorkflowStatus = new GraniteAlert();
-    private final WorkflowParameterGrid workflowParameterGrid = new WorkflowParameterGrid();
+    private final WorkflowDevParamGrid workflowDevParamGrid = new WorkflowDevParamGrid();
     private final WorkflowPrintGrid workflowPrintGrid = new WorkflowPrintGrid();
 
     private final ApplicationManager applicationManager;
@@ -183,7 +183,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             lastSubmittedUuid = UUID.randomUUID();
             applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
                 .token(lastSubmittedUuid)
-                .workflowParameters(workflowParameterGrid.getParametersAsMap())
+                .workflowParameters(workflowDevParamGrid.getParametersAsMap())
                 .workflowDefinitionScript(editor.getValue())
                 .build());
         });
@@ -213,7 +213,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         final var layout = new VerticalLayout();
         layout.setDefaultHorizontalComponentAlignment(Alignment.START);
 
-        final var inputDetails = new Details(getTranslation("workflow-development.input.label"), workflowParameterGrid);
+        final var inputDetails = new Details(getTranslation("workflow-development.input.label"), workflowDevParamGrid);
         inputDetails.setOpened(true);
         inputDetails.setWidthFull();
 

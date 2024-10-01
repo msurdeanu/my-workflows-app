@@ -14,7 +14,7 @@ import static java.util.Optional.empty;
  */
 @Getter
 @RequiredArgsConstructor
-public enum ParameterType {
+public enum WorkflowParameterType {
 
     STR("str", String.class) {
         public Object getComputedValue(String defaultValue) {
@@ -45,7 +45,7 @@ public enum ParameterType {
             try {
                 Integer.parseInt(value);
                 return empty();
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException notUsed) {
                 return Optional.of("Value is not an integer");
             }
         }
@@ -60,7 +60,7 @@ public enum ParameterType {
             try {
                 Long.parseLong(value);
                 return empty();
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException notUsed) {
                 return Optional.of("Value is not a long");
             }
         }
@@ -75,7 +75,7 @@ public enum ParameterType {
             try {
                 Float.parseFloat(value);
                 return empty();
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException notUsed) {
                 return Optional.of("Value is not a float");
             }
         }
@@ -90,7 +90,7 @@ public enum ParameterType {
             try {
                 Double.parseDouble(value);
                 return empty();
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException notUsed) {
                 return Optional.of("Value is not a double");
             }
         }
@@ -115,12 +115,11 @@ public enum ParameterType {
 
     public abstract Optional<String> validate(String value);
 
-    public static ParameterType of(String value) {
+    public static WorkflowParameterType of(String value) {
         return stream(values())
                 .filter(settingType -> settingType.getValue().equals(value))
                 .findFirst()
                 .orElse(null);
     }
-
 
 }

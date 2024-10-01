@@ -1,4 +1,4 @@
-/target/
+target/
 .idea/
 .settings
 .project
@@ -13,6 +13,7 @@ database.db
 # The following files are generated/updated by vaadin-maven-plugin
 node_modules/
 frontend/generated/
+src/main/bundles/
 pnpmfile.js
 pnpm-lock.yaml
 

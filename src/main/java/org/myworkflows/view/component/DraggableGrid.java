@@ -26,7 +26,7 @@ import static com.vaadin.flow.component.grid.dnd.GridDropMode.ON_GRID;
  * @since 1.0.0
  */
 @RequiredArgsConstructor
-public class DraggableGrid<K, T> extends Composite<VerticalLayout> {
+public final class DraggableGrid<K, T> extends Composite<VerticalLayout> {
 
     private Div container = new Div();
 
@@ -74,18 +74,18 @@ public class DraggableGrid<K, T> extends Composite<VerticalLayout> {
         });
 
         container = new Div(selectedItemsGrid, availableItemsGrid);
-        setContainerStyles(container);
+        container.addClassName("draggable-div");
     }
 
     private Grid<T> setupGrid(GridDropMode dropMode) {
         final var grid = new Grid<>(clazz, false);
+        grid.addClassName("draggable-grid");
         final var firstColumn = grid.addColumn(new ComponentRenderer<>(firstSerializableFunction))
             .setHeader(getTranslation("draggable-grid-" + id + ".first.column"))
             .setAutoWidth(true);
         final var secondColumn = grid.addColumn(new ComponentRenderer<>(secondSerializableFunction))
             .setHeader(getTranslation("draggable-grid-" + id + ".second.column"))
             .setAutoWidth(true);
-        setGridStyles(grid);
         grid.prependHeaderRow().join(firstColumn, secondColumn).setText(BETWEEN == dropMode
             ? getTranslation("draggable-grid-" + id + ".selected")
             : getTranslation("draggable-grid-" + id + ".available"));
@@ -103,17 +103,6 @@ public class DraggableGrid<K, T> extends Composite<VerticalLayout> {
 
     private void handleDragEnd(GridDragEndEvent<T> event) {
         draggedItem = null;
-    }
-
-    private void setGridStyles(Grid<?> grid) {
-        grid.getStyle().set("height", "250px")
-            .set("margin-left", "0.5rem").set("margin-top", "0.5rem")
-            .set("align-self", "unset");
-    }
-
-    private void setContainerStyles(Div container) {
-        container.getStyle().set("width", "100%").set("display", "flex")
-            .set("flex-direction", "row").set("flex-wrap", "wrap");
     }
 
 }
