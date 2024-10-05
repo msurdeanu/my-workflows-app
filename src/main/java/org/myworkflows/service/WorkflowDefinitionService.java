@@ -5,16 +5,13 @@ import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionScript;
-import org.myworkflows.domain.event.EventFunction;
-import org.myworkflows.domain.event.WorkflowDefinitionOnDeleteEvent;
-import org.myworkflows.domain.event.WorkflowDefinitionOnUpdateEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
+import org.myworkflows.repository.WorkflowDefinitionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Optional.of;
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 
 /**
@@ -24,44 +21,48 @@ import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 @Service
 public final class WorkflowDefinitionService extends CacheableDataService<WorkflowDefinition, WorkflowDefinitionFilter> {
 
-    private static final EventFunction<WorkflowDefinition> UPDATE_EVENT_FUNCTION = item ->
-        of(WorkflowDefinitionOnUpdateEvent.builder().workflowDefinition(item).build());
-    private static final EventFunction<WorkflowDefinition> DELETE_EVENT_FUNCTION = item ->
-        of(WorkflowDefinitionOnDeleteEvent.builder().workflowDefinition(item).build());
-
     public WorkflowDefinitionService(ApplicationManager applicationManager) {
         super(applicationManager, CacheNameEnum.WORKFLOW_DEFINITION);
     }
 
-    public void delete(Integer workflowDefinitionId) {
-        doAction(workflowDefinitionId, workflowDefinition -> {
+    public void delete(WorkflowDefinition workflowDefinition) {
+        lock.lock();
+        try {
             cache.evict(workflowDefinition.getId());
-            // TODO
-        }, DELETE_EVENT_FUNCTION);
+            // TODO: Proceed with a soft delete
+        } finally {
+            lock.unlock();
+        };
     }
 
-    public void updateDefinition(Integer workflowDefinitionId, String newScript) {
-        doAction(
-            workflowDefinitionId,
-            workflowDefinition -> workflowDefinition.setScript(fromJsonToObject(newScript, WorkflowDefinitionScript.class)),
-            UPDATE_EVENT_FUNCTION
-        );
+    public void updateDefinition(WorkflowDefinition workflowDefinition, String newScript) {
+        lock.lock();
+        try {
+            workflowDefinition.setScript(fromJsonToObject(newScript, WorkflowDefinitionScript.class));
+            applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).save(workflowDefinition);
+        } finally {
+            lock.unlock();
+        };
     }
 
-    public void updateName(Integer workflowDefinitionId, String newName) {
-        doAction(
-            workflowDefinitionId,
-            workflowDefinition -> workflowDefinition.setName(newName),
-            UPDATE_EVENT_FUNCTION
-        );
+    public void updateName(WorkflowDefinition workflowDefinition, String newName) {
+        lock.lock();
+        try {
+            workflowDefinition.setName(newName);
+            applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).save(workflowDefinition);
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public void updateParameter(Integer workflowDefinitionId, Stream<WorkflowParameter> newParameters) {
-        doAction(
-            workflowDefinitionId,
-            workflowDefinition -> workflowDefinition.setWorkflowParameters(newParameters.collect(Collectors.toList())),
-            UPDATE_EVENT_FUNCTION
-        );
+    public void updateParameter(WorkflowDefinition workflowDefinition, Stream<WorkflowParameter> newParameters) {
+        lock.lock();
+        try {
+            workflowDefinition.setWorkflowParameters(newParameters.collect(Collectors.toList()));
+            applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).save(workflowDefinition);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override

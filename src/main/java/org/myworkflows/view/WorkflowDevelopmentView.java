@@ -16,7 +16,6 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
@@ -189,23 +188,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         });
         runWorkflowButton.setWidthFull();
 
-        final var horizontalLayout = new HorizontalLayout();
-        horizontalLayout.setSpacing(true);
         updateWorkflowButton.setEnabled(false);
         updateWorkflowButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-        updateWorkflowButton.getStyle().set("flex", "1 1 50%");
+        updateWorkflowButton.setWidthFull();
         updateWorkflowButton.addClickListener(event -> ofNullable(filterByTemplate.getValue())
             .ifPresent(workflowDefinition -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
-                .updateDefinition(workflowDefinition.getId(), editor.getValue())));
-        final var createWorkflowButton = new Button(getTranslation("workflow-development.create.button"),
-            new Icon(VaadinIcon.PLUS_CIRCLE));
-        createWorkflowButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-        createWorkflowButton.getStyle().set("flex", "1 1 50%");
-        // TODO : call create from WorkflowDefinitionService
-        horizontalLayout.add(updateWorkflowButton, createWorkflowButton);
-        horizontalLayout.setWidth("100%");
+                .updateDefinition(workflowDefinition, editor.getValue())));
 
-        layout.add(currentWorkflowStatus, defDetails, new Hr(), runWorkflowButton, horizontalLayout);
+        layout.add(currentWorkflowStatus, defDetails, new Hr(), runWorkflowButton, updateWorkflowButton);
         return layout;
     }
 

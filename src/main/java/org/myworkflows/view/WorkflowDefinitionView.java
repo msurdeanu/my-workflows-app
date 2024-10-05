@@ -69,23 +69,23 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
     }
 
     @Override
-    public void onDelete(Integer workflowDefinitionId) {
-        workflowDefinitionService.delete(workflowDefinitionId);
+    public void onDelete(WorkflowDefinition workflowDefinition) {
+        workflowDefinitionService.delete(workflowDefinition);
     }
 
     @Override
-    public void onNameUpdated(Integer workflowDefinitionId, String newName) {
-        workflowDefinitionService.updateName(workflowDefinitionId, newName);
+    public void onNameUpdated(WorkflowDefinition workflowDefinition, String newName) {
+        workflowDefinitionService.updateName(workflowDefinition, newName);
     }
 
     @Override
-    public void onParameterUpdated(Integer workflowDefinitionId, Stream<WorkflowParameter> items) {
-        workflowDefinitionService.updateParameter(workflowDefinitionId, items);
+    public void onParameterUpdated(WorkflowDefinition workflowDefinition, Stream<WorkflowParameter> items) {
+        workflowDefinitionService.updateParameter(workflowDefinition, items);
     }
 
     @Override
-    public void onScriptUpdated(Integer workflowDefinitionId, String newScript) {
-        workflowDefinitionService.updateDefinition(workflowDefinitionId, newScript);
+    public void onScriptUpdated(WorkflowDefinition workflowDefinition, String newScript) {
+        workflowDefinitionService.updateDefinition(workflowDefinition, newScript);
     }
 
     private void onFilterById(int value) {

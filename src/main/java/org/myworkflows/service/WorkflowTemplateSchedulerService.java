@@ -35,6 +35,11 @@ public final class WorkflowTemplateSchedulerService {
     private final ApplicationManager applicationManager;
 
     public void schedule(WorkflowTemplate workflowTemplate) {
+        if (workflowTemplate.getCron() == null) {
+            log.warn("Workflow template '{}' is not scheduled because cron is not set.", workflowTemplate.getId());
+            return;
+        }
+
         final var scheduledTask = applicationManager.getBeanOfType(TaskScheduler.class)
             .schedule(new WorkflowDefinitionScriptRunnable(applicationManager, workflowTemplate),
                 new CronTrigger(workflowTemplate.getCron(),

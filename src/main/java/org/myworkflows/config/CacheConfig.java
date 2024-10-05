@@ -31,7 +31,7 @@ public class CacheConfig {
             .ordered(true).maxSize(workflowRunMaxSize).expireAfterWrite(ofSeconds(workflowRunExpireAfterWriteSeconds))
             .build());
         cacheManager.addCache(CacheNameEnum.WORKFLOW_TEMPLATE, InternalCacheConfig.builder()
-            .maxSize(0).expireAfterWrite(ofSeconds(0))
+            .ordered(true).maxSize(0).expireAfterWrite(ofSeconds(0))
             .build());
         cacheManager.addCache(CacheNameEnum.WORKFLOW_DEFINITION, InternalCacheConfig.builder()
             .maxSize(0).expireAfterWrite(ofSeconds(0))

@@ -2,16 +2,13 @@ package org.myworkflows.service;
 
 import com.vaadin.flow.data.provider.Query;
 import org.myworkflows.ApplicationManager;
-import org.myworkflows.EventBroadcaster;
 import org.myworkflows.cache.InternalCache;
 import org.myworkflows.cache.InternalCacheManager;
 import org.myworkflows.domain.CacheableEntry;
-import org.myworkflows.domain.event.EventFunction;
 import org.myworkflows.domain.filter.Filter;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -76,20 +73,6 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
 
     public void addToCacheAtTheEnd(CacheableEntry entry) {
         cache.putAtTheEnd(entry.getCacheableKey(), entry);
-    }
-
-    @SuppressWarnings("uncheked")
-    protected void doAction(Object key, Consumer<T> action, EventFunction<T> eventFunction) {
-        lock.lock();
-        try {
-            cache.find(key).ifPresent(item -> {
-                action.accept((T) item);
-                eventFunction.apply((T) item)
-                    .ifPresent(event -> applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(event));
-            });
-        } finally {
-            lock.unlock();
-        }
     }
 
     protected abstract F createFilter();

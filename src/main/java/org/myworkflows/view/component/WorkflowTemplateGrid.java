@@ -69,8 +69,11 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderNameAndCron))
             .setHeader(getTranslation("workflow-templates.main-grid.name.column"))
             .setAutoWidth(true);
+        final var addButton = new Button(VaadinIcon.PLUS.create());
+        addButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+        addButton.addClickListener(event -> workflowTemplateEventHandler.onCreate("name"));
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
-            .setHeader(getTranslation("workflow-templates.main-grid.actions.column"))
+            .setHeader(addButton)
             .setAutoWidth(true);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(
             () -> new DraggableGrid<WorkflowTemplate, WorkflowDefinition>("template",
@@ -82,10 +85,11 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
                 },
                 WorkflowDefinition.class),
             (instance, workflowTemplate) -> instance.setDetails(workflowTemplate,
-                (key, value) -> workflowTemplateEventHandler.onDefinitionUpdated(key.getId(), value),
+                    workflowTemplateEventHandler::onDefinitionUpdated,
                 WorkflowTemplate::getWorkflowDefinitions,
                 substract(allWorkflowDefinitions, workflowTemplate.getWorkflowDefinitions())))
         );
+        paginatedGrid.setEmptyStateText(getTranslation("workflow-templates.main-grid.no-result"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
         paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
@@ -96,7 +100,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
 
     private Component renderActive(WorkflowTemplate workflowTemplate) {
         final var checkbox = new Checkbox(workflowTemplate.isEnabled());
-        checkbox.addValueChangeListener(event -> workflowTemplateEventHandler.onActivationChanged(workflowTemplate.getId()));
+        checkbox.addValueChangeListener(event -> workflowTemplateEventHandler.onActivationChanged(workflowTemplate));
         return checkbox;
     }
 
@@ -127,7 +131,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         layout.add(cronTextField);
 
         addShortcutListener(layout, () -> {
-            workflowTemplateEventHandler.onNameAndCronUpdated(workflowTemplate.getId(), nameTextField.getValue(), cronTextField.getValue());
+            workflowTemplateEventHandler.onNameAndCronUpdated(workflowTemplate, nameTextField.getValue(), cronTextField.getValue());
             onUpdated(workflowTemplate);
         }, Key.ENTER);
         addShortcutListener(layout, () -> onUpdated(workflowTemplate), Key.ESCAPE);
@@ -154,7 +158,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         final var deleteButton = new Button();
         deleteButton.setIcon(new Icon(VaadinIcon.TRASH));
         deleteButton.setTooltipText(getTranslation("workflow-templates.main-grid.actions.button.delete.title"));
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
 
         if (isLogged) {
             scheduleNowButton.addClickListener(event -> onScheduleNow(workflowTemplate));
@@ -164,7 +168,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         if (isLoggedAsAdmin) {
             editButton.addClickListener(event -> onEdit(workflowTemplate));
             if (!workflowTemplate.isEnabled()) {
-                deleteButton.addClickListener(event -> workflowTemplateEventHandler.onDelete(workflowTemplate.getId()));
+                deleteButton.addClickListener(event -> workflowTemplateEventHandler.onDelete(workflowTemplate));
             } else {
                 deleteButton.setEnabled(false);
             }
@@ -188,7 +192,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
     }
 
     private void onScheduleNow(WorkflowTemplate workflowTemplate) {
-        workflowTemplateEventHandler.onScheduleNow(workflowTemplate.getId());
+        workflowTemplateEventHandler.onScheduleNow(workflowTemplate);
         paginatedGrid.getDataProvider().refreshItem(workflowTemplate);
     }
 

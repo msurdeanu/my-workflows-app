@@ -30,7 +30,7 @@ VALUES ('menu.main.github-myworkflows', 'qrcode', 'https://github.com/msurdeanu/
 CREATE TABLE workflow_definitions
 (
     id     INTEGER PRIMARY KEY AUTOINCREMENT,
-    name   TEXT NOT NULL UNIQUE,
+    name   TEXT NOT NULL,
     script TEXT NOT NULL DEFAULT ''
 );
 
@@ -45,8 +45,8 @@ CREATE TABLE workflow_templates
 (
     id      INTEGER PRIMARY KEY AUTOINCREMENT,
     enabled BOOLEAN NOT NULL DEFAULT (1),
-    name    TEXT    NOT NULL UNIQUE,
-    cron    TEXT    NOT NULL
+    name    TEXT    NOT NULL,
+    cron    TEXT
 );
 
 INSERT INTO workflow_templates ("enabled", "name", "cron")

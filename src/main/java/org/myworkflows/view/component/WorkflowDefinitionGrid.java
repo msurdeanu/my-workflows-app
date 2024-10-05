@@ -69,7 +69,7 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
                 parameter -> new NativeLabel(parameter.getType().getValue()),
                 WorkflowParameter.class),
             (instance, workflowDefinition) -> instance.setDetails(workflowDefinition,
-                (key, value) -> workflowDefinitionEventHandler.onParameterUpdated(key.getId(), value),
+                workflowDefinitionEventHandler::onParameterUpdated,
                 WorkflowDefinition::getWorkflowParameters,
                 substract(allWorkflowParameters, workflowDefinition.getWorkflowParameters())))
         );
@@ -92,7 +92,7 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
         nameTextField.setSuffixComponent(VaadinIcon.ENTER.create());
         nameTextField.setValue(workflowDefinition.getName());
         addShortcutListener(nameTextField, () -> {
-            workflowDefinitionEventHandler.onNameUpdated(workflowDefinition.getId(), nameTextField.getValue());
+            workflowDefinitionEventHandler.onNameUpdated(workflowDefinition, nameTextField.getValue());
             onUpdated(workflowDefinition);
         }, Key.ENTER);
         addShortcutListener(nameTextField, () -> onUpdated(workflowDefinition), Key.ESCAPE);
@@ -109,11 +109,11 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
         final var deleteButton = new Button();
         deleteButton.setIcon(new Icon(VaadinIcon.TRASH));
         deleteButton.setTooltipText(getTranslation("workflow-definitions.main-grid.actions.button.delete.title"));
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
 
         if (isLoggedAsAdmin) {
             editButton.addClickListener(event -> onEdit(workflowDefinition));
-            deleteButton.addClickListener(event -> workflowDefinitionEventHandler.onDelete(workflowDefinition.getId()));
+            deleteButton.addClickListener(event -> workflowDefinitionEventHandler.onDelete(workflowDefinition));
         } else {
             editButton.setEnabled(false);
             deleteButton.setEnabled(false);

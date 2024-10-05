@@ -74,30 +74,36 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
     }
 
     @Override
-    public void onActivationChanged(Integer workflowTemplateId) {
-        workflowTemplateService.updateActivation(workflowTemplateId);
+    public void onActivationChanged(WorkflowTemplate workflowTemplate) {
+        workflowTemplateService.updateActivation(workflowTemplate);
         workflowDefinitionGrid.refreshPage();
     }
 
     @Override
-    public void onDefinitionUpdated(Integer workflowTemplateId, Stream<WorkflowDefinition> newDefinitions) {
-        workflowTemplateService.updateDefinition(workflowTemplateId, newDefinitions);
-    }
-
-    @Override
-    public void onDelete(Integer workflowTemplateId) {
-        workflowTemplateService.delete(workflowTemplateId);
+    public void onCreate(String name) {
+        workflowTemplateService.create(name);
         workflowDefinitionGrid.refreshPage();
     }
 
     @Override
-    public void onNameAndCronUpdated(Integer workflowTemplateId, @NonNull String newName, String newCron) {
-        workflowTemplateService.updateNameAndCron(workflowTemplateId, newName, newCron);
+    public void onDefinitionUpdated(WorkflowTemplate workflowTemplate, Stream<WorkflowDefinition> newDefinitions) {
+        workflowTemplateService.updateDefinition(workflowTemplate, newDefinitions);
     }
 
     @Override
-    public void onScheduleNow(Integer workflowTemplateId) {
-        workflowTemplateService.scheduleNow(workflowTemplateId);
+    public void onDelete(WorkflowTemplate workflowTemplate) {
+        workflowTemplateService.delete(workflowTemplate);
+        workflowDefinitionGrid.refreshPage();
+    }
+
+    @Override
+    public void onNameAndCronUpdated(WorkflowTemplate workflowTemplate, @NonNull String newName, String newCron) {
+        workflowTemplateService.updateNameAndCron(workflowTemplate, newName, newCron);
+    }
+
+    @Override
+    public void onScheduleNow(WorkflowTemplate workflowTemplate) {
+        workflowTemplateService.scheduleNow(workflowTemplate);
     }
 
     private TextField createFilterByName() {

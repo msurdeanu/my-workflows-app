@@ -8,12 +8,12 @@ import java.util.stream.Stream;
  */
 public interface WorkflowDefinitionEventHandler {
 
-    void onDelete(Integer workflowDefinitionId);
+    void onDelete(WorkflowDefinition workflowDefinition);
 
-    void onNameUpdated(Integer workflowDefinitionId, String newName);
+    void onNameUpdated(WorkflowDefinition workflowDefinition, String newName);
 
-    void onParameterUpdated(Integer workflowDefinitionId, Stream<WorkflowParameter> items);
+    void onParameterUpdated(WorkflowDefinition workflowDefinition, Stream<WorkflowParameter> items);
 
-    void onScriptUpdated(Integer workflowDefinitionId, String newScript);
+    void onScriptUpdated(WorkflowDefinition workflowDefinition, String newScript);
 
 }
