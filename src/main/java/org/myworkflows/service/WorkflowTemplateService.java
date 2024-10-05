@@ -5,16 +5,14 @@ import org.myworkflows.ApplicationManager;
 import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowTemplate;
-import org.myworkflows.domain.event.EventFunction;
-import org.myworkflows.domain.event.WorkflowTemplateOnDeleteEvent;
-import org.myworkflows.domain.event.WorkflowTemplateOnUpdateEvent;
 import org.myworkflows.domain.filter.WorkflowTemplateFilter;
+import org.myworkflows.repository.WorkflowTemplateRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -23,11 +21,6 @@ import static java.util.Optional.ofNullable;
  */
 @Service
 public final class WorkflowTemplateService extends CacheableDataService<WorkflowTemplate, WorkflowTemplateFilter> {
-
-    private static final EventFunction<WorkflowTemplate> UPDATE_EVENT_FUNCTION = item ->
-        of(WorkflowTemplateOnUpdateEvent.builder().workflowTemplate(item).build());
-    private static final EventFunction<WorkflowTemplate> DELETE_EVENT_FUNCTION = item ->
-        of(WorkflowTemplateOnDeleteEvent.builder().workflowTemplate(item).build());
 
     public WorkflowTemplateService(ApplicationManager applicationManager) {
         super(applicationManager, CacheNameEnum.WORKFLOW_TEMPLATE);
@@ -51,55 +44,81 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
         }
     }
 
-    public void delete(Integer workflowTemplateId) {
-        doAction(workflowTemplateId, workflowTemplate -> {
-            cache.evict(workflowTemplate.getId());
-            if (workflowTemplate.isEnabled()) {
-                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
-                    .unschedule(workflowTemplate);
-            }
-        }, DELETE_EVENT_FUNCTION);
+    public void create(String name) {
+        lock.lock();
+        try {
+            final var workflowTemplate = new WorkflowTemplate();
+            workflowTemplate.setName(name);
+            workflowTemplate.setWorkflowDefinitions(List.of());
+            cache.put(applicationManager.getBeanOfType(WorkflowTemplateRepository.class).save(workflowTemplate).getId(),
+                    workflowTemplate);
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public void updateActivation(Integer workflowTemplateId) {
-        doAction(workflowTemplateId, workflowTemplate -> {
+    public void delete(@NonNull WorkflowTemplate workflowTemplate) {
+        lock.lock();
+        try {
+            cache.evict(workflowTemplate.getId());
+            if (workflowTemplate.isEnabled()) {
+                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class).unschedule(workflowTemplate);
+            }
+            applicationManager.getBeanOfType(WorkflowTemplateRepository.class).delete(workflowTemplate);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void updateActivation(@NonNull WorkflowTemplate workflowTemplate) {
+        lock.lock();
+        try {
             workflowTemplate.toggleOnEnabling();
             if (workflowTemplate.isEnabled()) {
                 applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class).unschedule(workflowTemplate);
             } else {
                 applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class).schedule(workflowTemplate);
             }
-        }, UPDATE_EVENT_FUNCTION);
+            applicationManager.getBeanOfType(WorkflowTemplateRepository.class).save(workflowTemplate);
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public void updateDefinition(Integer workflowTemplateId, Stream<WorkflowDefinition> newDefinitions) {
-        doAction(
-            workflowTemplateId,
-            workflowTemplate -> workflowTemplate.setWorkflowDefinitions(newDefinitions.collect(Collectors.toList())),
-            UPDATE_EVENT_FUNCTION
-        );
+    public void updateDefinition(@NonNull WorkflowTemplate workflowTemplate, Stream<WorkflowDefinition> newDefinitions) {
+        lock.lock();
+        try {
+            workflowTemplate.setWorkflowDefinitions(newDefinitions.collect(Collectors.toList()));
+            applicationManager.getBeanOfType(WorkflowTemplateRepository.class).save(workflowTemplate);
+        } finally {
+            lock.unlock();
+        };
     }
 
-    public void updateNameAndCron(Integer workflowTemplateId, String newName, String newCron) {
-        doAction(workflowTemplateId, workflowTemplate -> {
+    public void updateNameAndCron(@NonNull WorkflowTemplate workflowTemplate, String newName, String newCron) {
+        lock.lock();
+        try {
             workflowTemplate.setName(newName);
             if (workflowTemplate.isEnabled()) {
-                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
-                    .unschedule(workflowTemplate);
+                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class).unschedule(workflowTemplate);
             }
             workflowTemplate.setCron(newCron);
             if (workflowTemplate.isEnabled()) {
-                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
-                    .schedule(workflowTemplate);
+                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class).schedule(workflowTemplate);
             }
-        }, UPDATE_EVENT_FUNCTION);
+            applicationManager.getBeanOfType(WorkflowTemplateRepository.class).save(workflowTemplate);
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public void scheduleNow(Integer workflowTemplateId) {
-        ofNullable(cache.get(workflowTemplateId, WorkflowTemplate.class)).ifPresent(workflowTemplate -> {
-            applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
-                .scheduleNowAsync(workflowTemplate);
-        });
+    public void scheduleNow(@NonNull WorkflowTemplate workflowTemplate) {
+        lock.lock();
+        try {
+            applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class).scheduleNowAsync(workflowTemplate);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override

@@ -8,14 +8,16 @@ import java.util.stream.Stream;
  */
 public interface WorkflowTemplateEventHandler {
 
-    void onActivationChanged(Integer workflowTemplateId);
+    void onActivationChanged(WorkflowTemplate workflowTemplate);
 
-    void onDefinitionUpdated(Integer workflowTemplateId, Stream<WorkflowDefinition> items);
+    void onCreate(String name);
 
-    void onDelete(Integer workflowTemplateId);
+    void onDefinitionUpdated(WorkflowTemplate workflowTemplate, Stream<WorkflowDefinition> items);
 
-    void onNameAndCronUpdated(Integer workflowTemplateId, String newName, String newCron);
+    void onDelete(WorkflowTemplate workflowTemplate);
 
-    void onScheduleNow(Integer workflowTemplateId);
+    void onNameAndCronUpdated(WorkflowTemplate workflowTemplate, String newName, String newCron);
+
+    void onScheduleNow(WorkflowTemplate workflowTemplate);
 
 }
