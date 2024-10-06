@@ -20,9 +20,9 @@ public final class ApplicationUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return applicationManager.getBeanOfType(UserRepository.class)
-                .findByUsername(username)
-                .map(UserAccountDetails::new)
-                .orElseThrow(() -> new UsernameNotFoundException("Could not find user with name '" + username + "'."));
+            .findByUsername(username)
+            .map(UserAccountDetails::new)
+            .orElseThrow(() -> new UsernameNotFoundException("Could not find user with name '" + username + "'."));
     }
 
 }

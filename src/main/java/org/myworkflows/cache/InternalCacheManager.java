@@ -28,8 +28,8 @@ public final class InternalCacheManager implements CacheManager {
         return caches.keySet().stream().map(CacheNameEnum::getName).toList();
     }
 
-    public void addCache(CacheNameEnum cacheNameEnum, InternalCache.InternalCacheConfig cacheConfig) {
-        caches.put(cacheNameEnum, new InternalCache(cacheNameEnum.getName(), cacheConfig));
+    public void addCache(CacheNameEnum cacheNameEnum, int maxSize, boolean ordered) {
+        caches.put(cacheNameEnum, new InternalCache(cacheNameEnum.getName(), maxSize, ordered));
     }
 
     @Getter

@@ -23,14 +23,14 @@ public final class ApplicationReadyManager {
     @Order(1)
     public void registerAllListeners(ApplicationReadyEvent event) {
         event.getApplicationContext()
-                .getBeansOfType(org.myworkflows.domain.event.EventListener.class)
-                .forEach(this::registerListener);
+            .getBeansOfType(org.myworkflows.domain.event.EventListener.class)
+            .forEach(this::registerListener);
     }
 
     private void registerListener(String key, org.myworkflows.domain.event.EventListener<Event> value) {
         applicationManager.getBeanOfType(EventBroadcaster.class).register(value::onEventReceived, value.getEventType());
         if (log.isDebugEnabled()) {
-            log.debug("New event listener registered: {}", key);
+            log.debug("New event listener registered '{}' for event '{}'.", key, value.getEventType().getSimpleName());
         }
     }
 

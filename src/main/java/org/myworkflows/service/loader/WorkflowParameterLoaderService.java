@@ -25,8 +25,8 @@ public final class WorkflowParameterLoaderService implements LoaderService {
     public void load() {
         final var workflowParameterService = applicationManager.getBeanOfType(WorkflowParameterService.class);
         applicationManager.getBeanOfType(WorkflowParameterRepository.class)
-                .findAll()
-                .forEach(workflowParameterService::addToCache);
+            .findAll()
+            .forEach(workflowParameterService::addToCache);
     }
 
 }

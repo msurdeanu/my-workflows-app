@@ -87,11 +87,12 @@ The tool is capable of loading a list of JAR files at runtime, during applicatio
 This is quite useful if you want to extend Java or Groovy commands with more functionality.
 
 In order to do this, please use the following application config property:
+
 ```yaml
 my-workflows:
   config:
     loader:
-      jars: 
+      jars:
         - "/home/admin/file1.jar" # Full path is recommended
         - "/home/admin/file2.jar"
 ```
@@ -299,28 +300,33 @@ You can use any IDE of your preference, but I suggest IntelliJ IDEA.
 
 During application bootstrap phase, multiple local caches are filled with information found in database.
 The data is loaded in the following order:
+
 1. Once the **application is ready**, the app will load any kind of **external JAR** provided by the user.
-2. After all **external JARs** are loaded, the app will proceed with the **placeholders**. All of them are loaded from database.
-3. Once all **placeholders** are loaded, the app will continue with **workflow definitions**. Again, all of them are loaded from database.
-4. When all **workflow definitions** are available, the app will load all **workflow templates** found in database. They are also scheduled.
-5. Last but not least, the app is loading all **workflow runs**. In fact, is not all of them. The app will load only the accepted capacity for workflow runs defined in application config. 
+2. After all **external JARs** are loaded, the app will proceed with the **placeholders**. All of them are loaded from
+   database.
+3. Once all **placeholders** are loaded, the app will continue with **workflow definitions**. Again, all of them are
+   loaded from database.
+4. When all **workflow definitions** are available, the app will load all **workflow templates** found in database. They
+   are also scheduled.
+5. Last but not least, the app is loading all **workflow runs**. In fact, is not all of them. The app will load only the
+   accepted capacity for workflow runs defined in application config.
 
 ### Structure
 
 Vaadin web applications are full-stack and include both client-side and server-side code in the same project.
 
-| Directory                                                    | Description                                              |
-|:-------------------------------------------------------------|:---------------------------------------------------------|
-| `frontend/`                                                  | Client-side source directory                             |
-| &nbsp;&nbsp;&nbsp;&nbsp;`themes/`                            | Themes directory (CSS)                                   |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`simple/`    | Default theme                                            |
-| `src/main/java/org/myworkflows`                              | Server-side source directory                             |
-| &nbsp;&nbsp;&nbsp;&nbsp;`cache/`                             | Contains a custom cache implementation based on Caffeine |
-| &nbsp;&nbsp;&nbsp;&nbsp;`config/`                            | Package with different Spring configuration beans        |
-| &nbsp;&nbsp;&nbsp;&nbsp;`domain/`                            | Package with all classes part of application domain      |
-| &nbsp;&nbsp;&nbsp;&nbsp;`provider/`                          | Java package with a set of providers                     |
-| &nbsp;&nbsp;&nbsp;&nbsp;`repository/`                        | Contains a set of JpaRepositories                        |
-| &nbsp;&nbsp;&nbsp;&nbsp;`service/`                           | Contains a set of services exposed by the application    |
-| &nbsp;&nbsp;&nbsp;&nbsp;`view/`                              | Contains a set of views exposed by the application       |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`component/` | Package with all Vaadin custom components                |
-| &nbsp;&nbsp;&nbsp;&nbsp;`Application.java`                   | Server entrypoint                                        |
+| Directory                                                    | Description                                           |
+|:-------------------------------------------------------------|:------------------------------------------------------|
+| `frontend/`                                                  | Client-side source directory                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;`themes/`                            | Themes directory (CSS)                                |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`simple/`    | Default theme                                         |
+| `src/main/java/org/myworkflows`                              | Server-side source directory                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;`cache/`                             | Contains a custom cache implementation                |
+| &nbsp;&nbsp;&nbsp;&nbsp;`config/`                            | Package with different Spring configuration beans     |
+| &nbsp;&nbsp;&nbsp;&nbsp;`domain/`                            | Package with all classes part of application domain   |
+| &nbsp;&nbsp;&nbsp;&nbsp;`provider/`                          | Java package with a set of providers                  |
+| &nbsp;&nbsp;&nbsp;&nbsp;`repository/`                        | Contains a set of JpaRepositories                     |
+| &nbsp;&nbsp;&nbsp;&nbsp;`service/`                           | Contains a set of services exposed by the application |
+| &nbsp;&nbsp;&nbsp;&nbsp;`view/`                              | Contains a set of views exposed by the application    |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`component/` | Package with all Vaadin custom components             |
+| &nbsp;&nbsp;&nbsp;&nbsp;`Application.java`                   | Server entrypoint                                     |

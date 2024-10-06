@@ -1,22 +1,19 @@
 package org.myworkflows.cache;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.RemovalCause;
-import com.github.benmanes.caffeine.cache.stats.CacheStats;
-import lombok.Builder;
 import lombok.Getter;
+import org.myworkflows.exception.WorkflowRuntimeException;
 import org.springframework.cache.support.SimpleValueWrapper;
-import org.springframework.lang.Nullable;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.StampedLock;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
 
@@ -28,40 +25,30 @@ public final class InternalCache implements org.springframework.cache.Cache {
 
     private final String name;
 
-    private final Cache<Object, Object> cache;
+    @Getter
+    private final int maxSize;
 
+    @Getter
     private final boolean ordered;
-    private final LinkedList<Object> keysOrdered;
-    private final Lock lock = new ReentrantLock();
 
-    public InternalCache(String name, InternalCacheConfig config) {
+    private final Map<Object, Object> cacheMap = new HashMap<>();
+
+    private final LinkedList<Object> keys = new LinkedList<>();
+
+    private final StampedLock stampedLock = new StampedLock();
+
+    public InternalCache(String name) {
+        this(name, Integer.MAX_VALUE, false);
+    }
+
+    public InternalCache(String name, int maxSize) {
+        this(name, maxSize, false);
+    }
+
+    public InternalCache(String name, int maxSize, boolean ordered) {
         this.name = name;
-        this.ordered = config.isOrdered();
-
-        final var caffeine = Caffeine.newBuilder().recordStats();
-        if (config.getMaxSize() > 0) {
-            caffeine.maximumSize(config.getMaxSize());
-        }
-        final var expireAfterWrite = config.getExpireAfterWrite();
-        if (expireAfterWrite != null && expireAfterWrite.getSeconds() > 0) {
-            caffeine.expireAfterWrite(expireAfterWrite);
-        }
-        if (ordered) {
-            keysOrdered = new LinkedList<>();
-            caffeine.removalListener((key, value, cause) -> {
-                if (cause != RemovalCause.REPLACED) {
-                    lock.lock();
-                    try {
-                        removeFromTheEnd(key);
-                    } finally {
-                        lock.unlock();
-                    }
-                }
-            });
-        } else {
-            keysOrdered = null;
-        }
-        cache = caffeine.build();
+        this.maxSize = Integer.max(1, maxSize);
+        this.ordered = ordered;
     }
 
     @Override
@@ -71,110 +58,110 @@ public final class InternalCache implements org.springframework.cache.Cache {
 
     @Override
     public Object getNativeCache() {
-        return cache;
+        return cacheMap;
     }
 
     @Override
-    @Nullable
     public ValueWrapper get(Object key) {
-        return ofNullable(cache.getIfPresent(key))
+        final var value = applyFunctionInsideOptimisticReadBlock(key, cacheMap::get);
+        return ofNullable(value)
             .map(SimpleValueWrapper::new)
             .orElse(null);
     }
 
     @Override
-    @Nullable
     public <T> T get(Object key, Class<T> type) {
         assert type != null;
-        return ofNullable(cache.getIfPresent(key))
+        final var value = applyFunctionInsideOptimisticReadBlock(key, cacheMap::get);
+        return ofNullable(value)
             .filter(type::isInstance)
             .map(type::cast)
             .orElse(null);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T get(Object key, Callable<T> valueLoader) {
-        // TODO
-        return null;
+        final var value = applyFunctionInsideOptimisticReadBlock(key, cacheMap::get);
+        if (value != null) {
+            return (T) value;
+        }
+
+        try {
+            T loadedValue = valueLoader.call();
+            put(key, loadedValue);
+            return loadedValue;
+        } catch (Exception e) {
+            throw new WorkflowRuntimeException(e);
+        }
+    }
+
+    public Collection<Object> getAllValues() {
+        if (isOrderedOrHasLimitedSize()) {
+            return applyFunctionInsideOptimisticReadBlock(null, item -> {
+                final var result = new ArrayList<>(cacheMap.size());
+                keys.forEach(key -> find(key).ifPresent(result::add));
+                return result;
+            });
+        } else {
+            return applyFunctionInsideOptimisticReadBlock(null, item -> cacheMap.values());
+        }
     }
 
     @Override
     public void put(Object key, Object value) {
-        if (ordered) {
-            lock.lock();
-            try {
-                find(key).ifPresentOrElse(item -> {
-                    removeFromTheEnd(key);
-                    if (item != value) {
-                        cache.put(key, value);
+        acceptConsumerInsideWriteBlock(key, item -> {
+            if (isOrderedOrHasLimitedSize()) {
+                find(item).ifPresentOrElse(oldItem -> {
+                    removeFromTheEnd(item);
+                    if (oldItem != value) {
+                        cacheMap.put(item, value);
                     }
-                }, () -> cache.put(key, value));
-                keysOrdered.addFirst(key);
-            } finally {
-                lock.unlock();
+                }, () -> cacheMap.put(item, value));
+                keys.addFirst(item);
+                if (cacheMap.size() > maxSize) {
+                    removeFromTheEnd(keys.getLast());
+                }
+            } else {
+                cacheMap.put(item, value);
             }
-        } else {
-            cache.put(key, value);
-        }
-    }
-
-    public void putAtTheEnd(Object key, Object value) {
-        if (ordered) {
-            lock.lock();
-            try {
-                find(key).ifPresentOrElse(item -> {
-                    removeFromTheEnd(key);
-                    if (item != value) {
-                        cache.put(key, value);
-                    }
-                }, () -> cache.put(key, value));
-                keysOrdered.addLast(key);
-            } finally {
-                lock.unlock();
-            }
-        } else {
-            cache.put(key, value);
-        }
+        });
     }
 
     @Override
     public void evict(Object key) {
-        cache.invalidate(key);
+        acceptConsumerInsideWriteBlock(key, item -> {
+            if (isOrderedOrHasLimitedSize()) {
+                removeFromTheEnd(item);
+            }
+            cacheMap.remove(item);
+        });
     }
 
     @Override
     public void clear() {
-        cache.invalidateAll();
-    }
-
-    public long estimatedSize() {
-        return cache.estimatedSize();
-    }
-
-    public Optional<Object> find(Object key) {
-        return ofNullable(cache.getIfPresent(key));
-    }
-
-    public Collection<Object> getAllValues() {
-        if (ordered) {
-            lock.lock();
-            try {
-                final var result = new ArrayList<>((int) cache.estimatedSize());
-                keysOrdered.forEach(key -> find(key).ifPresent(result::add));
-                return result;
-            } finally {
-                lock.unlock();
+        acceptConsumerInsideWriteBlock(null, item -> {
+            if (isOrderedOrHasLimitedSize()) {
+                keys.clear();
             }
-        }
-        return cache.asMap().values();
+            cacheMap.clear();
+        });
     }
 
-    public CacheStats stats() {
-        return cache.stats();
+    public int size() {
+        return applyFunctionInsideOptimisticReadBlock(null, item -> cacheMap.size());
+    }
+
+    private boolean isOrderedOrHasLimitedSize() {
+        return ordered || maxSize < Integer.MAX_VALUE;
+    }
+
+    private Optional<Object> find(Object key) {
+        return ofNullable(cacheMap.get(key));
     }
 
     private void removeFromTheEnd(Object key) {
-        final var iterator = keysOrdered.listIterator(keysOrdered.size());
+        final var iterator = keys.listIterator(keys.size());
         while (iterator.hasPrevious()) {
             final var element = iterator.previous();
             if (element.equals(key)) {
@@ -184,12 +171,27 @@ public final class InternalCache implements org.springframework.cache.Cache {
         }
     }
 
-    @Builder
-    @Getter
-    public static class InternalCacheConfig {
-        private boolean ordered;
-        private long maxSize;
-        private Duration expireAfterWrite;
+    private <K, V> V applyFunctionInsideOptimisticReadBlock(K key, Function<K, V> function) {
+        var stamp = stampedLock.tryOptimisticRead();
+        V value = function.apply(key);
+        if (!stampedLock.validate(stamp)) {
+            stamp = stampedLock.readLock();
+            try {
+                value = function.apply(key);
+            } finally {
+                stampedLock.unlockRead(stamp);
+            }
+        }
+        return value;
+    }
+
+    private <K> void acceptConsumerInsideWriteBlock(K key, Consumer<K> consumer) {
+        var stamp = stampedLock.writeLock();
+        try {
+            consumer.accept(key);
+        } finally {
+            stampedLock.unlockWrite(stamp);
+        }
     }
 
 }
