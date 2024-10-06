@@ -266,7 +266,7 @@
         <module name="SingleSpaceSeparator"/>
         <!-- Checks lambda body length. Long lambda body should usually be extracted to method. -->
         <module name="LambdaBodyLength">
-            <property name="max" value="15"/>
+            <property name="max" value="20"/>
         </module>
         <!-- Maximum 3 nested loops are allowed -->
         <module name="NestedForDepth">

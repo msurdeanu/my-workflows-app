@@ -2,9 +2,9 @@ package org.myworkflows.service;
 
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
-import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionScript;
+import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.repository.WorkflowDefinitionRepository;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,7 @@ public final class WorkflowDefinitionService extends CacheableDataService<Workfl
             // TODO: Proceed with a soft delete
         } finally {
             lock.unlock();
-        };
+        }
     }
 
     public void updateDefinition(WorkflowDefinition workflowDefinition, String newScript) {
@@ -42,7 +42,7 @@ public final class WorkflowDefinitionService extends CacheableDataService<Workfl
             applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).save(workflowDefinition);
         } finally {
             lock.unlock();
-        };
+        }
     }
 
     public void updateName(WorkflowDefinition workflowDefinition, String newName) {

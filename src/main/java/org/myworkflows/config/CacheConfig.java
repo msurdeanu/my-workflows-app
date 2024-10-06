@@ -7,8 +7,6 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static java.time.Duration.ofSeconds;
-import static org.myworkflows.cache.InternalCache.InternalCacheConfig;
 import static org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
 
 /**
@@ -27,24 +25,12 @@ public class CacheConfig {
     @Bean
     public InternalCacheManager cacheManager() {
         final var cacheManager = new InternalCacheManager();
-        cacheManager.addCache(CacheNameEnum.WORKFLOW_RUN, InternalCacheConfig.builder()
-            .ordered(true).maxSize(workflowRunMaxSize).expireAfterWrite(ofSeconds(workflowRunExpireAfterWriteSeconds))
-            .build());
-        cacheManager.addCache(CacheNameEnum.WORKFLOW_TEMPLATE, InternalCacheConfig.builder()
-            .ordered(true).maxSize(0).expireAfterWrite(ofSeconds(0))
-            .build());
-        cacheManager.addCache(CacheNameEnum.WORKFLOW_DEFINITION, InternalCacheConfig.builder()
-            .maxSize(0).expireAfterWrite(ofSeconds(0))
-            .build());
-        cacheManager.addCache(CacheNameEnum.WORKFLOW_PARAMETER, InternalCacheConfig.builder()
-            .maxSize(0).expireAfterWrite(ofSeconds(0))
-            .build());
-        cacheManager.addCache(CacheNameEnum.MENU_ITEM, InternalCacheConfig.builder()
-            .maxSize(0).expireAfterWrite(ofSeconds(0))
-            .build());
-        cacheManager.addCache(CacheNameEnum.PLACEHOLDER, InternalCacheConfig.builder()
-            .maxSize(0).expireAfterWrite(ofSeconds(0))
-            .build());
+        cacheManager.addCache(CacheNameEnum.WORKFLOW_RUN, workflowRunMaxSize, true);
+        cacheManager.addCache(CacheNameEnum.WORKFLOW_TEMPLATE, Integer.MAX_VALUE, true);
+        cacheManager.addCache(CacheNameEnum.WORKFLOW_DEFINITION, Integer.MAX_VALUE, true);
+        cacheManager.addCache(CacheNameEnum.WORKFLOW_PARAMETER, Integer.MAX_VALUE, true);
+        cacheManager.addCache(CacheNameEnum.MENU_ITEM, Integer.MAX_VALUE, false);
+        cacheManager.addCache(CacheNameEnum.PLACEHOLDER, Integer.MAX_VALUE, false);
         return cacheManager;
     }
 

@@ -28,8 +28,9 @@ public final class WorkflowRunLoaderService implements LoaderService {
         final var cacheConfig = applicationManager.getBeanOfType(CacheConfig.class);
         final var workflowRunService = applicationManager.getBeanOfType(WorkflowRunService.class);
         applicationManager.getBeanOfType(WorkflowRunRepository.class)
-                .findByOrderByCreatedDesc(PageRequest.of(0, cacheConfig.getWorkflowRunMaxSize()))
-                .forEach(workflowRunService::addToCacheAtTheEnd);
+            .findByOrderByCreatedDesc(PageRequest.of(0, cacheConfig.getWorkflowRunMaxSize()))
+            .reversed()
+            .forEach(workflowRunService::addToCache);
     }
 
 }

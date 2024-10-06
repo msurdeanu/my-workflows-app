@@ -33,7 +33,6 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
                 .filter(WorkflowTemplate::isEnabledForScheduling)
                 .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
                     .unschedule(workflowTemplate));
-            cache.evict(workflowTemplate.getId());
             cache.put(workflowTemplate.getId(), workflowTemplate);
             if (workflowTemplate.isEnabled()) {
                 applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
@@ -51,7 +50,7 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
             workflowTemplate.setName(name);
             workflowTemplate.setWorkflowDefinitions(List.of());
             cache.put(applicationManager.getBeanOfType(WorkflowTemplateRepository.class).save(workflowTemplate).getId(),
-                    workflowTemplate);
+                workflowTemplate);
         } finally {
             lock.unlock();
         }
@@ -92,7 +91,7 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
             applicationManager.getBeanOfType(WorkflowTemplateRepository.class).save(workflowTemplate);
         } finally {
             lock.unlock();
-        };
+        }
     }
 
     public void updateNameAndCron(@NonNull WorkflowTemplate workflowTemplate, String newName, String newCron) {

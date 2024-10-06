@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.lang.String.valueOf;
 
 /**
  * @author Mihai Surdeanu
@@ -43,8 +44,8 @@ public final class InternalCacheStatisticProvider implements StatisticProvider {
     }
 
     private String cacheToStats(InternalCache cache) {
-        final var cacheStats = cache.stats();
-        return format("(%.4f, %d, %d)", cacheStats.hitRate(), cacheStats.totalLoadTime(), cache.estimatedSize());
+        return format("(%d, %s, %b)", cache.size(),
+            cache.getMaxSize() == Integer.MAX_VALUE ? "∞" : valueOf(cache.getMaxSize()), cache.isOrdered());
     }
 
 }

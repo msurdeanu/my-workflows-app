@@ -71,10 +71,6 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
         cache.put(entry.getCacheableKey(), entry);
     }
 
-    public void addToCacheAtTheEnd(CacheableEntry entry) {
-        cache.putAtTheEnd(entry.getCacheableKey(), entry);
-    }
-
     protected abstract F createFilter();
 
 }

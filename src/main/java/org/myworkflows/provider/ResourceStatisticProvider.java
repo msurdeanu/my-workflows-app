@@ -20,31 +20,31 @@ public final class ResourceStatisticProvider implements StatisticProvider {
         final var runtime = Runtime.getRuntime();
 
         return StatisticItemGroup.builder()
-                .root(StatisticItem.builder()
-                        .name("statistics.resource-usage.group")
-                        .icon("vaadin:folder-o")
-                        .build())
-                .leafs(List.of(
-                        StatisticItem.builder()
-                                .name("statistics.resource-usage.group.used-memory.name")
-                                .icon("vaadin:file-o")
-                                .value(String.format("%.4f MB", (runtime.totalMemory() - runtime.freeMemory()) / ONE_MB))
-                                .description("statistics.resource-usage.group.used-memory.description")
-                                .build(),
-                        StatisticItem.builder()
-                                .name("statistics.resource-usage.group.free-memory.name")
-                                .icon("vaadin:file-o")
-                                .value(String.format("%.4f MB", runtime.freeMemory() / ONE_MB))
-                                .description("statistics.resource-usage.group.free-memory.description")
-                                .build(),
-                        StatisticItem.builder()
-                                .name("statistics.resource-usage.group.max-memory.name")
-                                .icon("vaadin:file-o")
-                                .value(String.format("%.4f MB", runtime.maxMemory() / ONE_MB))
-                                .description("statistics.resource-usage.group.max-memory.description")
-                                .build()
-                ))
-                .build();
+            .root(StatisticItem.builder()
+                .name("statistics.resource-usage.group")
+                .icon("vaadin:folder-o")
+                .build())
+            .leafs(List.of(
+                StatisticItem.builder()
+                    .name("statistics.resource-usage.group.used-memory.name")
+                    .icon("vaadin:file-o")
+                    .value(String.format("~%.0f MB", (runtime.totalMemory() - runtime.freeMemory()) / ONE_MB))
+                    .description("statistics.resource-usage.group.used-memory.description")
+                    .build(),
+                StatisticItem.builder()
+                    .name("statistics.resource-usage.group.free-memory.name")
+                    .icon("vaadin:file-o")
+                    .value(String.format("~%.0f MB", runtime.freeMemory() / ONE_MB))
+                    .description("statistics.resource-usage.group.free-memory.description")
+                    .build(),
+                StatisticItem.builder()
+                    .name("statistics.resource-usage.group.max-memory.name")
+                    .icon("vaadin:file-o")
+                    .value(String.format("~%.0f MB", runtime.maxMemory() / ONE_MB))
+                    .description("statistics.resource-usage.group.max-memory.description")
+                    .build()
+            ))
+            .build();
     }
 
 }
