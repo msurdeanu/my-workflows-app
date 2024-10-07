@@ -117,7 +117,7 @@ public enum WorkflowParameterType {
 
     public static WorkflowParameterType of(String value) {
         return stream(values())
-                .filter(settingType -> settingType.getValue().equals(value))
+                .filter(type -> type.getValue().equals(value))
                 .findFirst()
                 .orElse(null);
     }

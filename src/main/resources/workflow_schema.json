@@ -41,6 +41,20 @@
           "items": { "$ref": "#/$defs/expression" }
         }
       },
+      "if": {
+        "properties": {
+          "@type": { "const": "waitUntilSubPasses" }
+        }
+      },
+      "then": {
+        "properties": {
+          "subcommands": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/command" }
+          }
+        },
+        "required": ["subcommands"]
+      },
       "additionalProperties": false,
       "patternProperties": {
         "^_comment.*": {}

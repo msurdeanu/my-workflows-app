@@ -30,13 +30,21 @@ public class WorkflowParameter implements CacheableEntry {
     @Column(name = "value")
     private String value;
 
-    @Override
-    public Object getCacheableKey() {
-        return name;
+    public static WorkflowParameter of(String name, WorkflowParameterType type, String value) {
+        final var workflowParameter = new WorkflowParameter();
+        workflowParameter.name = name;
+        workflowParameter.type = type;
+        workflowParameter.value = value;
+        return workflowParameter;
     }
 
     public static Optional<String> validateTypeAndValue(WorkflowParameterType type, String value) {
         return type.validate(value);
+    }
+
+    @Override
+    public Object getCacheableKey() {
+        return name;
     }
 
     public Object getComputedValue() {
