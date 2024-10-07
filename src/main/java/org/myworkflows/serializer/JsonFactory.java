@@ -57,7 +57,11 @@ public final class JsonFactory {
 
     public static String toPrettyString(Object object, String defaultValue) {
         try {
-            return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(object);
+            Object newObject = object;
+            if (object instanceof String objectAsString) {
+                newObject = MAPPER.readTree(objectAsString);
+            }
+            return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(newObject);
         } catch (IOException exception) {
             return defaultValue;
         }

@@ -19,6 +19,8 @@ import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,8 +36,28 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
     private final List<WorkflowParameter> workflowParameters = new ArrayList<>();
 
     public WorkflowDevParamGrid() {
-        grid.getElement().getStyle().set("max-height", "250px");
-        grid.getElement().getStyle().set("overflow", "auto");
+        grid.addClassName("dev-param-grid");
+    }
+
+    public void addParameters(Collection<WorkflowParameter> parameters) {
+        workflowParameters.addAll(parameters);
+        grid.getDataProvider().refreshAll();
+    }
+
+    public Map<String, List<String>> getParametersForQuery() {
+        final var names = new ArrayList<String>(workflowParameters.size());
+        final var types = new ArrayList<String>(workflowParameters.size());
+        final var values = new ArrayList<String>(workflowParameters.size());
+        workflowParameters.forEach(workflowParameter -> {
+            names.add(workflowParameter.getName());
+            types.add(workflowParameter.getType().getValue());
+            values.add(workflowParameter.getValue());
+        });
+        final var parameters = new HashMap<String, List<String>>(3);
+        parameters.put("name", names);
+        parameters.put("type", types);
+        parameters.put("value", values);
+        return parameters;
     }
 
     public Map<String, Object> getParametersAsMap() {
@@ -64,6 +86,7 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
         ComboBox<WorkflowParameterType> typeField = new ComboBox<>();
         typeField.setItems(WorkflowParameterType.values());
         typeField.setWidthFull();
+        typeField.setAllowCustomValue(false);
         binder.forField(typeField)
             .bind(WorkflowParameter::getType, WorkflowParameter::setType);
         final var typeColumn = grid.addColumn(WorkflowParameter::getType).setHeader(getTranslation("workflow-dev-param.grid.type.column"));
@@ -73,8 +96,8 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
         valueField.setWidthFull();
         binder.forField(valueField)
             .withValidator((Validator<String>) (value, valueContext) -> WorkflowParameter.validateTypeAndValue(typeField.getValue(), value)
-                        .map(ValidationResult::error)
-                        .orElseGet(ValidationResult::ok))
+                .map(ValidationResult::error)
+                .orElseGet(ValidationResult::ok))
             .bind(WorkflowParameter::getValue, WorkflowParameter::setValue);
         final var valueColumn = grid.addColumn(WorkflowParameter::getValue).setHeader(getTranslation("workflow-dev-param.grid.value.column"));
         valueColumn.setEditorComponent(valueField);
@@ -88,16 +111,10 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
 
         final var addButton = new Button(VaadinIcon.PLUS.create());
         addButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-        addButton.addClickListener(event -> {
-            final var parameter = new WorkflowParameter();
-            parameter.setName("name");
-            parameter.setValue("value");
-            parameter.setType(WorkflowParameterType.STR);
-            workflowParameters.add(parameter);
-            grid.getDataProvider().refreshAll();
-        });
+        addButton.addClickListener(event -> addParameters(List.of(WorkflowParameter.of("name", WorkflowParameterType.STR, "value"))));
+
         final var actionColumn = grid.addComponentColumn(parameter -> createActionComponent(parameter, editor))
-                .setHeader(addButton);
+            .setHeader(addButton);
         actionColumn.setEditorComponent(actions);
 
         grid.setItems(workflowParameters);

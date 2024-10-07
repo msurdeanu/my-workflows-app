@@ -33,9 +33,9 @@ vaadin-scroller[slot="drawer"] {
     flex-wrap: wrap;
 }
 
-.ace-editor {
-    min-height: 150px;
-    max-height: 180px;
+.dev-param-grid {
+    max-height: 200px;
+    overflow: auto;
 }
 
 footer > span {

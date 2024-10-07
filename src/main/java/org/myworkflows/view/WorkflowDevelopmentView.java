@@ -7,6 +7,10 @@ import com.networknt.schema.ValidationMessage;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyModifier;
+import com.vaadin.flow.component.ShortcutEventListener;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
@@ -23,13 +27,17 @@ import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouteConfiguration;
 import com.vaadin.flow.shared.Registration;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.WorkflowDefinition;
+import org.myworkflows.domain.WorkflowParameter;
+import org.myworkflows.domain.WorkflowParameterType;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
@@ -41,9 +49,12 @@ import org.myworkflows.view.component.HasResizeableWidth;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowDevParamGrid;
 import org.myworkflows.view.component.WorkflowPrintGrid;
+import org.myworkflows.view.util.ClipboardUtil;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
@@ -72,20 +83,29 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private Registration onSubmittedRegistration;
     private Registration onProgressRegistration;
     private UUID lastSubmittedUuid;
+    private String currentEditorValue;
     private final Button updateWorkflowButton = new Button(getTranslation("workflow-development.update.button"),
         new Icon(VaadinIcon.UPLOAD));
 
     public WorkflowDevelopmentView(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
 
+        UI.getCurrent().addShortcutListener((ShortcutEventListener) shortcutEvent -> {
+            editor.setValue(toPrettyString(currentEditorValue, currentEditorValue));
+        }, Key.KEY_F, KeyModifier.CONTROL, KeyModifier.ALT);
+        UI.getCurrent().addShortcutListener((ShortcutEventListener) shortcutEvent -> editor.setWrap(!editor.isWrap()),
+            Key.KEY_W, KeyModifier.CONTROL, KeyModifier.ALT);
+
         editor.setMode(AceMode.json);
         editor.setSofttabs(true);
+        editor.addFocusShortcut(Key.KEY_E, KeyModifier.ALT);
+        editor.addValueChangeListener(event -> currentEditorValue = event.getValue());
         currentWorkflowStatus.setCompact(true);
         currentWorkflowStatus.setVisible(false);
 
-        splitLayout = createBody();
         filterByTemplate = createFilterByTemplate();
-        add(createHeader(getTranslation("workflow-development.page.title"), filterByTemplate),
+        splitLayout = createBody();
+        add(createHeader(getTranslation("workflow-development.page.title"), createShareButton(), filterByTemplate),
             createContent(splitLayout),
             createFooter());
     }
@@ -102,6 +122,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
                 .getAll(new WorkflowDefinitionFilter().setByIdCriteria(item), 0, 1)
                 .findFirst())
             .ifPresent(this::onFilteringByDefinition);
+        processQueryParameters(beforeEvent.getLocation().getQueryParameters());
     }
 
     @Override
@@ -141,6 +162,23 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         onProgressRegistration.remove();
         onSubmittedRegistration.remove();
         super.onDetach(detachEvent);
+    }
+
+    private Component createShareButton() {
+        final var shareButton = new Button(VaadinIcon.LINK.create());
+        shareButton.setTooltipText(getTranslation("workflow-development.share.button.tooltip"));
+        shareButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+        shareButton.addClickListener(event -> {
+            var url = ofNullable(filterByTemplate.getValue())
+                .map(item -> RouteConfiguration.forSessionScope().getUrl(WorkflowDevelopmentView.class, item.getId()))
+                .orElseGet(() -> RouteConfiguration.forSessionScope().getUrl(WorkflowDevelopmentView.class));
+            final var queryString = new QueryParameters(workflowDevParamGrid.getParametersForQuery()).getQueryString();
+            if (!queryString.isEmpty()) {
+                url = url + "?" + queryString;
+            }
+            ClipboardUtil.copyTo(getElement(), url);
+        });
+        return shareButton;
     }
 
     private Select<WorkflowDefinition> createFilterByTemplate() {
@@ -183,7 +221,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
                 .token(lastSubmittedUuid)
                 .workflowParameters(workflowDevParamGrid.getParametersAsMap())
-                .workflowDefinitionScript(editor.getValue())
+                .workflowDefinitionScript(currentEditorValue)
                 .build());
         });
         runWorkflowButton.setWidthFull();
@@ -193,7 +231,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         updateWorkflowButton.setWidthFull();
         updateWorkflowButton.addClickListener(event -> ofNullable(filterByTemplate.getValue())
             .ifPresent(workflowDefinition -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
-                .updateDefinition(workflowDefinition, editor.getValue())));
+                .updateDefinition(workflowDefinition, currentEditorValue)));
 
         layout.add(currentWorkflowStatus, defDetails, new Hr(), runWorkflowButton, updateWorkflowButton);
         return layout;
@@ -250,6 +288,27 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         }
 
         currentWorkflowStatus.setVisible(true);
+    }
+
+    private void processQueryParameters(QueryParameters queryParameters) {
+        final var parameters = queryParameters.getParameters();
+        if (parameters.isEmpty()) {
+            return;
+        }
+        final var names = parameters.getOrDefault("name", List.of());
+        workflowDevParamGrid.addParameters(IntStream.range(0, names.size()).mapToObj(index -> {
+            final var type = searchValueAtIndex(parameters.getOrDefault("type", List.of()), index, "str");
+            final var value = searchValueAtIndex(parameters.getOrDefault("value", List.of()), index, "");
+            return WorkflowParameter.of(names.get(index), ofNullable(WorkflowParameterType.of(type)).orElse(WorkflowParameterType.STR), value);
+        }).toList());
+    }
+
+    private String searchValueAtIndex(List<String> values, int index, String defaultValue) {
+        if (index >= 0 && index < values.size()) {
+            return values.get(index);
+        } else {
+            return defaultValue;
+        }
     }
 
 }
