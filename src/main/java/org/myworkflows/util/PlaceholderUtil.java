@@ -2,6 +2,7 @@ package org.myworkflows.util;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.myworkflows.exception.WorkflowRuntimeException;
 
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -21,7 +22,7 @@ public class PlaceholderUtil {
     public static String resolvePlaceholders(String value, Map<String, String> placeholders) {
         return StringReplacer.replace(value, PLACEHOLDER_PATTERN, (Matcher matcher) -> {
             final var name = matcher.group(1);
-            return ofNullable(placeholders.get(name)).orElseGet(() -> matcher.group(0));
+            return ofNullable(placeholders.get(name)).orElseThrow(() -> new WorkflowRuntimeException("No placeholder found for name '" + name + "'"));
         });
     }
 

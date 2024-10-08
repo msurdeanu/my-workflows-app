@@ -12,6 +12,7 @@ import lombok.Setter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toList;
 
@@ -26,6 +27,8 @@ import static java.util.stream.Collectors.toList;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ExpressionNameValue {
+
+    private static final Pattern CACHE_ACCESS_PATTERN = Pattern.compile("\\$\\(([a-zA-Z0-9_]+)(:[a-zA-Z0-9_.]+)?\\)");
 
     @EqualsAndHashCode.Include
     @JsonProperty("name")
@@ -46,7 +49,7 @@ public class ExpressionNameValue {
     @SuppressWarnings("unchecked")
     private Object recursiveEvaluation(Object object, Map<String, Object> variables) {
         if (object instanceof String objectAsStr) {
-            return runtimeEvaluator.evaluate(objectAsStr, variables);
+            return runtimeEvaluator.evaluate(objectAsStr, variables, CACHE_ACCESS_PATTERN);
         } else if (object instanceof List<?> objectAsList) {
             return objectAsList.stream().map(item -> recursiveEvaluation(item, variables)).collect(toList());
         } else if (object instanceof Map) {

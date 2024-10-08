@@ -27,6 +27,10 @@ public final class WorkflowRunCache implements Serializable {
 
     private boolean cacheObjectMapComplete = true;
 
+    public Object get(String key) {
+        return cachedObjectMap.get(key);
+    }
+
     @SuppressWarnings("checkstyle:LineLength")
     public <T> T get(String key, Class<T> clazz) {
         return find(key, clazz)
