@@ -35,11 +35,8 @@ CREATE TABLE workflow_definitions
 );
 
 INSERT INTO workflow_definitions ("name", "script")
-VALUES ('Simple script 1',
-        '{"name":"Test 1","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":2000}],"outputs":[{"name":"test","value":2000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["test"]}]}]}');
-INSERT INTO workflow_definitions ("name", "script")
-VALUES ('Simple script 2',
-        '{"name":"Test 2","commands":[{"name":"Just a sleep","@type":"sleep","inputs":[{"name":"sleepTime","value":2000}],"outputs":[{"name":"$$(TEST)","value":2000}]},{"name":"Just a print","@type":"print","inputs":[{"name":"keys","value":["$$(TEST)"]}]}]}');
+VALUES ('Sleep command with placeholder',
+        '{"name":"Sleep command with placeholder","commands":[{"name":"Sleep with placeholder","@type":"sleep","inputs":[{"name":"$$(SLEEP_TIME)","value":1000}]},{"name":"Print placeholder value","@type":"print","inputs":[{"name":"keys","value":["$$(SLEEP_TIME)"]}]}]}');
 
 CREATE TABLE workflow_templates
 (
@@ -50,7 +47,7 @@ CREATE TABLE workflow_templates
 );
 
 INSERT INTO workflow_templates ("enabled", "name", "cron")
-VALUES ('1', 'Simple template', '0 * * * * MON-FRI');
+VALUES ('1', '"Sleep command with placeholder" template', '0 0 * * * MON-FRI');
 
 CREATE TABLE workflow_templates_workflow_definitions
 (
@@ -70,7 +67,7 @@ CREATE TABLE workflow_parameters
 );
 
 INSERT INTO workflow_parameters ("name", "type", "value")
-VALUES ('sleepTime', 'int', '5000');
+VALUES ('sleepTime', 'str', 'sleepTime');
 
 CREATE TABLE workflow_definitions_workflow_parameters
 (
@@ -116,4 +113,4 @@ CREATE TABLE placeholders
 );
 
 INSERT INTO placeholders ("name", "value")
-VALUES ('TEST', 'test');
+VALUES ('SLEEP_TIME', 'sleepTime');
