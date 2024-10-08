@@ -330,3 +330,30 @@ Vaadin web applications are full-stack and include both client-side and server-s
 | &nbsp;&nbsp;&nbsp;&nbsp;`view/`                              | Contains a set of views exposed by the application    |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`component/` | Package with all Vaadin custom components             |
 | &nbsp;&nbsp;&nbsp;&nbsp;`Application.java`                   | Server entrypoint                                     |
+
+
+### How to deploy this application on your Ubuntu server?
+
+First of all, make sure you have OpenJDK 21 installed on your server.
+It's recommended to use OpenJDK distribution for your JDK.
+```bash
+sudo apt install openjdk-21-jdk
+```
+
+If you have an older version, you can easily uninstall it:
+```bash
+sudo apt-get purge openjdk*
+```
+
+Next step is to generate a self-signed SSL certificate:
+```bash
+keytool -genkeypair -alias myalias -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore keystore.p12 -validity 3650
+```
+The certificate will be available for 10 years.
+
+Once SSL certificate is ready, you can config `application.yml` file and prepare a script to launch Java process:
+```bash
+#!/bin/bash
+
+java -Xmx1G -XX:+UseG1GC -jar /home/path/myworkflows.org/public_html/myworkflows-app.jar --spring.config.location=/home/path/myworkflows.org/public_html/application.yml
+```

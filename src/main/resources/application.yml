@@ -1,5 +1,12 @@
 server:
   port: 8080
+  # Properties for enabling HTTPS
+  #ssl:
+  #  enabled: true
+  #  key-store: keystore.p12
+  #  key-store-password: yourpassword
+  #  key-store-type: PKCS12
+  #  key-alias: myalias
 
 spring:
   jpa:
