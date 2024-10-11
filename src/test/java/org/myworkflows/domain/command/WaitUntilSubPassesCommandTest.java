@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 public final class WaitUntilSubPassesCommandTest {
 
     @Test
-    public void whenMandatoryParameterIsSet_thenNoExceptionIsExpected() {
+    public void whenMandatoryParameterIsSetThenNoExceptionIsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
 

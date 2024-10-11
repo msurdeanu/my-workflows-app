@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.myworkflows.domain.ExpressionNameValue.CACHE_ACCESS_PATTERN;
 import static org.myworkflows.domain.RuntimeEvaluator.GROOVY;
 import static org.myworkflows.domain.RuntimeEvaluator.JAVA;
 import static org.myworkflows.domain.RuntimeEvaluator.SPEL;
@@ -15,8 +16,6 @@ import static org.myworkflows.domain.RuntimeEvaluator.SPEL;
  * @since 1.0.0
  */
 public final class RuntimeEvaluatorTest {
-
-    private static final Pattern CACHE_ACCESS_PATTERN = Pattern.compile("\\$\\(([a-zA-Z0-9_]+)(:[a-zA-Z0-9_.]+)?\\)");
 
     @Test
     public void testSimpleGroovyExpression() {

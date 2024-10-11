@@ -53,7 +53,7 @@ import static java.util.stream.IntStream.range;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class AbstractCommand {
 
-    private static final String WORKFLOW_CACHE = "workflowCache";
+    private static final String WORKFLOW_CACHE = "cache";
 
     private static final String OUTPUT = "output";
 

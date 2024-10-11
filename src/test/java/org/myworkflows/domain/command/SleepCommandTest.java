@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public final class SleepCommandTest {
 
     @Test
-    public void whenMandatoryParameterIsSet_thenNoExceptionIsExpected() {
+    public void whenMandatoryParameterIsSetThenNoExceptionIsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("sleepTime", 100L);
@@ -24,7 +24,7 @@ public final class SleepCommandTest {
     }
 
     @Test
-    public void whenMandatoryParameterIsNotSet_thenAnExceptionIsExpected() {
+    public void whenMandatoryParameterIsNotSetThenAnExceptionIsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("sleep", 100L);

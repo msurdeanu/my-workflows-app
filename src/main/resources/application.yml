@@ -30,12 +30,21 @@ spring:
     check-template-location: false
 
 logging:
+  pattern:
+    console: "%d %-5level %logger : %msg%n"
+    file: "%d %-5level [%thread] %logger : %msg%n"
   level:
     # Property for defining root level for application logs.
     root: INFO # use DEBUG as value for activating DEBUG level
     # Uncomment the following property if you want to activate debug level only for classes created by this app.
     #org:
     #  myworkflows: DEBUG
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB # Limit for log file size
+      max-history: 10 # Activate log rolling
+  file:
+    name: application.log # Default name for logging file
 
 my-workflows:
   config:
