@@ -3,7 +3,6 @@ package org.myworkflows.domain;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.myworkflows.domain.ExpressionNameValue.CACHE_ACCESS_PATTERN;
