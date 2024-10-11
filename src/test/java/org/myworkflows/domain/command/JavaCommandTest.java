@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public final class JavaCommandTest {
 
     @Test
-    public void whenSimpleJavaCodeIsRun_thenEverythingWorksAsExpected() {
+    public void whenSimpleJavaCodeIsRunThenEverythingWorksAsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("scriptLines", List.of(
@@ -39,7 +39,7 @@ public final class JavaCommandTest {
     }
 
     @Test
-    public void whenSimpleJavaCodeIsRunWithOptionalParams_thenEverythingWorksAsExpected() {
+    public void whenSimpleJavaCodeIsRunWithOptionalParamsThenEverythingWorksAsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("scriptLines", List.of(
@@ -60,7 +60,7 @@ public final class JavaCommandTest {
     }
 
     @Test
-    public void whenSimpleJavaCodeIsRunWithSyntaxIssue_thenAProperExceptionIsRaised() {
+    public void whenSimpleJavaCodeIsRunWithSyntaxIssueThenAProperExceptionIsRaised() {
         // given
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("scriptLines", List.of(

@@ -34,7 +34,7 @@ public final class DatabaseCommand extends AbstractCommand {
                                         @MandatoryParam String query) throws SQLException {
         try (final var connection = DriverManager.getConnection(url); // format: "jdbc:sqlite:"
              final var statement = connection.createStatement()) {
-            final var resultSet = statement.executeQuery(query);
+            final var resultSet = statement.executeQuery(query); // TODO: escape sql query
             if (resultSet != null && resultSet.isBeforeFirst()) {
                 return of(resultSet);
             } else {

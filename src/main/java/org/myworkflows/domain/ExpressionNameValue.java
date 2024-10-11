@@ -28,7 +28,7 @@ import static java.util.stream.Collectors.toList;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ExpressionNameValue {
 
-    private static final Pattern CACHE_ACCESS_PATTERN = Pattern.compile("\\$\\(([a-zA-Z0-9_]+)(:[a-zA-Z0-9_.]+)?\\)");
+    public static final Pattern CACHE_ACCESS_PATTERN = Pattern.compile("\\$\\(([a-zA-Z0-9_]+)(:[a-zA-Z0-9_.]+)?\\)");
 
     @EqualsAndHashCode.Include
     @JsonProperty("name")

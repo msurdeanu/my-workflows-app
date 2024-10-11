@@ -11,12 +11,12 @@ All workflows are defined in JSON format and for playing with them, you have a n
 ## Technology stack
 
 * Java 21 as programming language.
-* Spring Boot 3.x as dependency injection framework
-* [Vaadin 24](https://vaadin.com) as UI framework
+* Spring Boot 3.x as dependency injection framework.
+* [Vaadin 24](https://vaadin.com) as UI framework.
 * [SQLite](https://www.sqlite.org/) as relational database for persisting data.
-* Use [Groovy](https://groovy-lang.org/) as additional language for defining workflow commands
-* Use [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) as runtime evaluator to
-  propagate data between two or multiple commands.
+* Uses [Janino](https://www.janino.net/) as Java runtime compiler.
+* Uses [Groovy](https://groovy-lang.org/) as additional language for defining commands
+* Uses [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) as runtime evaluator to propagate data between two or multiple commands.
 
 ## Features
 
@@ -24,7 +24,7 @@ All workflows are defined in JSON format and for playing with them, you have a n
 * **Authentication** and **authorization** enabled by default.
 * Vaadin **Push** enabled. Through websockets, the server can send updates to the client.
 * Persistence layer based on **SQLite**.
-* Dedicated web pages for **workflow definitions**, **workflow templates** and **workflow runs**.
+* Dedicated web pages for **workflow development**, **workflow definitions**, **workflow templates** and **workflow runs**.
 * Dedicated web page for **statistics**.
 
 ## TODOs
@@ -334,7 +334,7 @@ Vaadin web applications are full-stack and include both client-side and server-s
 
 ### How to deploy this application on your Ubuntu server?
 
-First of all, make sure you have OpenJDK 21 installed on your server.
+First of all, make sure you have **OpenJDK 21** installed on your server.
 It's recommended to use OpenJDK distribution for your JDK.
 ```bash
 sudo apt install openjdk-21-jdk
@@ -345,13 +345,7 @@ If you have an older version, you can easily uninstall it:
 sudo apt-get purge openjdk*
 ```
 
-Next step is to generate a self-signed SSL certificate:
-```bash
-keytool -genkeypair -alias myalias -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore keystore.p12 -validity 3650
-```
-The certificate will be available for 10 years.
-
-Once SSL certificate is ready, you can config `application.yml` file and prepare a script to launch Java process:
+Once the application config is ready, you can prepare a script to launch the app:
 ```bash
 #!/bin/bash
 

@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public final class GroovyCommandTest {
 
     @Test
-    public void whenSimpleGroovyCodeIsRun_thenEverythingWorksAsExpected() {
+    public void whenSimpleGroovyCodeIsRunThenEverythingWorksAsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("scriptLines", List.of(
@@ -37,7 +37,7 @@ public final class GroovyCommandTest {
     }
 
     @Test
-    public void whenSimpleGroovyCodeIsRunWithOptionalParams_thenEverythingWorksAsExpected() {
+    public void whenSimpleGroovyCodeIsRunWithOptionalParamsThenEverythingWorksAsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("scriptLines", List.of(
@@ -55,7 +55,7 @@ public final class GroovyCommandTest {
     }
 
     @Test
-    public void whenSimpleGroovyCodeIsRunWithSyntaxIssue_thenAProperExceptionIsRaised() {
+    public void whenSimpleGroovyCodeIsRunWithSyntaxIssueThenAProperExceptionIsRaised() {
         // given
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("scriptLines", List.of(
