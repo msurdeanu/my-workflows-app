@@ -60,9 +60,9 @@ public final class GroovyCommandTest {
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("scriptLines", List.of(
             "import org.myworkflows.domain.WorkflowRunCache",
-            "def int myRun(WorkflowRunCache cache) {",
+            "int myRun(WorkflowRunCache cache) {", // we forgot "def" keyword
             "  return 1",
-            "" // we forgot "}"
+            "}"
         ));
         workflowRun.getCache().put("methodName", "myRun");
 
