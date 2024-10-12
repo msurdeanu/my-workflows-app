@@ -3,7 +3,7 @@ package org.myworkflows.domain.command;
 import lombok.NoArgsConstructor;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.command.api.ExecutionMethod;
-import org.myworkflows.domain.command.api.MandatoryParam;
+import org.myworkflows.domain.command.api.ExecutionParam;
 
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -29,9 +29,9 @@ public final class DatabaseCommand extends AbstractCommand {
         super(name, ifs, inputs, asserts, outputs);
     }
 
-    @ExecutionMethod
-    public Optional<ResultSet> database(@MandatoryParam String url,
-                                        @MandatoryParam String query) throws SQLException {
+    @ExecutionMethod(prefix = "database")
+    public Optional<ResultSet> database(@ExecutionParam String url,
+                                        @ExecutionParam String query) throws SQLException {
         try (final var connection = DriverManager.getConnection(url); // format: "jdbc:sqlite:"
              final var statement = connection.createStatement()) {
             final var resultSet = statement.executeQuery(query); // TODO: escape sql query

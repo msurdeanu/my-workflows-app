@@ -9,15 +9,12 @@ import com.sshtools.common.ssh.SshException;
 import lombok.NoArgsConstructor;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.command.api.ExecutionMethod;
-import org.myworkflows.domain.command.api.MandatoryParam;
-import org.myworkflows.domain.command.api.OptionalParam;
+import org.myworkflows.domain.command.api.ExecutionParam;
 import org.myworkflows.domain.command.output.SshCommandOutput;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
@@ -34,22 +31,20 @@ public final class SshShellCommand extends AbstractCommand {
         super(name, ifs, inputs, asserts, outputs);
     }
 
-    @ExecutionMethod
-    public SshCommandOutput sshShell(@MandatoryParam String host,
-                                     @MandatoryParam String username,
-                                     @MandatoryParam String password,
-                                     @MandatoryParam List<String> commands,
-                                     @OptionalParam Integer port,
-                                     @OptionalParam Long timeout) throws IOException, SshException {
-        final var resolvedPort = ofNullable(port).orElse(22);
-        final var resolvedTimeout = ofNullable(timeout).orElse(60_000L);
+    @ExecutionMethod(prefix = "sshShell")
+    public SshCommandOutput sshShell(@ExecutionParam String host,
+                                     @ExecutionParam String username,
+                                     @ExecutionParam String password,
+                                     @ExecutionParam List<String> commands,
+                                     @ExecutionParam(required = false, defaultValue = "22") Number port,
+                                     @ExecutionParam(required = false, defaultValue = "60000") Number timeout) throws IOException, SshException {
 
         final var outputBuilder = new StringBuilder();
         final var commandOutputBuilder = SshCommandOutput.builder();
 
         try (SshClient sshclient = SshClient.SshClientBuilder.create()
             .withHostname(host)
-            .withPort(resolvedPort)
+            .withPort(port.intValue())
             .withUsername(username)
             .withPassword(password.toCharArray())
             .build()) {
@@ -64,7 +59,7 @@ public final class SshShellCommand extends AbstractCommand {
                         outputBuilder.append(shellProcess.getCommandOutput());
                     }
                 }
-            }, resolvedTimeout);
+            }, timeout.longValue());
         }
 
         return commandOutputBuilder.output(outputBuilder.toString()).build();

@@ -112,9 +112,9 @@ This field can be used anywhere in the workflow definition.
 Provides ability to run Groovy code at runtime.
 As you probably already imagine, this command is very powerful.
 
-| `@type`  | Inputs                                                                                                                                                                                                                                                           | Output                             |
-|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| `groovy` | <ul><li><strong>scriptLines</strong>: Mandatory. Represents source code which contains definition of a `methodName` (or `run`) method to be executed.</li><li><em>methodName</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
+| `@type`  | Inputs                                                                                                                                                                                                                                                                          | Output                             |
+|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| `groovy` | <ul><li><strong>java.scriptLines</strong>: Mandatory. Represents source code which contains definition of a `java.methodName` (or `run`) method to be executed.</li><li><em>java.methodName</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
 
 Example of a dummy command:
 
@@ -124,14 +124,14 @@ Example of a dummy command:
   "@type": "groovy",
   "inputs": [
     {
-      "name": "scriptLines",
+      "name": "java.scriptLines",
       "value": [
         "def run(workflowRunCache) {",
         "}"
       ]
     },
     {
-      "name": "methodName",
+      "name": "java.methodName",
       "value": "run"
     }
   ]
@@ -143,9 +143,9 @@ Example of a dummy command:
 Provides ability to run Java code at runtime.
 Like for Groovy command, this command is also very powerful.
 
-| `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                 | Output                             |
-|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| `java`  | <ul><li><strong>scriptLines</strong>: Mandatory. Represents source code which contains definition of a `methodName` (or `run`) method inside a class `className` (or `DynamicClass`) which will be executed.</li><li><em>methodName</em>: Optional. Represents the method name invoked when code is executed.</li><li><em>className</em>: Optional. Represents the class name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
+| `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                          | Output                             |
+|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| `java`  | <ul><li><strong>java.scriptLines</strong>: Mandatory. Represents source code which contains definition of a `java.methodName` (or `run`) method inside a class `java.className` (or `DynamicClass`) which will be executed.</li><li><em>java.methodName</em>: Optional. Represents the method name invoked when code is executed.</li><li><em>java.className</em>: Optional. Represents the class name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
 
 Example of a dummy command:
 
@@ -155,7 +155,7 @@ Example of a dummy command:
   "@type": "java",
   "inputs": [
     {
-      "name": "scriptLines",
+      "name": "java.scriptLines",
       "value": [
         "import org.myworkflows.domain.WorkflowRunCache;",
         "public class DynamicClass {",
@@ -166,11 +166,11 @@ Example of a dummy command:
       ]
     },
     {
-      "name": "methodName",
+      "name": "java.methodName",
       "value": "run"
     },
     {
-      "name": "className",
+      "name": "java.className",
       "value": "DynamicClass"
     }
   ]
@@ -205,9 +205,9 @@ Example of a dummy command:
 
 Captures an input / output variable during workflow execution and shows the value to the UI.
 
-| `@type` | Inputs                                                                                                          | Output                                                                |
-|---------|-----------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
-| `print` | <ul><li><strong>keys</strong>: Mandatory. Represents a list of variable names that will be displayed.</li></ul> | Returns total number of keys affected by this operation. Type: `int`. |
+| `@type` | Inputs                                                                                                                | Output                                                                |
+|---------|-----------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
+| `print` | <ul><li><strong>print.keys</strong>: Mandatory. Represents a list of variable names that will be displayed.</li></ul> | Returns total number of keys affected by this operation. Type: `int`. |
 
 Example of a dummy command:
 
@@ -217,7 +217,7 @@ Example of a dummy command:
   "@type": "print",
   "inputs": [
     {
-      "name": "keys",
+      "name": "print.keys",
       "value": [
         "commandOutput"
       ]
@@ -231,9 +231,9 @@ Example of a dummy command:
 Provides ability to pause current workflow execution by a given time.
 Time unit is milliseconds.
 
-| `@type` | Inputs                                                                                              | Output                                       |
-|---------|-----------------------------------------------------------------------------------------------------|----------------------------------------------|
-| `sleep` | <ul><li><strong>sleepTime</strong>: Mandatory. Represents number of millis used to sleep.</li></ul> | Returns the actual time slept. Type: `long`. |
+| `@type` | Inputs                                                                                               | Output                                       |
+|---------|------------------------------------------------------------------------------------------------------|----------------------------------------------|
+| `sleep` | <ul><li><strong>sleep.time</strong>: Mandatory. Represents number of millis used to sleep.</li></ul> | Returns the actual time slept. Type: `long`. |
 
 Example of a dummy command:
 
@@ -243,7 +243,7 @@ Example of a dummy command:
   "@type": "sleep",
   "inputs": [
     {
-      "name": "sleepTime",
+      "name": "sleep.time",
       "value": 1000
     }
   ]
@@ -260,7 +260,7 @@ Example of a dummy command:
       "@type": "sleep",
       "inputs": [
         {
-          "name": "sleepTime",
+          "name": "sleep.time",
           "value": 5000
         }
       ],

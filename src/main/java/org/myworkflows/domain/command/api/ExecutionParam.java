@@ -11,6 +11,10 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
-public @interface OptionalParam {
+public @interface ExecutionParam {
+
+    boolean required() default true;
+
+    String defaultValue() default "";
 
 }

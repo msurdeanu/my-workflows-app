@@ -13,7 +13,7 @@ import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowRunCache;
 import org.myworkflows.domain.command.api.ExecutionMethod;
-import org.myworkflows.domain.command.api.OptionalParam;
+import org.myworkflows.domain.command.api.ExecutionParam;
 import org.myworkflows.exception.WorkflowRuntimeException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -88,9 +88,9 @@ public abstract class AbstractCommand {
 
         runInputs(workflowRun.getCache());
         stream(getClass().getDeclaredMethods())
-                .filter(method -> method.isAnnotationPresent(ExecutionMethod.class))
-                .findFirst()
-                .ifPresent(method -> runMethodWithAssertsAndOutputs(method, workflowRun));
+            .filter(method -> method.isAnnotationPresent(ExecutionMethod.class))
+            .findFirst()
+            .ifPresent(method -> runMethodWithAssertsAndOutputs(method, workflowRun));
     }
 
     private boolean runIfs(WorkflowRunCache workflowRunCache) {
@@ -102,50 +102,52 @@ public abstract class AbstractCommand {
     }
 
     private void runMethodWithAssertsAndOutputs(Method method, WorkflowRun workflowRun) {
-        runMethod(method, workflowRun).ifPresent(output -> {
+        final var executionMethod = method.getDeclaredAnnotation(ExecutionMethod.class);
+        runMethod(method, executionMethod, workflowRun).ifPresent(output -> {
             runAsserts(output, workflowRun.getCache());
             runOutputs(output, workflowRun.getCache());
         });
     }
 
-    private Optional<Object> runMethod(Method method, WorkflowRun workflowRun) {
+    private Optional<Object> runMethod(Method method, ExecutionMethod executionMethod, WorkflowRun workflowRun) {
         try {
-            return ofNullable(method.invoke(this, resolveParameters(method, workflowRun)));
+            return ofNullable(method.invoke(this, resolveParameters(method, executionMethod, workflowRun)));
         } catch (IllegalAccessException | InvocationTargetException exception) {
             throw new WorkflowRuntimeException(exception);
         }
     }
 
-    private Object[] resolveParameters(Method method, WorkflowRun workflowRun) {
+    private Object[] resolveParameters(Method method, ExecutionMethod executionMethod, WorkflowRun workflowRun) {
         final var parameters = method.getParameters();
         final var resolvedParameters = new Object[parameters.length];
-        range(0, parameters.length)
-                .forEach(index -> resolvedParameters[index] = resolveParameter(parameters[index], workflowRun));
+        range(0, parameters.length).forEach(index -> resolvedParameters[index] = resolveParameter(parameters[index], executionMethod, workflowRun));
         return resolvedParameters;
     }
 
-    private Object resolveParameter(Parameter parameter, WorkflowRun workflowRun) {
-        final var parameterIsMandatory = ofNullable(parameter.getDeclaredAnnotation(OptionalParam.class)).isEmpty();
+    private Object resolveParameter(Parameter parameter, ExecutionMethod executionMethod, WorkflowRun workflowRun) {
+        final var optionalExecutionParam = ofNullable(parameter.getDeclaredAnnotation(ExecutionParam.class));
+        final boolean paramIsMandatory = optionalExecutionParam.map(ExecutionParam::required).orElse(false);
+        final var paramDefaultValue = optionalExecutionParam.map(ExecutionParam::defaultValue).orElse(null);
         final var parameterType = parameter.getType();
         final var parameterizedType = parameter.getParameterizedType();
         if (parameterizedType instanceof ParameterizedType && List.class.equals(parameterType)) {
             final var actualTypeArguments = ((ParameterizedType) parameterizedType).getActualTypeArguments();
             return workflowRun.getCache()
-                    .lookupList(parameter.getName(), (Class<?>) actualTypeArguments[0], parameterIsMandatory);
+                .lookupList(executionMethod.prefix() + "." + parameter.getName(), (Class<?>) actualTypeArguments[0], paramIsMandatory, paramDefaultValue);
         } else if (WorkflowRun.class.equals(parameterType)) {
             return workflowRun;
         } else {
-            return workflowRun.getCache().lookup(parameter.getName(), parameterType, parameterIsMandatory);
+            return workflowRun.getCache().lookup(executionMethod.prefix() + "." + parameter.getName(), parameterType, paramIsMandatory, paramDefaultValue);
         }
     }
 
     private void runAsserts(Object output, WorkflowRunCache workflowRunCache) {
         asserts.stream()
-                .filter(assertion -> !Boolean.TRUE.equals(assertion.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache, OUTPUT, output))))
-                .findFirst()
-                .ifPresent(assertion -> {
-                    throw new WorkflowRuntimeException("Assertion name '" + assertion.getName() + "' with body '" + assertion.getValue() + "' failed.");
-                });
+            .filter(assertion -> !Boolean.TRUE.equals(assertion.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache, OUTPUT, output))))
+            .findFirst()
+            .ifPresent(assertion -> {
+                throw new WorkflowRuntimeException("Assertion name '" + assertion.getName() + "' with body '" + assertion.getValue() + "' failed.");
+            });
     }
 
     private void runOutputs(Object output, WorkflowRunCache workflowRunCache) {

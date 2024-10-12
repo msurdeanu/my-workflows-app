@@ -23,7 +23,7 @@ public final class JavaCommandTest {
     public void whenSimpleJavaCodeIsRunThenEverythingWorksAsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("scriptLines", List.of(
+        workflowRun.getCache().put("java.scriptLines", List.of(
             "import org.myworkflows.domain.WorkflowRunCache;",
             "public class DynamicClass {",
             "  public String run(WorkflowRunCache cache) {",
@@ -42,7 +42,7 @@ public final class JavaCommandTest {
     public void whenSimpleJavaCodeIsRunWithOptionalParamsThenEverythingWorksAsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("scriptLines", List.of(
+        workflowRun.getCache().put("java.scriptLines", List.of(
             "import org.myworkflows.domain.WorkflowRunCache;",
             "public class MyClass {",
             "  public int myRun(WorkflowRunCache cache) {",
@@ -50,8 +50,8 @@ public final class JavaCommandTest {
             "  }",
             "}"
         ));
-        workflowRun.getCache().put("methodName", "myRun");
-        workflowRun.getCache().put("className", "MyClass");
+        workflowRun.getCache().put("java.methodName", "myRun");
+        workflowRun.getCache().put("java.className", "MyClass");
 
         // when & then
         assertDoesNotThrow(() -> new JavaCommand("A", Set.of(), Set.of(), Set.of(),
@@ -63,7 +63,7 @@ public final class JavaCommandTest {
     public void whenSimpleJavaCodeIsRunWithSyntaxIssueThenAProperExceptionIsRaised() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("scriptLines", List.of(
+        workflowRun.getCache().put("java.scriptLines", List.of(
             "import org.myworkflows.domain.WorkflowRunCache;",
             "public class MyClass {",
             "  public int myRun(WorkflowRunCache cache) {",
@@ -71,8 +71,8 @@ public final class JavaCommandTest {
             "  }",
             "}"
         ));
-        workflowRun.getCache().put("methodName", "myRun");
-        workflowRun.getCache().put("className", "MyClass");
+        workflowRun.getCache().put("java.methodName", "myRun");
+        workflowRun.getCache().put("java.className", "MyClass");
 
         // when & then
         assertThrows(WorkflowRuntimeException.class,

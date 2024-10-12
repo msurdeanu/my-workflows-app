@@ -5,14 +5,12 @@ import lombok.NoArgsConstructor;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.command.api.ExecutionMethod;
-import org.myworkflows.domain.command.api.MandatoryParam;
-import org.myworkflows.domain.command.api.OptionalParam;
+import org.myworkflows.domain.command.api.ExecutionParam;
 
 import java.util.List;
 import java.util.Set;
 
 import static java.lang.System.lineSeparator;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 
 /**
@@ -32,18 +30,16 @@ public final class GroovyCommand extends AbstractCommand {
         super(name, ifs, inputs, asserts, outputs);
     }
 
-    @ExecutionMethod
-    public Object groovy(@MandatoryParam WorkflowRun workflowRun,
-                         @MandatoryParam List<String> scriptLines,
-                         @OptionalParam String methodName) {
+    @ExecutionMethod(prefix = "groovy")
+    public Object groovy(@ExecutionParam WorkflowRun workflowRun,
+                         @ExecutionParam List<String> scriptLines,
+                         @ExecutionParam(required = false, defaultValue = "run") String methodName) {
         if (scriptLines.isEmpty()) {
             return null;
         }
 
-        final var resolvedMethodName = ofNullable(methodName).orElse("run");
-
         final var script = GROOVY_SHELL.parse(scriptLines.stream().collect(joining(lineSeparator())));
-        return script.invokeMethod(resolvedMethodName, workflowRun.getCache());
+        return script.invokeMethod(methodName, workflowRun.getCache());
     }
 
 }

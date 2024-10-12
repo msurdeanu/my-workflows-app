@@ -17,7 +17,7 @@ public final class SleepCommandTest {
     public void whenMandatoryParameterIsSetThenNoExceptionIsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("sleepTime", 100L);
+        workflowRun.getCache().put("sleep.time", 100L);
 
         // when & then
         assertDoesNotThrow(() -> new SleepCommand().run(workflowRun));

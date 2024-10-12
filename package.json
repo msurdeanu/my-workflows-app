@@ -2,7 +2,7 @@
   "name": "no-name",
   "license": "UNLICENSED",
   "dependencies": {
-    "@f0rce/ace-widget": "1.0.2",
+    "@f0rce/lit-ace": "1.11.1",
     "@polymer/iron-iconset-svg": "^3.0.1",
     "@polymer/paper-button": "^3.0.1",
     "@polymer/paper-icon-button": "^3.0.2",
@@ -70,12 +70,12 @@
     "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
     "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles",
     "@polymer/paper-icon-button": "$@polymer/paper-icon-button",
-    "@f0rce/ace-widget": "$@f0rce/ace-widget"
+    "@f0rce/lit-ace": "$@f0rce/lit-ace"
   },
   "type": "module",
   "vaadin": {
     "dependencies": {
-      "@f0rce/ace-widget": "1.0.2",
+      "@f0rce/lit-ace": "1.11.1",
       "@polymer/iron-iconset-svg": "^3.0.1",
       "@polymer/paper-button": "^3.0.1",
       "@polymer/paper-icon-button": "^3.0.2",
@@ -120,6 +120,6 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "2ab6ab242d201c5af2809cc78193a64d8da4313674fcdc84aa5853f7ede7776a"
+    "hash": "2e2fb92871dff0b5301248608c5376903035a603cc9cf9df8cca0818681f3b8e"
   }
 }

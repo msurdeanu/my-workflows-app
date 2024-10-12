@@ -23,7 +23,7 @@ public final class GroovyCommandTest {
     public void whenSimpleGroovyCodeIsRunThenEverythingWorksAsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("scriptLines", List.of(
+        workflowRun.getCache().put("groovy.scriptLines", List.of(
             "import org.myworkflows.domain.WorkflowRunCache",
             "def String run(WorkflowRunCache cache) {",
             "  return \"Test\"",
@@ -40,13 +40,13 @@ public final class GroovyCommandTest {
     public void whenSimpleGroovyCodeIsRunWithOptionalParamsThenEverythingWorksAsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("scriptLines", List.of(
+        workflowRun.getCache().put("groovy.scriptLines", List.of(
             "import org.myworkflows.domain.WorkflowRunCache",
             "def int myRun(WorkflowRunCache cache) {",
             "  return 1",
             "}"
         ));
-        workflowRun.getCache().put("methodName", "myRun");
+        workflowRun.getCache().put("groovy.methodName", "myRun");
 
         // when & then
         assertDoesNotThrow(() -> new GroovyCommand("A", Set.of(), Set.of(), Set.of(),
@@ -58,13 +58,13 @@ public final class GroovyCommandTest {
     public void whenSimpleGroovyCodeIsRunWithSyntaxIssueThenAProperExceptionIsRaised() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("scriptLines", List.of(
+        workflowRun.getCache().put("groovy.scriptLines", List.of(
             "import org.myworkflows.domain.WorkflowRunCache",
             "int myRun(WorkflowRunCache cache) {", // we forgot "def" keyword
             "  return 1",
             "}"
         ));
-        workflowRun.getCache().put("methodName", "myRun");
+        workflowRun.getCache().put("groovy.methodName", "myRun");
 
         // when & then
         assertThrows(WorkflowRuntimeException.class,
