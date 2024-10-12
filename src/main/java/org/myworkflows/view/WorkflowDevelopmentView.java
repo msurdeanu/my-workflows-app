@@ -1,8 +1,6 @@
 package org.myworkflows.view;
 
 import com.flowingcode.vaadin.addons.granitealert.GraniteAlert;
-import com.hilerio.ace.AceEditor;
-import com.hilerio.ace.AceMode;
 import com.networknt.schema.ValidationMessage;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -31,6 +29,8 @@ import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteConfiguration;
 import com.vaadin.flow.shared.Registration;
+import de.f0rce.ace.AceEditor;
+import de.f0rce.ace.enums.AceMode;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
@@ -50,6 +50,7 @@ import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowDevParamGrid;
 import org.myworkflows.view.component.WorkflowPrintGrid;
 import org.myworkflows.view.util.ClipboardUtil;
+import org.myworkflows.view.util.EditorAutoCompleteUtil;
 
 import java.util.List;
 import java.util.Set;
@@ -100,6 +101,9 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         editor.setSofttabs(true);
         editor.addFocusShortcut(Key.KEY_E, KeyModifier.ALT);
         editor.addValueChangeListener(event -> currentEditorValue = event.getValue());
+        editor.setAutoComplete(true);
+        editor.setLiveAutocompletion(true);
+        EditorAutoCompleteUtil.apply(editor);
         currentWorkflowStatus.setCompact(true);
         currentWorkflowStatus.setVisible(false);
 

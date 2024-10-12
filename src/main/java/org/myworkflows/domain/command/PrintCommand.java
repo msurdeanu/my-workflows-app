@@ -4,7 +4,7 @@ import lombok.NoArgsConstructor;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.command.api.ExecutionMethod;
-import org.myworkflows.domain.command.api.MandatoryParam;
+import org.myworkflows.domain.command.api.ExecutionParam;
 
 import java.util.List;
 import java.util.Set;
@@ -24,9 +24,9 @@ public final class PrintCommand extends AbstractCommand {
         super(name, ifs, inputs, asserts, outputs);
     }
 
-    @ExecutionMethod
-    public int print(@MandatoryParam WorkflowRun workflowRun,
-                     @MandatoryParam List<String> keys) {
+    @ExecutionMethod(prefix = "print")
+    public int print(@ExecutionParam WorkflowRun workflowRun,
+                     @ExecutionParam List<String> keys) {
         return keys.stream()
             .map(workflowRun::markKeyAsPrinted)
             .mapToInt(isPrinted -> isPrinted ? 1 : 0)

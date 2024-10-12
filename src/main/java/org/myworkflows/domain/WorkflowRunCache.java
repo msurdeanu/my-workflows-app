@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,13 +35,16 @@ public final class WorkflowRunCache implements Serializable {
     @SuppressWarnings("checkstyle:LineLength")
     public <T> T get(String key, Class<T> clazz) {
         return find(key, clazz)
-            .orElseThrow(() -> new WorkflowRuntimeException("No value found for key '" + key + "' or value type is not assignable from class '" + clazz.getName() + "'"));
+            .orElseThrow(() -> new WorkflowRuntimeException(
+                "No value found for key '" + key + "' or value type is not assignable from class '" + clazz.getName() + "'"));
     }
 
     @SuppressWarnings({"unchecked", "checkstyle:LineLength"})
     public <T> List<T> getList(String key, Class<T> clazz) {
         return findList(key, clazz)
-            .orElseThrow(() -> new WorkflowRuntimeException("No value found for key '" + key + "' or value type is not list or value type is not assignable from class '" + clazz.getName() + "' or value is empty list"));
+            .orElseThrow(() -> new WorkflowRuntimeException(
+                "No value found for key '" + key + "' or value type is not list or value type is not assignable from class '" + clazz.getName()
+                    + "' or value is empty list"));
     }
 
     public Optional<Object> find(String key) {
@@ -59,16 +63,16 @@ public final class WorkflowRunCache implements Serializable {
             .filter(value -> value instanceof List)
             .map(List.class::cast)
             .filter(list -> !list.isEmpty())
-            .filter(list -> clazz.isAssignableFrom(list.get(0).getClass()))
+            .filter(list -> clazz.isAssignableFrom(list.getFirst().getClass()))
             .map(list -> (List<T>) list);
     }
 
-    public <T> T lookup(String key, Class<T> clazz, boolean mandatory) {
-        return mandatory ? get(key, clazz) : find(key, clazz).orElse(null);
+    public <T> T lookup(String key, Class<T> clazz, boolean mandatory, String defaultValue) {
+        return mandatory ? get(key, clazz) : find(key, clazz).orElseGet(() -> convertValueToType(defaultValue, clazz));
     }
 
-    public <T> List<T> lookupList(String key, Class<T> clazz, boolean mandatory) {
-        return mandatory ? getList(key, clazz) : findList(key, clazz).orElse(null);
+    public <T> List<T> lookupList(String key, Class<T> clazz, boolean mandatory, String defaultValue) {
+        return mandatory ? getList(key, clazz) : findList(key, clazz).orElseGet(() -> convertValuesToListOfType(defaultValue, clazz));
     }
 
     public Object put(String key, Object value) {
@@ -116,6 +120,32 @@ public final class WorkflowRunCache implements Serializable {
             }
         });
         return objectMap;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T convertValueToType(String value, Class<T> clazz) {
+        if (value == null || String.class.equals(clazz)) {
+            return (T) value;
+        }
+
+        Class<?> newClazz = clazz;
+        if (Number.class.equals(clazz)) {
+            newClazz = value.contains(".") ? Double.class : Long.class;
+        }
+
+        try {
+            return (T) newClazz.getMethod("valueOf", String.class).invoke(null, value);
+        } catch (Exception e) {
+            throw new WorkflowRuntimeException(e);
+        }
+    }
+
+    private <T> List<T> convertValuesToListOfType(String value, Class<T> clazz) {
+        if (value == null) {
+            return null;
+        }
+
+        return Arrays.stream(value.split(",")).map(item -> convertValueToType(item, clazz)).toList();
     }
 
 }

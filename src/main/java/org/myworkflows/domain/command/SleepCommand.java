@@ -3,7 +3,7 @@ package org.myworkflows.domain.command;
 import lombok.NoArgsConstructor;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.command.api.ExecutionMethod;
-import org.myworkflows.domain.command.api.MandatoryParam;
+import org.myworkflows.domain.command.api.ExecutionParam;
 
 import java.util.Set;
 
@@ -22,10 +22,10 @@ public final class SleepCommand extends AbstractCommand {
         super(name, ifs, inputs, asserts, outputs);
     }
 
-    @ExecutionMethod
-    public long sleep(@MandatoryParam Number sleepTime) throws InterruptedException {
+    @ExecutionMethod(prefix = "sleep")
+    public long sleep(@ExecutionParam Number time) throws InterruptedException {
         final var startTime = System.currentTimeMillis();
-        Thread.sleep(sleepTime.longValue());
+        Thread.sleep(time.longValue());
         return System.currentTimeMillis() - startTime;
     }
 

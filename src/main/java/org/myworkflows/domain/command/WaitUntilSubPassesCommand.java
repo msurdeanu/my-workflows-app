@@ -2,10 +2,7 @@ package org.myworkflows.domain.command;
 
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.command.api.ExecutionMethod;
-import org.myworkflows.domain.command.api.MandatoryParam;
-import org.myworkflows.domain.command.api.OptionalParam;
-
-import static java.util.Optional.ofNullable;
+import org.myworkflows.domain.command.api.ExecutionParam;
 
 /**
  * @author Mihai Surdeanu
@@ -13,20 +10,17 @@ import static java.util.Optional.ofNullable;
  */
 public final class WaitUntilSubPassesCommand extends AbstractSubCommand {
 
-    @ExecutionMethod
-    public int waitUntilSubPasses(@MandatoryParam WorkflowRun workflowRun,
-                                  @OptionalParam Number iterations,
-                                  @OptionalParam Number backoffPeriod) {
-        final var resolvedIterations = ofNullable(iterations).orElse(3).intValue();
-        final var resolvedBackoffPeriod = ofNullable(backoffPeriod).orElse(1_000).longValue();
-
-        int remainingIterations = resolvedIterations;
+    @ExecutionMethod(prefix = "waitUntilSubPasses")
+    public int waitUntilSubPasses(@ExecutionParam WorkflowRun workflowRun,
+                                  @ExecutionParam(required = false, defaultValue = "3") Number iterations,
+                                  @ExecutionParam(required = false, defaultValue = "1000") Number backoffPeriod) {
+        int remainingIterations = iterations.intValue();
         while (remainingIterations-- > 0) {
             try {
                 getSubcommands().forEach(subcommand -> subcommand.run(workflowRun));
                 break;
             } catch (Exception notUsed) {
-                sleepAWhile(resolvedBackoffPeriod);
+                sleepAWhile(backoffPeriod.longValue());
             }
         }
 

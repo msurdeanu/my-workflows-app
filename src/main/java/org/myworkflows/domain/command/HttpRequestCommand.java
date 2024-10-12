@@ -3,8 +3,7 @@ package org.myworkflows.domain.command;
 import lombok.NoArgsConstructor;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.command.api.ExecutionMethod;
-import org.myworkflows.domain.command.api.MandatoryParam;
-import org.myworkflows.domain.command.api.OptionalParam;
+import org.myworkflows.domain.command.api.ExecutionParam;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -35,13 +34,13 @@ public final class HttpRequestCommand extends AbstractCommand {
         super(name, ifs, inputs, asserts, outputs);
     }
 
-    @ExecutionMethod
-    public ResponseEntity<String> httpRequest(@MandatoryParam String url,
-                                              @OptionalParam String method,
-                                              @OptionalParam String body,
-                                              @OptionalParam Map<String, String> headers,
-                                              @OptionalParam Long connectionTimeout,
-                                              @OptionalParam Long readTimeout) {
+    @ExecutionMethod(prefix = "httpRequest")
+    public ResponseEntity<String> httpRequest(@ExecutionParam String url,
+                                              @ExecutionParam(required = false) String method,
+                                              @ExecutionParam(required = false) String body,
+                                              @ExecutionParam(required = false) Map<String, String> headers,
+                                              @ExecutionParam(required = false) Long connectionTimeout,
+                                              @ExecutionParam(required = false) Long readTimeout) {
         final var resolvedMethod = ofNullable(method).map(item -> valueOf(item.toUpperCase())).orElse(GET);
         final var resolvedBody = ofNullable(body).orElse("");
         final var resolvedHeaders = ofNullable(headers).orElse(Map.of());
