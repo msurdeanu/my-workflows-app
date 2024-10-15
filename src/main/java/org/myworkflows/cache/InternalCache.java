@@ -1,6 +1,7 @@
 package org.myworkflows.cache;
 
 import lombok.Getter;
+import lombok.NonNull;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.springframework.cache.support.SimpleValueWrapper;
 
@@ -81,7 +82,7 @@ public final class InternalCache implements org.springframework.cache.Cache {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(Object key, Callable<T> valueLoader) {
+    public <T> T get(@NonNull Object key, @NonNull Callable<T> valueLoader) {
         final var value = applyFunctionInsideOptimisticReadBlock(key, cacheMap::get);
         if (value != null) {
             return (T) value;
@@ -109,7 +110,7 @@ public final class InternalCache implements org.springframework.cache.Cache {
     }
 
     @Override
-    public void put(Object key, Object value) {
+    public void put(@NonNull Object key, Object value) {
         acceptConsumerInsideWriteBlock(key, item -> {
             if (isOrderedOrHasLimitedSize()) {
                 find(item).ifPresentOrElse(oldItem -> {
@@ -129,7 +130,7 @@ public final class InternalCache implements org.springframework.cache.Cache {
     }
 
     @Override
-    public void evict(Object key) {
+    public void evict(@NonNull Object key) {
         acceptConsumerInsideWriteBlock(key, item -> {
             if (isOrderedOrHasLimitedSize()) {
                 removeFromTheEnd(item);

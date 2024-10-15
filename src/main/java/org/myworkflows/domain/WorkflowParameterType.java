@@ -3,6 +3,7 @@ package org.myworkflows.domain;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import static java.util.Arrays.stream;
@@ -15,8 +16,7 @@ import static java.util.Optional.empty;
 @Getter
 @RequiredArgsConstructor
 public enum WorkflowParameterType {
-
-    STR("str", String.class) {
+    STR("str") {
         public Object getComputedValue(String defaultValue) {
             return defaultValue;
         }
@@ -25,7 +25,25 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
-    PASS("pass", String.class) {
+    S_STR("s_str") {
+        public Object getComputedValue(String defaultValue) {
+            return Arrays.asList(defaultValue.split(","));
+        }
+
+        public Optional<String> validate(String value) {
+            return empty();
+        }
+    },
+    M_STR("m_str") {
+        public Object getComputedValue(String defaultValue) {
+            return Arrays.asList(defaultValue.split(","));
+        }
+
+        public Optional<String> validate(String value) {
+            return empty();
+        }
+    },
+    PASS("pass") {
         public Object getComputedValue(String defaultValue) {
             return defaultValue;
         }
@@ -35,7 +53,7 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
-    INT("int", Integer.class) {
+    INT("int") {
         public Object getComputedValue(String defaultValue) {
             return Integer.valueOf(defaultValue);
         }
@@ -50,37 +68,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    LONG("long", Long.class) {
-        public Object getComputedValue(String defaultValue) {
-            return Long.valueOf(defaultValue);
-        }
-
-        @Override
-        public Optional<String> validate(String value) {
-            try {
-                Long.parseLong(value);
-                return empty();
-            } catch (NumberFormatException notUsed) {
-                return Optional.of("Value is not a long");
-            }
-        }
-    },
-    FLOAT("float", Float.class) {
-        public Object getComputedValue(String defaultValue) {
-            return Float.valueOf(defaultValue);
-        }
-
-        @Override
-        public Optional<String> validate(String value) {
-            try {
-                Float.parseFloat(value);
-                return empty();
-            } catch (NumberFormatException notUsed) {
-                return Optional.of("Value is not a float");
-            }
-        }
-    },
-    DOUBLE("double", Double.class) {
+    DOUBLE("double") {
         public Object getComputedValue(String defaultValue) {
             return Double.valueOf(defaultValue);
         }
@@ -95,7 +83,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    BOOL("bool", Boolean.class) {
+    BOOL("bool") {
         public Object getComputedValue(String defaultValue) {
             return Boolean.valueOf(defaultValue);
         }
@@ -108,8 +96,6 @@ public enum WorkflowParameterType {
     };
 
     private final String value;
-
-    private final Class<?> clazz;
 
     public abstract Object getComputedValue(String defaultValue);
 

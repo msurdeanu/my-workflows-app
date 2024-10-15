@@ -14,9 +14,9 @@ All workflows are defined in JSON format and for playing with them, you have a n
 * Spring Boot 3.x as dependency injection framework.
 * [Vaadin 24](https://vaadin.com) as UI framework.
 * [SQLite](https://www.sqlite.org/) as relational database for persisting data.
-* Uses [Janino](https://www.janino.net/) as Java runtime compiler.
-* Uses [Groovy](https://groovy-lang.org/) as additional language for defining commands
-* Uses [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) as runtime evaluator to propagate data between two or multiple commands.
+* [Janino](https://www.janino.net/) as Java runtime compiler.
+* [Groovy](https://groovy-lang.org/) as additional language for defining commands
+* [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) as runtime evaluator to propagate data between two or multiple commands.
 
 ## Features
 
