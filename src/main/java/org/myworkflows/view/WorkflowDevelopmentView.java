@@ -33,6 +33,7 @@ import de.f0rce.ace.AceEditor;
 import de.f0rce.ace.enums.AceMode;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.WorkflowDefinition;
@@ -56,6 +57,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
@@ -72,6 +74,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
 
     public static final String ROUTE = "workflow/dev";
 
+    private static final String READ_ONLY = "ro";
+
     private final AceEditor editor = new AceEditor();
     private final GraniteAlert currentWorkflowStatus = new GraniteAlert();
     private final WorkflowDevParamGrid workflowDevParamGrid = new WorkflowDevParamGrid();
@@ -84,23 +88,18 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private Registration onSubmittedRegistration;
     private Registration onProgressRegistration;
     private UUID lastSubmittedUuid;
-    private String currentEditorValue;
     private final Button updateWorkflowButton = new Button(getTranslation("workflow-development.update.button"),
         new Icon(VaadinIcon.UPLOAD));
 
     public WorkflowDevelopmentView(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
 
-        UI.getCurrent().addShortcutListener((ShortcutEventListener) shortcutEvent -> {
-            editor.setValue(toPrettyString(currentEditorValue, currentEditorValue));
-        }, Key.KEY_F, KeyModifier.CONTROL, KeyModifier.ALT);
         UI.getCurrent().addShortcutListener((ShortcutEventListener) shortcutEvent -> editor.setWrap(!editor.isWrap()),
             Key.KEY_W, KeyModifier.CONTROL, KeyModifier.ALT);
 
         editor.setMode(AceMode.json);
         editor.setSofttabs(true);
         editor.addFocusShortcut(Key.KEY_E, KeyModifier.ALT);
-        editor.addValueChangeListener(event -> currentEditorValue = event.getValue());
         editor.setAutoComplete(true);
         editor.setLiveAutocompletion(true);
         EditorAutoCompleteUtil.apply(editor);
@@ -125,8 +124,11 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             .flatMap(item -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
                 .getAll(new WorkflowDefinitionFilter().setByIdCriteria(item), 0, 1)
                 .findFirst())
-            .ifPresent(this::onFilteringByDefinition);
-        processQueryParameters(beforeEvent.getLocation().getQueryParameters());
+            .ifPresent(workflowDefinition -> {
+                onFilteringByDefinition(workflowDefinition);
+                processReadOnlyParamIfPresent(beforeEvent.getLocation().getQueryParameters());
+            });
+        processRemainingQueryParams(beforeEvent.getLocation().getQueryParameters());
     }
 
     @Override
@@ -178,7 +180,9 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
                 .orElseGet(() -> RouteConfiguration.forSessionScope().getUrl(WorkflowDevelopmentView.class));
             final var queryString = new QueryParameters(workflowDevParamGrid.getParametersForQuery()).getQueryString();
             if (!queryString.isEmpty()) {
-                url = url + "?" + queryString;
+                url = url + "?" + queryString + "&" + READ_ONLY;
+            } else {
+                url = url + "?" + READ_ONLY;
             }
             ClipboardUtil.copyTo(getElement(), url);
         });
@@ -225,7 +229,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
                 .token(lastSubmittedUuid)
                 .workflowParameters(workflowDevParamGrid.getParametersAsMap())
-                .workflowDefinitionScript(currentEditorValue)
+                .workflowDefinitionScript(editor.getValue())
                 .build());
         });
         runWorkflowButton.setWidthFull();
@@ -235,7 +239,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         updateWorkflowButton.setWidthFull();
         updateWorkflowButton.addClickListener(event -> ofNullable(filterByTemplate.getValue())
             .ifPresent(workflowDefinition -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
-                .updateDefinition(workflowDefinition, currentEditorValue)));
+                .updateDefinition(workflowDefinition, editor.getValue())));
 
         layout.add(currentWorkflowStatus, defDetails, new Hr(), runWorkflowButton, updateWorkflowButton);
         return layout;
@@ -294,16 +298,30 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         currentWorkflowStatus.setVisible(true);
     }
 
-    private void processQueryParameters(QueryParameters queryParameters) {
+    private void processReadOnlyParamIfPresent(QueryParameters queryParameters) {
+        final var parameters = queryParameters.getParameters();
+        if (parameters.isEmpty()) {
+            return;
+        }
+        boolean readOnly = ofNullable(parameters.get(READ_ONLY)).isPresent();
+        editor.setReadOnly(readOnly);
+        updateWorkflowButton.setVisible(!readOnly);
+        workflowDevParamGrid.setReadOnly(readOnly);
+    }
+
+    private void processRemainingQueryParams(QueryParameters queryParameters) {
         final var parameters = queryParameters.getParameters();
         if (parameters.isEmpty()) {
             return;
         }
         final var names = parameters.getOrDefault("name", List.of());
-        workflowDevParamGrid.addParameters(IntStream.range(0, names.size()).mapToObj(index -> {
-            final var type = searchValueAtIndex(parameters.getOrDefault("type", List.of()), index, "str");
-            final var value = searchValueAtIndex(parameters.getOrDefault("value", List.of()), index, "");
-            return WorkflowParameter.of(names.get(index), ofNullable(WorkflowParameterType.of(type)).orElse(WorkflowParameterType.STR), value);
+        workflowDevParamGrid.addParameters(IntStream.range(0, names.size()).boxed().flatMap(index -> {
+            final var type = searchValueAtIndex(parameters.getOrDefault("type", List.of()), index, WorkflowParameterType.STR.getValue());
+            final var value = searchValueAtIndex(parameters.getOrDefault("value", List.of()), index, StringUtils.EMPTY);
+            final var workflowParameterType = ofNullable(WorkflowParameterType.of(type)).orElse(WorkflowParameterType.STR);
+            return workflowParameterType.validate(value)
+                .<Stream<WorkflowParameter>>map(error -> Stream.empty())
+                .orElseGet(() -> Stream.of(WorkflowParameter.of(names.get(index), workflowParameterType, value)));
         }).toList());
     }
 

@@ -4,17 +4,24 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.Validator;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
 
@@ -23,7 +30,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
@@ -35,8 +45,20 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
 
     private final List<WorkflowParameter> workflowParameters = new ArrayList<>();
 
+    private final Map<String, Supplier<Object>> workflowParameterFields = new HashMap<>();
+
+    private Button addButton;
+
+    private boolean editable = true;
+
     public WorkflowDevParamGrid() {
         grid.addClassName("dev-param-grid");
+    }
+
+    public void setReadOnly(boolean readOnly) {
+        this.editable = !readOnly;
+        addButton.setEnabled(editable);
+        grid.getDataProvider().refreshAll();
     }
 
     public void addParameters(Collection<WorkflowParameter> parameters) {
@@ -61,8 +83,10 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
     }
 
     public Map<String, Object> getParametersAsMap() {
-        return workflowParameters.stream()
-            .collect(Collectors.toMap(WorkflowParameter::getName, WorkflowParameter::getComputedValue, (it1, it2) -> it2));
+        return workflowParameters.stream().collect(Collectors.toMap(WorkflowParameter::getName,
+            workflowParameter -> ofNullable(workflowParameterFields.get(workflowParameter.getName())).orElseGet(() -> workflowParameter::getComputedValue)
+                .get(),
+            (it1, it2) -> it2));
     }
 
     @Override
@@ -99,7 +123,8 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
                 .map(ValidationResult::error)
                 .orElseGet(ValidationResult::ok))
             .bind(WorkflowParameter::getValue, WorkflowParameter::setValue);
-        final var valueColumn = grid.addColumn(WorkflowParameter::getValue).setHeader(getTranslation("workflow-dev-param.grid.value.column"));
+        final var valueColumn = grid.addColumn(new ComponentRenderer<>(this::renderValue))
+            .setHeader(getTranslation("workflow-dev-param.grid.value.column"));
         valueColumn.setEditorComponent(valueField);
 
         final var saveButton = new Button(VaadinIcon.CHECK.create(), event -> editor.save());
@@ -109,12 +134,11 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
         final var actions = new HorizontalLayout(saveButton, cancelButton);
         actions.setPadding(false);
 
-        final var addButton = new Button(VaadinIcon.PLUS.create());
+        addButton = new Button(VaadinIcon.PLUS.create());
         addButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
         addButton.addClickListener(event -> addParameters(List.of(WorkflowParameter.of("name", WorkflowParameterType.STR, "value"))));
 
-        final var actionColumn = grid.addComponentColumn(parameter -> createActionComponent(parameter, editor))
-            .setHeader(addButton);
+        final var actionColumn = grid.addComponentColumn(parameter -> createActionComponent(parameter, editor)).setHeader(addButton);
         actionColumn.setEditorComponent(actions);
 
         grid.setItems(workflowParameters);
@@ -122,6 +146,61 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
 
         layout.add(grid);
         return layout;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Component renderValue(WorkflowParameter workflowParameter) {
+        final var workflowParameterType = workflowParameter.getType();
+        switch (workflowParameterType) {
+            case PASS:
+                final var passwordField = new PasswordField();
+                passwordField.setValue(workflowParameter.getValue());
+                passwordField.setWidthFull();
+                workflowParameterFields.put(workflowParameter.getName(), passwordField::getValue);
+                return passwordField;
+            case INT:
+                final var integerField = new IntegerField();
+                integerField.setValue((Integer) workflowParameter.getComputedValue());
+                integerField.setWidthFull();
+                workflowParameterFields.put(workflowParameter.getName(), integerField::getValue);
+                return integerField;
+            case DOUBLE:
+                final var numberField = new NumberField();
+                numberField.setValue((Double) workflowParameter.getComputedValue());
+                numberField.setWidthFull();
+                workflowParameterFields.put(workflowParameter.getName(), numberField::getValue);
+                return numberField;
+            case BOOL:
+                final var checkbox = new Checkbox();
+                checkbox.setValue((Boolean) workflowParameter.getComputedValue());
+                checkbox.setWidthFull();
+                workflowParameterFields.put(workflowParameter.getName(), checkbox::getValue);
+                return checkbox;
+            case S_STR:
+                final var singleValues = (List<String>) workflowParameter.getComputedValue();
+                final var stringSelect = new Select<String>();
+                stringSelect.setItems(singleValues);
+                stringSelect.setValue(singleValues.getFirst());
+                stringSelect.setWidthFull();
+                stringSelect.setEmptySelectionAllowed(false);
+                workflowParameterFields.put(workflowParameter.getName(), stringSelect::getValue);
+                return stringSelect;
+            case M_STR:
+                final var multiValues = (List<String>) workflowParameter.getComputedValue();
+                final var stringMultiSelect = new MultiSelectComboBox<String>();
+                stringMultiSelect.setItems(multiValues);
+                stringMultiSelect.setValue(multiValues.getFirst());
+                stringMultiSelect.setWidthFull();
+                stringMultiSelect.setAllowCustomValue(false);
+                workflowParameterFields.put(workflowParameter.getName(), stringMultiSelect::getValue);
+                return stringMultiSelect;
+            default:
+                final var textField = new TextField();
+                textField.setValue(workflowParameter.getValue());
+                textField.setWidthFull();
+                workflowParameterFields.put(workflowParameter.getName(), textField::getValue);
+                return textField;
+        }
     }
 
     private Component createActionComponent(WorkflowParameter workflowParameter, Editor<WorkflowParameter> editor) {
@@ -134,12 +213,14 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
             }
             grid.getEditor().editItem(workflowParameter);
         });
+        editButton.setEnabled(editable);
         final var deleteButton = new Button(VaadinIcon.TRASH.create());
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
         deleteButton.addClickListener(event -> {
             workflowParameters.remove(workflowParameter);
             grid.getDataProvider().refreshAll();
         });
+        deleteButton.setEnabled(editable);
         horizontalLayout.add(editButton, deleteButton);
         return horizontalLayout;
     }

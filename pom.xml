@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.3</version>
+        <version>3.3.4</version>
     </parent>
 
     <properties>
@@ -23,7 +23,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <vaadin.version>24.5.0.rc1</vaadin.version>
+        <vaadin.version>24.5.0.rc2</vaadin.version>
         <flyway-core.version>9.22.3</flyway-core.version>
         <grid-pagination.version>4.0.0</grid-pagination.version>
         <ace.version>3.4.2</ace.version>

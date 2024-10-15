@@ -27,6 +27,7 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
         this.applicationManager = applicationManager;
         cache = (InternalCache) applicationManager.getBeanOfType(InternalCacheManager.class)
             .getCache(cacheName.getName());
+        assert cache != null;
     }
 
     public Stream<T> findBy(Query<T, F> query) {
