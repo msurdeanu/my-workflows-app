@@ -4,19 +4,13 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.select.Select;
-import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.component.textfield.NumberField;
-import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationResult;
@@ -24,13 +18,13 @@ import com.vaadin.flow.data.binder.Validator;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
+import org.myworkflows.view.transformer.WorkflowParameterToComponentSupplierObjectTransformer;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
@@ -45,7 +39,7 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
 
     private final List<WorkflowParameter> workflowParameters = new ArrayList<>();
 
-    private final Map<String, Supplier<Object>> workflowParameterFields = new HashMap<>();
+    private final Map<String, WorkflowParameterToComponentSupplierObjectTransformer.ComponentValueSupplier> workflowParameterFields = new HashMap<>();
 
     private Button addButton;
 
@@ -73,7 +67,10 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
         workflowParameters.forEach(workflowParameter -> {
             names.add(workflowParameter.getName());
             types.add(workflowParameter.getType().getValue());
-            values.add(workflowParameter.getValue());
+            values.add(ofNullable(workflowParameterFields.get(workflowParameter.getName()))
+                .map(WorkflowParameterToComponentSupplierObjectTransformer.ComponentValueSupplier::getValueAsStringSupplier)
+                .orElseGet(() -> workflowParameter::getValue)
+                .get());
         });
         final var parameters = new HashMap<String, List<String>>(3);
         parameters.put("name", names);
@@ -84,9 +81,10 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
 
     public Map<String, Object> getParametersAsMap() {
         return workflowParameters.stream().collect(Collectors.toMap(WorkflowParameter::getName,
-            workflowParameter -> ofNullable(workflowParameterFields.get(workflowParameter.getName())).orElseGet(() -> workflowParameter::getComputedValue)
-                .get(),
-            (it1, it2) -> it2));
+            workflowParameter -> ofNullable(workflowParameterFields.get(workflowParameter.getName()))
+                .map(WorkflowParameterToComponentSupplierObjectTransformer.ComponentValueSupplier::getValueSupplier)
+                .orElseGet(() -> workflowParameter::getComputedValue)
+                .get(), (it1, it2) -> it2));
     }
 
     @Override
@@ -148,59 +146,11 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
         return layout;
     }
 
-    @SuppressWarnings("unchecked")
     private Component renderValue(WorkflowParameter workflowParameter) {
-        final var workflowParameterType = workflowParameter.getType();
-        switch (workflowParameterType) {
-            case PASS:
-                final var passwordField = new PasswordField();
-                passwordField.setValue(workflowParameter.getValue());
-                passwordField.setWidthFull();
-                workflowParameterFields.put(workflowParameter.getName(), passwordField::getValue);
-                return passwordField;
-            case INT:
-                final var integerField = new IntegerField();
-                integerField.setValue((Integer) workflowParameter.getComputedValue());
-                integerField.setWidthFull();
-                workflowParameterFields.put(workflowParameter.getName(), integerField::getValue);
-                return integerField;
-            case DOUBLE:
-                final var numberField = new NumberField();
-                numberField.setValue((Double) workflowParameter.getComputedValue());
-                numberField.setWidthFull();
-                workflowParameterFields.put(workflowParameter.getName(), numberField::getValue);
-                return numberField;
-            case BOOL:
-                final var checkbox = new Checkbox();
-                checkbox.setValue((Boolean) workflowParameter.getComputedValue());
-                checkbox.setWidthFull();
-                workflowParameterFields.put(workflowParameter.getName(), checkbox::getValue);
-                return checkbox;
-            case S_STR:
-                final var singleValues = (List<String>) workflowParameter.getComputedValue();
-                final var stringSelect = new Select<String>();
-                stringSelect.setItems(singleValues);
-                stringSelect.setValue(singleValues.getFirst());
-                stringSelect.setWidthFull();
-                stringSelect.setEmptySelectionAllowed(false);
-                workflowParameterFields.put(workflowParameter.getName(), stringSelect::getValue);
-                return stringSelect;
-            case M_STR:
-                final var multiValues = (List<String>) workflowParameter.getComputedValue();
-                final var stringMultiSelect = new MultiSelectComboBox<String>();
-                stringMultiSelect.setItems(multiValues);
-                stringMultiSelect.setValue(multiValues.getFirst());
-                stringMultiSelect.setWidthFull();
-                stringMultiSelect.setAllowCustomValue(false);
-                workflowParameterFields.put(workflowParameter.getName(), stringMultiSelect::getValue);
-                return stringMultiSelect;
-            default:
-                final var textField = new TextField();
-                textField.setValue(workflowParameter.getValue());
-                textField.setWidthFull();
-                workflowParameterFields.put(workflowParameter.getName(), textField::getValue);
-                return textField;
-        }
+        final var workflowParameterToComponentSupplierObjectTransformer = new WorkflowParameterToComponentSupplierObjectTransformer();
+        final var componentSupplierObject = workflowParameterToComponentSupplierObjectTransformer.transform(workflowParameter);
+        workflowParameterFields.put(workflowParameter.getName(), componentSupplierObject.getComponentValueSupplier());
+        return componentSupplierObject.getComponent();
     }
 
     private Component createActionComponent(WorkflowParameter workflowParameter, Editor<WorkflowParameter> editor) {
