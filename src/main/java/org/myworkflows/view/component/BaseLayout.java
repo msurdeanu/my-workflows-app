@@ -17,7 +17,7 @@ import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.myworkflows.repository.MenuItemRepository;
-import org.myworkflows.transformer.MenuItemsToSideNavItemsTransformer;
+import org.myworkflows.view.transformer.MenuItemsToSideNavItemsTransformer;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;

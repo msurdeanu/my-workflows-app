@@ -1,4 +1,4 @@
-package org.myworkflows.transformer;
+package org.myworkflows.view.transformer;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.sidenav.SideNavItem;

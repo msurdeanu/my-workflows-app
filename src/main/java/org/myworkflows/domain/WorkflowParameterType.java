@@ -17,35 +17,31 @@ import static java.util.Optional.empty;
 @RequiredArgsConstructor
 public enum WorkflowParameterType {
     STR("str") {
-        public Object getComputedValue(String defaultValue) {
-            return defaultValue;
+        @Override
+        public Object getComputedValue(String value) {
+            return value;
         }
 
+        @Override
         public Optional<String> validate(String value) {
             return empty();
         }
     },
     S_STR("s_str") {
-        public Object getComputedValue(String defaultValue) {
-            return Arrays.asList(defaultValue.split(","));
+        @Override
+        public Object getComputedValue(String value) {
+            return Arrays.asList(value.split(","));
         }
 
-        public Optional<String> validate(String value) {
-            return empty();
-        }
-    },
-    M_STR("m_str") {
-        public Object getComputedValue(String defaultValue) {
-            return Arrays.asList(defaultValue.split(","));
-        }
-
+        @Override
         public Optional<String> validate(String value) {
             return empty();
         }
     },
     PASS("pass") {
-        public Object getComputedValue(String defaultValue) {
-            return defaultValue;
+        @Override
+        public Object getComputedValue(String value) {
+            return value;
         }
 
         @Override
@@ -54,8 +50,9 @@ public enum WorkflowParameterType {
         }
     },
     INT("int") {
-        public Object getComputedValue(String defaultValue) {
-            return Integer.valueOf(defaultValue);
+        @Override
+        public Object getComputedValue(String value) {
+            return Integer.valueOf(value);
         }
 
         @Override
@@ -69,8 +66,9 @@ public enum WorkflowParameterType {
         }
     },
     DOUBLE("double") {
-        public Object getComputedValue(String defaultValue) {
-            return Double.valueOf(defaultValue);
+        @Override
+        public Object getComputedValue(String value) {
+            return Double.valueOf(value);
         }
 
         @Override
@@ -84,8 +82,9 @@ public enum WorkflowParameterType {
         }
     },
     BOOL("bool") {
-        public Object getComputedValue(String defaultValue) {
-            return Boolean.valueOf(defaultValue);
+        @Override
+        public Object getComputedValue(String value) {
+            return Boolean.valueOf(value);
         }
 
         @Override
@@ -97,7 +96,7 @@ public enum WorkflowParameterType {
 
     private final String value;
 
-    public abstract Object getComputedValue(String defaultValue);
+    public abstract Object getComputedValue(String value);
 
     public abstract Optional<String> validate(String value);
 

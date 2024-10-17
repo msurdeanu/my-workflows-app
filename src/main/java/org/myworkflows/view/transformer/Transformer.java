@@ -1,4 +1,4 @@
-package org.myworkflows.transformer;
+package org.myworkflows.view.transformer;
 
 /**
  * @author Mihai Surdeanu
