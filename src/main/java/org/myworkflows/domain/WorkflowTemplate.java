@@ -59,6 +59,18 @@ public class WorkflowTemplate {
 
     @Getter
     @Setter
+    @ManyToMany(cascade = {
+        CascadeType.PERSIST,
+        CascadeType.MERGE
+    }, fetch = FetchType.EAGER)
+    @JoinTable(name = "workflow_templates_workflow_parameters",
+        joinColumns = @JoinColumn(name = "workflow_template_id"),
+        inverseJoinColumns = @JoinColumn(name = "workflow_parameter_name")
+    )
+    private List<WorkflowParameter> workflowParameters;
+
+    @Getter
+    @Setter
     @Transient
     private boolean editable = false;
 
@@ -67,10 +79,9 @@ public class WorkflowTemplate {
     }
 
     public Map<String, Object> getWorkflowDefinitionParameters() {
-        return ofNullable(workflowDefinitions)
+        return ofNullable(workflowParameters)
             .orElse(List.of())
             .stream()
-            .flatMap(item -> item.getWorkflowParameters().stream())
             .collect(Collectors.toMap(WorkflowParameter::getName, WorkflowParameter::getComputedValue, (it1, it2) -> it2));
     }
 

@@ -12,10 +12,13 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextFieldVariant;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.Validator;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
 import org.myworkflows.view.transformer.WorkflowParameterToComponentSupplierObjectTransformer;
@@ -97,13 +100,7 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
         editor.setBinder(binder);
         editor.setBuffered(true);
 
-        final var nameField = new TextField();
-        nameField.setWidthFull();
-        binder.forField(nameField)
-            .asRequired(getTranslation("workflow-dev-param.grid.name.required"))
-            .bind(WorkflowParameter::getName, WorkflowParameter::setName);
-        final var nameColumn = grid.addColumn(WorkflowParameter::getName).setHeader(getTranslation("workflow-dev-param.grid.name.column"));
-        nameColumn.setEditorComponent(nameField);
+        grid.addColumn(WorkflowParameter::getName).setHeader(getTranslation("workflow-dev-param.grid.name.column"));
 
         ComboBox<WorkflowParameterType> typeField = new ComboBox<>();
         typeField.setItems(WorkflowParameterType.values());
@@ -132,15 +129,34 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
         final var actions = new HorizontalLayout(saveButton, cancelButton);
         actions.setPadding(false);
 
-        addButton = new Button(VaadinIcon.PLUS.create());
-        addButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-        addButton.addClickListener(event -> addParameters(List.of(WorkflowParameter.of("name", WorkflowParameterType.STR, "value"))));
+        final var nameAndAddLayout = new HorizontalLayout();
+        nameAndAddLayout.setWidthFull();
+        nameAndAddLayout.setSpacing(true);
 
-        final var actionColumn = grid.addComponentColumn(parameter -> createActionComponent(parameter, editor)).setHeader(addButton);
+        final var nameField = new TextField();
+        nameField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
+        nameField.setWidth("70%");
+        nameField.setPlaceholder("[a-zA-Z0-9_.]");
+        nameField.setAllowedCharPattern("[a-zA-Z0-9_.]");
+        nameField.setValue("name");
+        nameField.setValueChangeMode(ValueChangeMode.LAZY);
+        nameField.setValueChangeTimeout(50);
+        addButton = new Button(VaadinIcon.PLUS.create());
+        nameField.addValueChangeListener(event -> {
+            final var name = event.getValue();
+            addButton.setEnabled(editable && !StringUtils.EMPTY.equals(name) && !workflowParameterFields.containsKey(name));
+        });
+        addButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+        addButton.addClickListener(event -> addParameters(List.of(WorkflowParameter.of(nameField.getValue(), WorkflowParameterType.STR, "value"))));
+        nameAndAddLayout.add(nameField, addButton);
+        nameAndAddLayout.setFlexGrow(1.0f, addButton);
+
+        final var actionColumn = grid.addComponentColumn(parameter -> createActionComponent(parameter, editor)).setHeader(nameAndAddLayout);
         actionColumn.setEditorComponent(actions);
 
         grid.setItems(workflowParameters);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
+        grid.setEmptyStateText(getTranslation("workflow-dev-param.main-grid.no-result"));
 
         layout.add(grid);
         return layout;

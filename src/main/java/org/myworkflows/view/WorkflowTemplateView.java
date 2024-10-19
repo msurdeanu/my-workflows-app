@@ -13,9 +13,11 @@ import jakarta.annotation.security.PermitAll;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.domain.WorkflowDefinition;
+import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
 import org.myworkflows.domain.filter.WorkflowTemplateFilter;
+import org.myworkflows.repository.WorkflowParameterRepository;
 import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.service.WorkflowTemplateService;
 import org.myworkflows.view.component.BaseLayout;
@@ -46,7 +48,8 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
     private final WorkflowTemplateGrid workflowDefinitionGrid;
 
     public WorkflowTemplateView(WorkflowTemplateService workflowTemplateService,
-                                WorkflowDefinitionService workflowDefinitionService) {
+                                WorkflowDefinitionService workflowDefinitionService,
+                                WorkflowParameterRepository workflowParameterRepository) {
         super();
         this.workflowTemplateService = workflowTemplateService;
 
@@ -55,7 +58,8 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
             .withConfigurableFilter();
         configurableFilterDataProvider.setFilter(workflowTemplateFilter);
 
-        workflowDefinitionGrid = new WorkflowTemplateGrid(this, workflowDefinitionService.getAllItems().collect(Collectors.toList()));
+        workflowDefinitionGrid = new WorkflowTemplateGrid(this, workflowDefinitionService.getAllItems().collect(Collectors.toList()),
+            workflowParameterRepository.findAll());
         workflowDefinitionGrid.setDataProvider(configurableFilterDataProvider);
 
         add(createHeader(getTranslation("workflow-templates.page.title"), createFilterByName()));
@@ -88,6 +92,11 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
     @Override
     public void onDefinitionUpdated(WorkflowTemplate workflowTemplate, Stream<WorkflowDefinition> newDefinitions) {
         workflowTemplateService.updateDefinition(workflowTemplate, newDefinitions);
+    }
+
+    @Override
+    public void onParameterUpdated(WorkflowTemplate workflowTemplate, Stream<WorkflowParameter> items) {
+        workflowTemplateService.updateParameter(workflowTemplate, items);
     }
 
     @Override

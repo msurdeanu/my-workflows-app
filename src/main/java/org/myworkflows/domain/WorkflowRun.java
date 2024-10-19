@@ -9,7 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.myworkflows.converter.ExecutionCacheToByteArrayConverter;
+import org.myworkflows.converter.WorkflowRunCacheToByteArrayConverter;
 import org.myworkflows.converter.SetOfStringToStringConverter;
 import org.myworkflows.converter.UuidToByteArrayConverter;
 import org.myworkflows.util.ExceptionUtil;
@@ -48,7 +48,7 @@ public class WorkflowRun implements CacheableEntry, Persistable<UUID> {
 
     @Getter
     @Column(name = "cache")
-    @Convert(converter = ExecutionCacheToByteArrayConverter.class)
+    @Convert(converter = WorkflowRunCacheToByteArrayConverter.class)
     private WorkflowRunCache cache = new WorkflowRunCache();
 
     @Getter

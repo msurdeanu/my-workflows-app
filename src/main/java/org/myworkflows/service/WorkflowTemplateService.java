@@ -4,6 +4,7 @@ import lombok.NonNull;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
 import org.myworkflows.domain.WorkflowDefinition;
+import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.filter.WorkflowTemplateFilter;
 import org.myworkflows.repository.WorkflowTemplateRepository;
@@ -88,6 +89,16 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
         lock.lock();
         try {
             workflowTemplate.setWorkflowDefinitions(newDefinitions.collect(Collectors.toList()));
+            applicationManager.getBeanOfType(WorkflowTemplateRepository.class).save(workflowTemplate);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void updateParameter(@NonNull WorkflowTemplate workflowTemplate, Stream<WorkflowParameter> newParameters) {
+        lock.lock();
+        try {
+            workflowTemplate.setWorkflowParameters(newParameters.collect(Collectors.toList()));
             applicationManager.getBeanOfType(WorkflowTemplateRepository.class).save(workflowTemplate);
         } finally {
             lock.unlock();

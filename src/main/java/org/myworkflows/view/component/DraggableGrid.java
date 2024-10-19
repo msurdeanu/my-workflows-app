@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import static com.vaadin.flow.component.grid.dnd.GridDropMode.BETWEEN;
 import static com.vaadin.flow.component.grid.dnd.GridDropMode.ON_GRID;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
@@ -56,22 +57,22 @@ public final class DraggableGrid<K, T> extends Composite<VerticalLayout> {
         final var availableItemsGrid = setupGrid(ON_GRID);
         final var availableDataView = availableItemsGrid.setItems(availableItems);
 
-        selectedItemsGrid.addDropListener(event -> {
-            availableDataView.removeItem(draggedItem);
+        selectedItemsGrid.addDropListener(event -> ofNullable(draggedItem).ifPresent(item -> {
+            availableDataView.removeItem(item);
             event.getDropTargetItem().ifPresentOrElse(targetDefinition -> {
                 if (event.getDropLocation() == GridDropLocation.BELOW) {
-                    selectedDataView.addItemAfter(draggedItem, targetDefinition);
+                    selectedDataView.addItemAfter(item, targetDefinition);
                 } else {
-                    selectedDataView.addItemBefore(draggedItem, targetDefinition);
+                    selectedDataView.addItemBefore(item, targetDefinition);
                 }
-            }, () -> selectedDataView.addItem(draggedItem));
+            }, () -> selectedDataView.addItem(item));
             consumer.accept(element, selectedDataView.getItems());
-        });
-        availableItemsGrid.addDropListener(event -> {
-            selectedDataView.removeItem(draggedItem);
-            availableDataView.addItem(draggedItem);
+        }));
+        availableItemsGrid.addDropListener(event -> ofNullable(draggedItem).ifPresent(item -> {
+            selectedDataView.removeItem(item);
+            availableDataView.addItem(item);
             consumer.accept(element, selectedDataView.getItems());
-        });
+        }));
 
         container = new Div(selectedItemsGrid, availableItemsGrid);
         container.addClassName("draggable-div");
@@ -98,7 +99,7 @@ public final class DraggableGrid<K, T> extends Composite<VerticalLayout> {
     }
 
     private void handleDragStart(GridDragStartEvent<T> event) {
-        draggedItem = event.getDraggedItems().get(0);
+        draggedItem = event.getDraggedItems().getFirst();
     }
 
     private void handleDragEnd(GridDragEndEvent<T> event) {

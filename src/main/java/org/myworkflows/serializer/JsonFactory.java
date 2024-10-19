@@ -5,15 +5,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.networknt.schema.JsonSchema;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.myworkflows.exception.WorkflowRuntimeException;
 
 import java.io.IOException;
-import java.util.List;
 
 import static com.networknt.schema.JsonSchemaFactory.getInstance;
 import static com.networknt.schema.SpecVersionDetector.detect;
@@ -39,7 +38,7 @@ public final class JsonFactory {
         try {
             return MAPPER.readValue(content, clazz);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new WorkflowRuntimeException(e);
         }
     }
 
@@ -65,12 +64,6 @@ public final class JsonFactory {
         } catch (IOException exception) {
             return defaultValue;
         }
-    }
-
-    public static List<BeanPropertyDefinition> findJsonProperties(Class<?> clazz) {
-        final var userType = MAPPER.getTypeFactory().constructType(clazz);
-        final var introspection = MAPPER.getSerializationConfig().introspect(userType);
-        return introspection.findProperties();
     }
 
 }
