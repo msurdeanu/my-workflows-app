@@ -3,6 +3,7 @@ package org.myworkflows.converter;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static java.lang.String.join;
 import static java.util.Collections.addAll;
@@ -31,7 +32,7 @@ public final class SetOfStringToStringConverterTest {
         assertEquals("123", join("", setOfStringToStringConverter.convertToEntityAttribute("1,2,3")));
     }
 
-    private LinkedHashSet<String> createSet() {
+    private Set<String> createSet() {
         final var hashSet = new LinkedHashSet<String>();
         addAll(hashSet, "1", "2", "3");
         return hashSet;

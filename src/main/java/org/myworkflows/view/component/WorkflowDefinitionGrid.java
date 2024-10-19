@@ -6,7 +6,6 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -16,17 +15,13 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.RouterLink;
 import lombok.RequiredArgsConstructor;
-import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionEventHandler;
 import org.myworkflows.view.WorkflowDevelopmentView;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.List;
-
 import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
-import static org.myworkflows.util.StreamUtil.substract;
 
 /**
  * @author Mihai Surdeanu
@@ -38,8 +33,6 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
     private final PaginatedGrid<WorkflowDefinition, ?> paginatedGrid = new PaginatedGrid<>();
 
     private final WorkflowDefinitionEventHandler workflowDefinitionEventHandler;
-
-    private final List<WorkflowParameter> allWorkflowParameters;
 
     private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
 
@@ -63,16 +56,6 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
             .setHeader(getTranslation("workflow-definitions.main-grid.actions.column"))
             .setAutoWidth(true);
-        paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(
-            () -> new DraggableGrid<WorkflowDefinition, WorkflowParameter>("definition",
-                parameter -> new NativeLabel(parameter.getName()),
-                parameter -> new NativeLabel(parameter.getType().getValue()),
-                WorkflowParameter.class),
-            (instance, workflowDefinition) -> instance.setDetails(workflowDefinition,
-                workflowDefinitionEventHandler::onParameterUpdated,
-                WorkflowDefinition::getWorkflowParameters,
-                substract(allWorkflowParameters, workflowDefinition.getWorkflowParameters())))
-        );
         paginatedGrid.setEmptyStateText(getTranslation("workflow-definitions.main-grid.no-result"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);

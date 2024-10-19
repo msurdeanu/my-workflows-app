@@ -4,13 +4,9 @@ import org.myworkflows.ApplicationManager;
 import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionScript;
-import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.repository.WorkflowDefinitionRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 
@@ -49,16 +45,6 @@ public final class WorkflowDefinitionService extends CacheableDataService<Workfl
         lock.lock();
         try {
             workflowDefinition.setName(newName);
-            applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).save(workflowDefinition);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public void updateParameter(WorkflowDefinition workflowDefinition, Stream<WorkflowParameter> newParameters) {
-        lock.lock();
-        try {
-            workflowDefinition.setWorkflowParameters(newParameters.collect(Collectors.toList()));
             applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).save(workflowDefinition);
         } finally {
             lock.unlock();

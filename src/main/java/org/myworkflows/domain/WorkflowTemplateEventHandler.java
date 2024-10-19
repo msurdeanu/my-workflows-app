@@ -14,6 +14,8 @@ public interface WorkflowTemplateEventHandler {
 
     void onDefinitionUpdated(WorkflowTemplate workflowTemplate, Stream<WorkflowDefinition> items);
 
+    void onParameterUpdated(WorkflowTemplate workflowTemplate, Stream<WorkflowParameter> items);
+
     void onDelete(WorkflowTemplate workflowTemplate);
 
     void onNameAndCronUpdated(WorkflowTemplate workflowTemplate, String newName, String newCron);

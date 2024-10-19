@@ -69,14 +69,14 @@ CREATE TABLE workflow_parameters
 INSERT INTO workflow_parameters ("name", "type", "value")
 VALUES ('sleepTime', 'str', 'sleepTime');
 
-CREATE TABLE workflow_definitions_workflow_parameters
+CREATE TABLE workflow_templates_workflow_parameters
 (
     id                      INTEGER PRIMARY KEY AUTOINCREMENT,
-    workflow_definition_id  INTEGER NOT NULL,
+    workflow_template_id    INTEGER NOT NULL,
     workflow_parameter_name TEXT    NOT NULL
 );
 
-INSERT INTO workflow_definitions_workflow_parameters ("workflow_definition_id", "workflow_parameter_name")
+INSERT INTO workflow_templates_workflow_parameters ("workflow_template_id", "workflow_parameter_name")
 VALUES (1, 'sleepTime');
 
 CREATE TABLE workflow_runs

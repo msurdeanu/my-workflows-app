@@ -83,7 +83,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
 
     private final ApplicationManager applicationManager;
     private final SplitLayout splitLayout;
-    private final Select<WorkflowDefinition> filterByTemplate;
+    private final Button shareButton;
+    private final Select<WorkflowDefinition> filterByDefinition;
 
     private Registration onSubmittedRegistration;
     private Registration onProgressRegistration;
@@ -106,9 +107,10 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         currentWorkflowStatus.setCompact(true);
         currentWorkflowStatus.setVisible(false);
 
-        filterByTemplate = createFilterByTemplate();
+        filterByDefinition = createFilterByTemplate();
         splitLayout = createBody();
-        add(createHeader(getTranslation("workflow-development.page.title"), createShareButton(), filterByTemplate),
+        shareButton = createShareButton();
+        add(createHeader(getTranslation("workflow-development.page.title"), shareButton, filterByDefinition),
             createContent(splitLayout),
             createFooter());
     }
@@ -170,12 +172,13 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         super.onDetach(detachEvent);
     }
 
-    private Component createShareButton() {
-        final var shareButton = new Button(VaadinIcon.LINK.create());
-        shareButton.setTooltipText(getTranslation("workflow-development.share.button.tooltip"));
-        shareButton.addThemeVariants(ButtonVariant.LUMO_ICON);
-        shareButton.addClickListener(event -> {
-            var url = ofNullable(filterByTemplate.getValue())
+    private Button createShareButton() {
+        final var button = new Button(VaadinIcon.LINK.create());
+        button.setTooltipText(getTranslation("workflow-development.share.button.tooltip"));
+        button.setEnabled(false);
+        button.addThemeVariants(ButtonVariant.LUMO_ICON);
+        button.addClickListener(event -> {
+            var url = ofNullable(filterByDefinition.getValue())
                 .map(item -> RouteConfiguration.forSessionScope().getUrl(WorkflowDevelopmentView.class, item.getId()))
                 .orElseGet(() -> RouteConfiguration.forSessionScope().getUrl(WorkflowDevelopmentView.class));
             final var queryString = new QueryParameters(workflowDevParamGrid.getParametersForQuery()).getQueryString();
@@ -186,7 +189,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             }
             ClipboardUtil.copyTo(getElement(), url);
         });
-        return shareButton;
+        return button;
     }
 
     private Select<WorkflowDefinition> createFilterByTemplate() {
@@ -201,9 +204,10 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     }
 
     private void onFilteringByDefinition(WorkflowDefinition workflowDefinition) {
-        filterByTemplate.setValue(workflowDefinition);
-        editor.setValue(toPrettyString(workflowDefinition.getScript(), ""));
+        filterByDefinition.setValue(workflowDefinition);
+        editor.setValue(toPrettyString(workflowDefinition.getScript(), StringUtils.EMPTY));
         updateWorkflowButton.setEnabled(true);
+        shareButton.setEnabled(true);
     }
 
     private SplitLayout createBody() {
@@ -237,7 +241,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         updateWorkflowButton.setEnabled(false);
         updateWorkflowButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         updateWorkflowButton.setWidthFull();
-        updateWorkflowButton.addClickListener(event -> ofNullable(filterByTemplate.getValue())
+        updateWorkflowButton.addClickListener(event -> ofNullable(filterByDefinition.getValue())
             .ifPresent(workflowDefinition -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
                 .updateDefinition(workflowDefinition, editor.getValue())));
 

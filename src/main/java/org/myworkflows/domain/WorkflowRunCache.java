@@ -1,5 +1,6 @@
 package org.myworkflows.domain;
 
+import lombok.Getter;
 import org.myworkflows.exception.WorkflowRuntimeException;
 
 import java.io.IOException;
@@ -27,6 +28,7 @@ public final class WorkflowRunCache implements Serializable {
 
     private Map<String, Object> cachedObjectMap = new HashMap<>();
 
+    @Getter
     private boolean cacheObjectMapComplete = true;
 
     public Object get(String key) {
@@ -89,7 +91,6 @@ public final class WorkflowRunCache implements Serializable {
             cacheObjectMapComplete = false;
         }
 
-        objectOutputStream.defaultWriteObject();
         objectOutputStream.writeBoolean(cacheObjectMapComplete);
         objectOutputStream.writeInt(serializedObjectMap.size());
         for (var entry : serializedObjectMap.entrySet()) {
@@ -100,7 +101,6 @@ public final class WorkflowRunCache implements Serializable {
 
     @Serial
     private void readObject(ObjectInputStream objectInputStream) throws IOException, ClassNotFoundException {
-        objectInputStream.defaultReadObject();
         cacheObjectMapComplete = objectInputStream.readBoolean();
         final var size = objectInputStream.readInt();
         cachedObjectMap = new HashMap<>(size);

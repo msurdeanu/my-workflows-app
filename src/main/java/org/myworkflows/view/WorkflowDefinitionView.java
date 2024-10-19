@@ -9,17 +9,13 @@ import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
-import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionEventHandler;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
-import org.myworkflows.repository.WorkflowParameterRepository;
 import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowDefinitionGrid;
-
-import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
 
@@ -40,8 +36,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
 
     private final WorkflowDefinitionService workflowDefinitionService;
 
-    public WorkflowDefinitionView(WorkflowDefinitionService workflowDefinitionService,
-                                  WorkflowParameterRepository workflowParameterRepository) {
+    public WorkflowDefinitionView(WorkflowDefinitionService workflowDefinitionService) {
         super();
         this.workflowDefinitionService = workflowDefinitionService;
 
@@ -50,7 +45,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
             .withConfigurableFilter();
         configurableFilterDataProvider.setFilter(workflowDefinitionFilter);
 
-        workflowDefinitionGrid = new WorkflowDefinitionGrid(this, workflowParameterRepository.findAll());
+        workflowDefinitionGrid = new WorkflowDefinitionGrid(this);
         workflowDefinitionGrid.setDataProvider(configurableFilterDataProvider);
 
         add(createHeader(getTranslation("workflow-definitions.page.title")));
@@ -76,16 +71,6 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
     @Override
     public void onNameUpdated(WorkflowDefinition workflowDefinition, String newName) {
         workflowDefinitionService.updateName(workflowDefinition, newName);
-    }
-
-    @Override
-    public void onParameterUpdated(WorkflowDefinition workflowDefinition, Stream<WorkflowParameter> items) {
-        workflowDefinitionService.updateParameter(workflowDefinition, items);
-    }
-
-    @Override
-    public void onScriptUpdated(WorkflowDefinition workflowDefinition, String newScript) {
-        workflowDefinitionService.updateDefinition(workflowDefinition, newScript);
     }
 
     private void onFilterById(int value) {

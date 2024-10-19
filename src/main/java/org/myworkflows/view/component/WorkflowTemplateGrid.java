@@ -8,6 +8,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
+import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
 import org.myworkflows.view.WorkflowDevelopmentView;
@@ -45,6 +47,8 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
     private final WorkflowTemplateEventHandler workflowTemplateEventHandler;
 
     private final List<WorkflowDefinition> allWorkflowDefinitions;
+
+    private final List<WorkflowParameter> allWorkflowParameters;
 
     private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
 
@@ -75,20 +79,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
             .setHeader(addButton)
             .setAutoWidth(true);
-        paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(
-            () -> new DraggableGrid<WorkflowTemplate, WorkflowDefinition>("template",
-                definition -> new NativeLabel(definition.getId().toString()),
-                definition -> {
-                    final var routerLink = new RouterLink(definition.getName(), WorkflowDevelopmentView.class, definition.getId());
-                    routerLink.getElement().getThemeList().add("badge");
-                    return routerLink;
-                },
-                WorkflowDefinition.class),
-            (instance, workflowTemplate) -> instance.setDetails(workflowTemplate,
-                    workflowTemplateEventHandler::onDefinitionUpdated,
-                WorkflowTemplate::getWorkflowDefinitions,
-                substract(allWorkflowDefinitions, workflowTemplate.getWorkflowDefinitions())))
-        );
+        paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(this::createDraggableComponent));
         paginatedGrid.setEmptyStateText(getTranslation("workflow-templates.main-grid.no-result"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
@@ -179,6 +170,28 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
 
         layout.add(scheduleNowButton, editButton, deleteButton);
         return layout;
+    }
+
+    private Component createDraggableComponent(WorkflowTemplate workflowTemplate) {
+        final var verticalLayout = new VerticalLayout();
+        final var definitionDraggableGrid = new DraggableGrid<WorkflowTemplate, WorkflowDefinition>("definition",
+            definition -> new Span(definition.getId().toString()),
+            definition -> {
+                final var routerLink = new RouterLink(definition.getName(), WorkflowDevelopmentView.class, definition.getId());
+                routerLink.getElement().getThemeList().add("badge");
+                return routerLink;
+            },
+            WorkflowDefinition.class);
+        definitionDraggableGrid.setDetails(workflowTemplate, workflowTemplateEventHandler::onDefinitionUpdated,
+            WorkflowTemplate::getWorkflowDefinitions, substract(allWorkflowDefinitions, workflowTemplate.getWorkflowDefinitions()));
+        final var parameterDraggableGrid = new DraggableGrid<WorkflowTemplate, WorkflowParameter>("parameter",
+            parameter -> new Span(parameter.getName()),
+            parameter -> new Span(parameter.getType().getValue()),
+            WorkflowParameter.class);
+        parameterDraggableGrid.setDetails(workflowTemplate, workflowTemplateEventHandler::onParameterUpdated,
+            WorkflowTemplate::getWorkflowParameters, substract(allWorkflowParameters, workflowTemplate.getWorkflowParameters()));
+        verticalLayout.add(definitionDraggableGrid, parameterDraggableGrid);
+        return verticalLayout;
     }
 
     private void onEdit(WorkflowTemplate workflowTemplate) {
