@@ -9,6 +9,8 @@ import static org.apache.commons.lang3.StringUtils.abbreviate;
  */
 public record WorkflowRunPrint(String name, Object value) {
 
+    public static final String PASSWORD = "password";
+
     public static final String NULL_AS_STR = "null";
 
     public String type() {
@@ -18,15 +20,19 @@ public record WorkflowRunPrint(String name, Object value) {
     }
 
     public String abbrValue() {
-        return ofNullable(value)
+        return safeValueToString(name, ofNullable(value)
             .map(item -> abbreviate(item.toString(), 64))
-            .orElse(NULL_AS_STR);
+            .orElse(NULL_AS_STR));
     }
 
     public String fullValue() {
-        return ofNullable(value)
+        return safeValueToString(name, ofNullable(value)
             .map(Object::toString)
-            .orElse(NULL_AS_STR);
+            .orElse(NULL_AS_STR));
+    }
+
+    private String safeValueToString(String name, String value) {
+        return name.toLowerCase().contains(PASSWORD) ? value.replaceAll("\\S", "*") : value;
     }
 
 }
