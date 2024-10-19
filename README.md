@@ -72,14 +72,89 @@ try {
 }
 ```
 
+> [!TIP]
+> You are not allowed to have more than 10 finally commands in one workflow definition. Let's keep it simple!
+
 #### Placeholders
 
 You are allowed to use global `placeholders` to avoid data duplication in your workflow definition.
 Please note that all placeholders are resolved immediately before workflow running process.
 All placeholders are persisted in a database - a table called `placeholders`.
 
-Inside workflow definition, you can recognize a placeholder by having this format: `$$(NAME)`.
+Inside workflow definition, you can recognize a placeholder by having this format: `$$(PLACEHOLDER_NAME)`.
 You are allowed to use placeholders inside any `input`, `assert` and `output` (`name` and `value` fields).
+
+> [!TIP]
+> The name of the placeholder should match pattern `[a-zA-Z0-9_]+` for being accepted as a valid placeholder.
+
+> [!TIP]
+> If the placeholder that you are looking for is not found, you are going to receive a runtime exception.
+
+#### Expressions
+
+Expressions are the heart of this tool.
+By using them, you will be able to pass information between commands.
+Expressions are evaluated at runtime, and they can be used anywhere in an `input`, `assert`, `output` and `if` structure.
+Inside this structure, the expression will always be defined inside `value` field.
+Each expression is evaluated by a runtime evaluator specified by the user, after filling `@type` field.
+
+For the moment, there are 3 runtime evaluators supported:
+1. `@type` = `groovy` if you want to enable Groovy runtime evaluator.
+2. `@type` = `java` if you want to enable Java runtime evaluator based on [Janino](https://www.janino.net/) runtime compiler.
+3. `@type` = `spel` if you want to enable [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) runtime evaluator.
+
+##### Examples
+
+###### Retrieve exit code after running sshExec command by using SpEL runtime evaluator
+```json
+{
+  "name": "Asserts exitCode to be equal with 0",
+  "@type": "spel",
+  "value": "#output.getExitCode() == 0"
+}
+```
+
+###### Retrieve information from workflow local cache and save it to another variable (named `sleep.time`)
+```json
+{
+  "name": "sleep.time",
+  "@type": "groovy",
+  "value": "cache.get('sleepTime').toInteger()"
+}
+```
+
+##### Cache access patterns
+
+If you analyze all the above examples, you are going to see that sometimes is quite difficult to write the expression,
+because is too long. In addition, by accessing the local workflow cache using the following pattern
+`cache.get('sleepTime')`, it makes the expression harder to be read. It's not human-readable ...
+
+This is why, you can use a simplified version by using **cache access pattern feature** implemented in this tool.
+
+If we take one of the previous examples:
+```json
+{
+  "name": "sleep.time",
+  "@type": "groovy",
+  "value": "cache.get('sleepTime').toInteger()"
+}
+```
+we can rewrite it like this:
+```json
+{
+  "name": "sleep.time",
+  "@type": "groovy",
+  "value": "$(sleepTime:Integer.class)"
+}
+```
+
+The tool will be able to recognize every string pattern inside `value` which matches the following regex pattern:
+`\$\(([a-zA-Z0-9_.]+)(:[a-zA-Z0-9_.]+)?\)`. The string between parenthesis is split in two parts: first part defines
+the name of the variable that we are going to search into workflow run cache (as you can see this is mandatory) and
+the second part is optional and defines the type of the value that we are looking for.
+
+If there is no variable named `sleepTime` of type `Integer` in the workflow run cache, during workflow execution phase,
+you are going to receive a runtime exception.
 
 #### JAR loading at runtime
 
@@ -96,6 +171,9 @@ my-workflows:
         - "/home/admin/file1.jar" # Full path is recommended
         - "/home/admin/file2.jar"
 ```
+
+> [!TIP]
+> Once you change this list of JARs, please make sure your restart the entire application to see the effect!
 
 #### Comments
 
@@ -226,6 +304,9 @@ Example of a dummy command:
 }
 ```
 
+> [!IMPORTANT]  
+> All variables which contains in their name `password` (case-insensitive) will have all chars replaced with `*`.
+
 ### Sleep command
 
 Provides ability to pause current workflow execution by a given time.
@@ -245,43 +326,6 @@ Example of a dummy command:
     {
       "name": "sleep.time",
       "value": 1000
-    }
-  ]
-}
-```
-
-## Example of a dummy workflow
-
-```json
-{
-  "commands": [
-    {
-      "name": "Just a sleep",
-      "@type": "sleep",
-      "inputs": [
-        {
-          "name": "sleep.time",
-          "value": 5000
-        }
-      ],
-      "outputs": [
-        {
-          "name": "test",
-          "value": 5000
-        }
-      ]
-    },
-    {
-      "name": "Just a print",
-      "@type": "print",
-      "inputs": [
-        {
-          "name": "keys",
-          "value": [
-            "$$(TEST)"
-          ]
-        }
-      ]
     }
   ]
 }
