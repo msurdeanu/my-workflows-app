@@ -7,6 +7,7 @@ import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.shared.Registration;
 
 /**
@@ -37,22 +38,26 @@ public abstract class ResponsiveLayout extends FlexLayout implements HasResizeab
     }
 
     protected Component createHeader(String subTitleOnLeft, Component... componentsOnRight) {
-        final var headerDiv = new Div();
-        headerDiv.addClassName("header");
+        final var headerLayout = new FlexLayout();
+        headerLayout.setWidthFull();
+        headerLayout.setFlexDirection(FlexDirection.ROW);
 
         final var leftHeaderDiv = new Div();
         leftHeaderDiv.addClassName("header-left");
         final var pageSubTitle = new H3(subTitleOnLeft);
         leftHeaderDiv.add(pageSubTitle);
-        headerDiv.add(leftHeaderDiv);
+        headerLayout.add(leftHeaderDiv);
 
         final var rightHeaderDiv = new Div();
         rightHeaderDiv.addClassName("header-right");
-        rightHeaderDiv.add(componentsOnRight);
-        headerDiv.add(rightHeaderDiv);
+        final var horizontalLayout = new HorizontalLayout(componentsOnRight);
+        horizontalLayout.setWidthFull();
+        horizontalLayout.setJustifyContentMode(JustifyContentMode.END);
+        horizontalLayout.setSpacing(true);
+        rightHeaderDiv.add(horizontalLayout);
+        headerLayout.add(rightHeaderDiv);
 
-
-        return headerDiv;
+        return headerLayout;
     }
 
     protected Component createContent(Component... components) {

@@ -73,6 +73,7 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
                 WorkflowDefinition::getWorkflowParameters,
                 substract(allWorkflowParameters, workflowDefinition.getWorkflowParameters())))
         );
+        paginatedGrid.setEmptyStateText(getTranslation("workflow-definitions.main-grid.no-result"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
         paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);

@@ -32,7 +32,7 @@
         <prettytime.version>5.0.9.Final</prettytime.version>
         <groovy.version>4.0.23</groovy.version>
         <janino.version>3.1.12</janino.version>
-        <maverick-synergy-client.version>3.1.1</maverick-synergy-client.version>
+        <maverick-synergy-client.version>3.1.2</maverick-synergy-client.version>
         <json-schema-validator.version>1.5.2</json-schema-validator.version>
         <junit.version>5.10.2</junit.version>
     </properties>

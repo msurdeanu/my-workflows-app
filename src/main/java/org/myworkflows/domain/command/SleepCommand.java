@@ -14,6 +14,8 @@ import java.util.Set;
 @NoArgsConstructor
 public final class SleepCommand extends AbstractCommand {
 
+    public static final String PREFIX = "sleep";
+
     public SleepCommand(String name,
                         Set<ExpressionNameValue> ifs,
                         Set<ExpressionNameValue> inputs,
@@ -22,7 +24,7 @@ public final class SleepCommand extends AbstractCommand {
         super(name, ifs, inputs, asserts, outputs);
     }
 
-    @ExecutionMethod(prefix = "sleep")
+    @ExecutionMethod(prefix = PREFIX)
     public long sleep(@ExecutionParam Number time) throws InterruptedException {
         final var startTime = System.currentTimeMillis();
         Thread.sleep(time.longValue());

@@ -3,6 +3,17 @@ package org.myworkflows.view.util;
 import de.f0rce.ace.AceEditor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.myworkflows.domain.command.DatabaseCommand;
+import org.myworkflows.domain.command.GroovyCommand;
+import org.myworkflows.domain.command.HttpRequestCommand;
+import org.myworkflows.domain.command.JavaCommand;
+import org.myworkflows.domain.command.LoopCommand;
+import org.myworkflows.domain.command.NothingCommand;
+import org.myworkflows.domain.command.PrintCommand;
+import org.myworkflows.domain.command.SleepCommand;
+import org.myworkflows.domain.command.SshExecCommand;
+import org.myworkflows.domain.command.SshShellCommand;
+import org.myworkflows.domain.command.WaitUntilSubPassesCommand;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -22,16 +33,19 @@ public final class EditorAutoCompleteUtil {
 
     static {
         WORKFLOW_KEYWORDS.addAll(List.of("@type", "name", "value", "ifs", "inputs", "asserts", "outputs", "commands", "subcommands", "finallyCommands"));
-        COMMAND_TYPES.addAll(List.of("database", "groovy", "httpRequest", "java", "nothing", "print", "sleep", "sshExec", "sshShell", "waitUntilSubPasses"));
-        COMMAND_INPUTS_COMPLETER.put("database", List.of("url", "query"));
-        COMMAND_INPUTS_COMPLETER.put("groovy", List.of("scriptLines", "methodName"));
-        COMMAND_INPUTS_COMPLETER.put("java", List.of("scriptLines", "methodName", "className"));
-        COMMAND_INPUTS_COMPLETER.put("httpRequest", List.of("url", "method", "body", "headers", "connectionTimeout", "readTimeout"));
-        COMMAND_INPUTS_COMPLETER.put("print", List.of("keys"));
-        COMMAND_INPUTS_COMPLETER.put("sleep", List.of("time"));
-        COMMAND_INPUTS_COMPLETER.put("sshExec", List.of("host", "username", "password", "command", "port", "timeout"));
-        COMMAND_INPUTS_COMPLETER.put("sshShell", List.of("host", "username", "password", "commands", "port", "timeout"));
-        COMMAND_INPUTS_COMPLETER.put("waitUntilSubPasses", List.of("iterations", "backoffPeriod"));
+        COMMAND_TYPES.addAll(List.of(DatabaseCommand.PREFIX, GroovyCommand.PREFIX, HttpRequestCommand.PREFIX, JavaCommand.PREFIX,
+            NothingCommand.PREFIX, LoopCommand.PREFIX, PrintCommand.PREFIX, SleepCommand.PREFIX,
+            SshExecCommand.PREFIX, SshShellCommand.PREFIX, WaitUntilSubPassesCommand.PREFIX));
+        COMMAND_INPUTS_COMPLETER.put(DatabaseCommand.PREFIX, List.of("url", "query"));
+        COMMAND_INPUTS_COMPLETER.put(GroovyCommand.PREFIX, List.of("scriptLines", "methodName"));
+        COMMAND_INPUTS_COMPLETER.put(HttpRequestCommand.PREFIX, List.of("url", "method", "body", "headers", "connectionTimeout", "readTimeout"));
+        COMMAND_INPUTS_COMPLETER.put(JavaCommand.PREFIX, List.of("scriptLines", "methodName", "className"));
+        COMMAND_INPUTS_COMPLETER.put(LoopCommand.PREFIX, List.of("items"));
+        COMMAND_INPUTS_COMPLETER.put(PrintCommand.PREFIX, List.of("keys"));
+        COMMAND_INPUTS_COMPLETER.put(SleepCommand.PREFIX, List.of("time"));
+        COMMAND_INPUTS_COMPLETER.put(SshExecCommand.PREFIX, List.of("host", "username", "password", "command", "port", "timeout"));
+        COMMAND_INPUTS_COMPLETER.put(SshShellCommand.PREFIX, List.of("host", "username", "password", "commands", "port", "timeout"));
+        COMMAND_INPUTS_COMPLETER.put(WaitUntilSubPassesCommand.PREFIX, List.of("iterations", "backoffPeriod"));
     }
 
     @SuppressWarnings("deprecation")

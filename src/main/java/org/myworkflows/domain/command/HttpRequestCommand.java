@@ -26,6 +26,8 @@ import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 @NoArgsConstructor
 public final class HttpRequestCommand extends AbstractCommand {
 
+    public static final String PREFIX = "httpRequest";
+
     public HttpRequestCommand(String name,
                               Set<ExpressionNameValue> ifs,
                               Set<ExpressionNameValue> inputs,

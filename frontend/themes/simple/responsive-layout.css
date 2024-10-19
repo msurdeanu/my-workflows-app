@@ -3,37 +3,18 @@
     flex-direction: column;
 }
 
-#responsiveLayout .header {
-    padding-left: 10px;
-    padding-right: 10px;
-}
-
 #responsiveLayout .header-left {
-    float: left;
-    margin-top: 12px;
-}
-
-#responsiveLayout .header-left > * {
-    padding-right: 10px;
+    width: 50%;
+    padding-left: 25px;
 }
 
 #responsiveLayout .header-right {
-    margin-top: 12px;
-}
-
-@media (min-width: 600px) {
-    #responsiveLayout .header-right {
-        float: right;
-    }
-}
-
-#responsiveLayout .header-right > * {
-    padding-left: 10px;
+    width: 50%;
+    padding-right: 25px;
 }
 
 #responsiveLayout .content {
     flex: 1;
-    padding: 10px;
 }
 
 #responsiveLayout .footer {

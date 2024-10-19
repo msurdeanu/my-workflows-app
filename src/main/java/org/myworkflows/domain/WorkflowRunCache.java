@@ -7,12 +7,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.lang.String.format;
+import static java.util.Arrays.stream;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -32,19 +33,17 @@ public final class WorkflowRunCache implements Serializable {
         return cachedObjectMap.get(key);
     }
 
-    @SuppressWarnings("checkstyle:LineLength")
     public <T> T get(String key, Class<T> clazz) {
         return find(key, clazz)
             .orElseThrow(() -> new WorkflowRuntimeException(
-                "No value found for key '" + key + "' or value type is not assignable from class '" + clazz.getName() + "'"));
+                format("No value found for key '%s' or value type is not assignable from class '%s'", key, clazz.getName())));
     }
 
-    @SuppressWarnings({"unchecked", "checkstyle:LineLength"})
     public <T> List<T> getList(String key, Class<T> clazz) {
         return findList(key, clazz)
             .orElseThrow(() -> new WorkflowRuntimeException(
-                "No value found for key '" + key + "' or value type is not list or value type is not assignable from class '" + clazz.getName()
-                    + "' or value is empty list"));
+                format("No value found for key '%s' or value type is not list or value type is not assignable from class '%s' or value is empty list", key,
+                    clazz.getName())));
     }
 
     public Optional<Object> find(String key) {
@@ -141,11 +140,9 @@ public final class WorkflowRunCache implements Serializable {
     }
 
     private <T> List<T> convertValuesToListOfType(String value, Class<T> clazz) {
-        if (value == null) {
-            return null;
-        }
-
-        return Arrays.stream(value.split(",")).map(item -> convertValueToType(item, clazz)).toList();
+        return ofNullable(value)
+            .map(it -> stream(it.split(",")).map(item -> convertValueToType(item, clazz)).toList())
+            .orElse(null);
     }
 
 }

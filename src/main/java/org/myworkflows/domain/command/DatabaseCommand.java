@@ -21,6 +21,8 @@ import static java.util.Optional.of;
 @NoArgsConstructor
 public final class DatabaseCommand extends AbstractCommand {
 
+    public static final String PREFIX = "database";
+
     public DatabaseCommand(String name,
                            Set<ExpressionNameValue> ifs,
                            Set<ExpressionNameValue> inputs,
@@ -29,7 +31,7 @@ public final class DatabaseCommand extends AbstractCommand {
         super(name, ifs, inputs, asserts, outputs);
     }
 
-    @ExecutionMethod(prefix = "database")
+    @ExecutionMethod(prefix = PREFIX)
     public Optional<ResultSet> database(@ExecutionParam String url,
                                         @ExecutionParam String query) throws SQLException {
         try (final var connection = DriverManager.getConnection(url); // format: "jdbc:sqlite:"

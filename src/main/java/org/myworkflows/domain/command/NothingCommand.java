@@ -8,7 +8,9 @@ import org.myworkflows.domain.command.api.ExecutionMethod;
  */
 public final class NothingCommand extends AbstractCommand {
 
-    @ExecutionMethod(prefix = "nothing")
+    public static final String PREFIX = "nothing";
+
+    @ExecutionMethod(prefix = PREFIX)
     public void nothing() {
         // This command is not doing anything. It can be used to inject input parameters.
     }
