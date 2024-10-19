@@ -18,6 +18,8 @@ import java.util.Set;
 @NoArgsConstructor
 public final class SshExecCommand extends AbstractCommand {
 
+    public static final String PREFIX = "sshExec";
+
     public SshExecCommand(String name,
                           Set<ExpressionNameValue> ifs,
                           Set<ExpressionNameValue> inputs,
@@ -26,7 +28,7 @@ public final class SshExecCommand extends AbstractCommand {
         super(name, ifs, inputs, asserts, outputs);
     }
 
-    @ExecutionMethod(prefix = "sshExec")
+    @ExecutionMethod(prefix = PREFIX)
     public SshCommandOutput sshExec(@ExecutionParam String host,
                                     @ExecutionParam String username,
                                     @ExecutionParam String password,

@@ -16,6 +16,8 @@ import java.util.Set;
 @NoArgsConstructor
 public final class PrintCommand extends AbstractCommand {
 
+    public static final String PREFIX = "print";
+
     public PrintCommand(String name,
                         Set<ExpressionNameValue> ifs,
                         Set<ExpressionNameValue> inputs,
@@ -24,7 +26,7 @@ public final class PrintCommand extends AbstractCommand {
         super(name, ifs, inputs, asserts, outputs);
     }
 
-    @ExecutionMethod(prefix = "print")
+    @ExecutionMethod(prefix = PREFIX)
     public int print(@ExecutionParam WorkflowRun workflowRun,
                      @ExecutionParam List<String> keys) {
         return keys.stream()

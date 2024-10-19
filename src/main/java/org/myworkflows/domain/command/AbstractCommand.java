@@ -39,16 +39,17 @@ import static java.util.stream.IntStream.range;
 @Getter
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = DatabaseCommand.class, name = "database"),
-    @JsonSubTypes.Type(value = GroovyCommand.class, name = "groovy"),
-    @JsonSubTypes.Type(value = HttpRequestCommand.class, name = "httpRequest"),
-    @JsonSubTypes.Type(value = JavaCommand.class, name = "java"),
-    @JsonSubTypes.Type(value = NothingCommand.class, name = "nothing"),
-    @JsonSubTypes.Type(value = PrintCommand.class, name = "print"),
-    @JsonSubTypes.Type(value = SleepCommand.class, name = "sleep"),
-    @JsonSubTypes.Type(value = SshExecCommand.class, name = "sshExec"),
-    @JsonSubTypes.Type(value = SshShellCommand.class, name = "sshShell"),
-    @JsonSubTypes.Type(value = WaitUntilSubPassesCommand.class, name = "waitUntilSubPasses")
+    @JsonSubTypes.Type(value = DatabaseCommand.class, name = DatabaseCommand.PREFIX),
+    @JsonSubTypes.Type(value = GroovyCommand.class, name = GroovyCommand.PREFIX),
+    @JsonSubTypes.Type(value = HttpRequestCommand.class, name = HttpRequestCommand.PREFIX),
+    @JsonSubTypes.Type(value = JavaCommand.class, name = JavaCommand.PREFIX),
+    @JsonSubTypes.Type(value = LoopCommand.class, name = LoopCommand.PREFIX),
+    @JsonSubTypes.Type(value = NothingCommand.class, name = NothingCommand.PREFIX),
+    @JsonSubTypes.Type(value = PrintCommand.class, name = PrintCommand.PREFIX),
+    @JsonSubTypes.Type(value = SleepCommand.class, name = SleepCommand.PREFIX),
+    @JsonSubTypes.Type(value = SshExecCommand.class, name = SshExecCommand.PREFIX),
+    @JsonSubTypes.Type(value = SshShellCommand.class, name = SshShellCommand.PREFIX),
+    @JsonSubTypes.Type(value = WaitUntilSubPassesCommand.class, name = WaitUntilSubPassesCommand.PREFIX)
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class AbstractCommand {

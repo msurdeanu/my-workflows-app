@@ -20,6 +20,8 @@ import static java.util.stream.Collectors.joining;
 @NoArgsConstructor
 public final class GroovyCommand extends AbstractCommand {
 
+    public static final String PREFIX = "groovy";
+
     private static final GroovyShell GROOVY_SHELL = new GroovyShell();
 
     public GroovyCommand(String name,
@@ -30,7 +32,7 @@ public final class GroovyCommand extends AbstractCommand {
         super(name, ifs, inputs, asserts, outputs);
     }
 
-    @ExecutionMethod(prefix = "groovy")
+    @ExecutionMethod(prefix = PREFIX)
     public Object groovy(@ExecutionParam WorkflowRun workflowRun,
                          @ExecutionParam List<String> scriptLines,
                          @ExecutionParam(required = false, defaultValue = "run") String methodName) {
