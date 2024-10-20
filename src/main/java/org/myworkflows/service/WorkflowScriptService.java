@@ -1,5 +1,6 @@
 package org.myworkflows.service;
 
+import com.networknt.schema.ValidationMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -53,8 +55,13 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
         onSubmittedEventBuilder.token(onSubmitEvent.getToken());
 
         if (workflowDefScriptObject instanceof String workflowAsString) {
-            final var validationMessages = applicationManager.getBeanOfType(WorkflowDefinitionValidatorService.class)
-                .validate(workflowAsString);
+            Set<ValidationMessage> validationMessages;
+            try {
+                validationMessages = applicationManager.getBeanOfType(WorkflowDefinitionValidatorService.class)
+                    .validate(workflowAsString);
+            } catch (Exception exception) {
+                validationMessages = Set.of(ValidationMessage.builder().message(exception.getMessage()).build());
+            }
             onSubmittedEventBuilder.validationMessages(validationMessages);
             if (!validationMessages.isEmpty()) {
                 applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());

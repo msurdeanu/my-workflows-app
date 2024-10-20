@@ -1,6 +1,7 @@
 package org.myworkflows.domain.command;
 
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.command.api.ExecutionMethod;
@@ -13,6 +14,7 @@ import java.util.Set;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@Slf4j
 @NoArgsConstructor
 public final class WaitUntilSubPassesCommand extends AbstractSubCommand {
 
@@ -36,7 +38,8 @@ public final class WaitUntilSubPassesCommand extends AbstractSubCommand {
             try {
                 getSubcommands().forEach(subcommand -> subcommand.run(workflowRun));
                 break;
-            } catch (Exception notUsed) {
+            } catch (Exception exception) {
+                log.debug("Command '{}' thrown an exception.", getName(), exception);
                 sleepAWhile(backoffPeriod.longValue());
             }
         }

@@ -6,7 +6,7 @@ import org.myworkflows.domain.WorkflowRun;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -26,7 +26,7 @@ public final class LoopCommandTest {
 
         // when & then
         new LoopCommand("A", Set.of(), Set.of(), Set.of(), Set.of(), List.of(printSubCommand)).run(workflowRun);
-        assertEquals("c", workflowRun.getCache().get("loop.item"));
+        assertNull(workflowRun.getCache().get("loop.item"));
     }
 
     @Test
@@ -42,7 +42,7 @@ public final class LoopCommandTest {
         final var start = System.currentTimeMillis();
         new LoopCommand("A", Set.of(), Set.of(), Set.of(), Set.of(), List.of(printSubCommand)).run(workflowRun);
         final var duration = System.currentTimeMillis() - start;
-        assertEquals("c", workflowRun.getCache().get("loop.item"));
+        assertNull(workflowRun.getCache().get("loop.item"));
         assertTrue(duration >= 4000);
     }
 

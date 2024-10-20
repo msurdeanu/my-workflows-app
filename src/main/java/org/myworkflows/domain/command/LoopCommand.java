@@ -6,12 +6,9 @@ import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.command.api.ExecutionMethod;
 import org.myworkflows.domain.command.api.ExecutionParam;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import static java.util.Optional.ofNullable;
 import static java.util.stream.IntStream.range;
 
 /**
@@ -23,6 +20,8 @@ public final class LoopCommand extends AbstractSubCommand {
 
     public static final String PREFIX = "loop";
 
+    private static final String LOOP_ITEM = "loop.item";
+
     public LoopCommand(String name,
                        Set<ExpressionNameValue> ifs,
                        Set<ExpressionNameValue> inputs,
@@ -33,23 +32,26 @@ public final class LoopCommand extends AbstractSubCommand {
     }
 
     @ExecutionMethod(prefix = PREFIX)
-    public Map<Object, Boolean> loop(@ExecutionParam WorkflowRun workflowRun,
-                                     @ExecutionParam List<Object> items,
-                                     @ExecutionParam(required = false, defaultValue = "1000") Number backoffPeriod) {
-        final var result = new HashMap<Object, Boolean>();
-        final var previousLoopItem = workflowRun.getCache().get("loop.item");
+    public int loop(@ExecutionParam WorkflowRun workflowRun,
+                    @ExecutionParam List<Object> items,
+                    @ExecutionParam(required = false, defaultValue = "1000") Number backoffPeriod) {
+        final var previousLoopItem = workflowRun.getCache().find(LOOP_ITEM);
         try {
             range(0, items.size()).forEach(index -> {
-                workflowRun.getCache().put("loop.item", items.get(index));
-                getSubcommands().forEach(subCommand -> subCommand.run(workflowRun));
+                final var currentItem = items.get(index);
+                workflowRun.getCache().put(LOOP_ITEM, currentItem);
+                getSubcommands().forEach(subCommand -> subCommand.run(workflowRun, currentItem));
                 if (index < items.size() - 1) {
                     sleepAWhile(backoffPeriod.longValue());
                 }
             });
         } finally {
-            ofNullable(previousLoopItem).ifPresent(item -> workflowRun.getCache().put("loop.item", item));
+            previousLoopItem.ifPresentOrElse(
+                item -> workflowRun.getCache().put(LOOP_ITEM, item),
+                () -> workflowRun.getCache().remove(LOOP_ITEM)
+            );
         }
-        return result; // TODO
+        return items.size();
     }
 
 }

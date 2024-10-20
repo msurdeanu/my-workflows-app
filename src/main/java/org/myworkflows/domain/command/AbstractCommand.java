@@ -83,6 +83,10 @@ public abstract class AbstractCommand {
     private Set<ExpressionNameValue> outputs = Set.of();
 
     public final void run(WorkflowRun workflowRun) {
+        run(workflowRun, null);
+    }
+
+    public final void run(WorkflowRun workflowRun, Object innerObject) {
         if (!runIfs(workflowRun.getCache())) {
             return;
         }
@@ -91,7 +95,7 @@ public abstract class AbstractCommand {
         stream(getClass().getDeclaredMethods())
             .filter(method -> method.isAnnotationPresent(ExecutionMethod.class))
             .findFirst()
-            .ifPresent(method -> runMethodWithAssertsAndOutputs(method, workflowRun));
+            .ifPresent(method -> runMethodWithAssertsAndOutputs(method, workflowRun, innerObject));
     }
 
     private boolean runIfs(WorkflowRunCache workflowRunCache) {
@@ -102,11 +106,11 @@ public abstract class AbstractCommand {
         inputs.forEach(input -> workflowRunCache.put(input.getName(), input.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache))));
     }
 
-    private void runMethodWithAssertsAndOutputs(Method method, WorkflowRun workflowRun) {
+    private void runMethodWithAssertsAndOutputs(Method method, WorkflowRun workflowRun, Object innerObject) {
         final var executionMethod = method.getDeclaredAnnotation(ExecutionMethod.class);
         runMethod(method, executionMethod, workflowRun).ifPresent(output -> {
             runAsserts(output, workflowRun.getCache());
-            runOutputs(output, workflowRun.getCache());
+            runOutputs(output, workflowRun.getCache(), innerObject);
         });
     }
 
@@ -151,8 +155,12 @@ public abstract class AbstractCommand {
             });
     }
 
-    private void runOutputs(Object output, WorkflowRunCache workflowRunCache) {
-        outputs.forEach(out -> workflowRunCache.put(out.getName(), out.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache, OUTPUT, output))));
+    private void runOutputs(Object output, WorkflowRunCache workflowRunCache, Object innerObject) {
+        ofNullable(innerObject).ifPresentOrElse(inner -> {
+            outputs.forEach(out -> workflowRunCache.putAsMap(out.getName(), inner, out.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache, OUTPUT, output))));
+        }, () -> {
+            outputs.forEach(out -> workflowRunCache.put(out.getName(), out.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache, OUTPUT, output))));
+        });
     }
 
 }

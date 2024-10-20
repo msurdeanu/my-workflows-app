@@ -12,7 +12,7 @@ public final class NothingCommand extends AbstractCommand {
 
     @ExecutionMethod(prefix = PREFIX)
     public void nothing() {
-        // This command is not doing anything. It can be used to inject input parameters.
+        // Nothing to do. Used only for injecting parameters!
     }
 
 }
