@@ -1,6 +1,7 @@
 package org.myworkflows.domain.command;
 
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.codehaus.janino.SimpleCompiler;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.WorkflowRun;
@@ -19,6 +20,7 @@ import static java.util.stream.Collectors.joining;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@Slf4j
 @NoArgsConstructor
 public final class JavaCommand extends AbstractCommand {
 
@@ -51,8 +53,9 @@ public final class JavaCommand extends AbstractCommand {
 
             final var runMethod = dynamicClass.getMethod(methodName, WorkflowRunCache.class);
             return runMethod.invoke(instance, workflowRun.getCache());
-        } catch (Exception e) {
-            throw new WorkflowRuntimeException(e);
+        } catch (Exception exception) {
+            log.debug("Command '{}' thrown an exception.", getName(), exception);
+            throw new WorkflowRuntimeException(exception);
         }
     }
 

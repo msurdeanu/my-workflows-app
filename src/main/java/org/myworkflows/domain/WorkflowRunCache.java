@@ -1,6 +1,7 @@
 package org.myworkflows.domain;
 
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.exception.WorkflowRuntimeException;
 
 import java.io.IOException;
@@ -26,10 +27,10 @@ public final class WorkflowRunCache implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private Map<String, Object> cachedObjectMap = new HashMap<>();
+    private transient Map<String, Object> cachedObjectMap = new HashMap<>();
 
     @Getter
-    private boolean cacheObjectMapComplete = true;
+    private transient boolean cacheObjectMapComplete = true;
 
     public Object get(String key) {
         return cachedObjectMap.get(key);
@@ -80,6 +81,21 @@ public final class WorkflowRunCache implements Serializable {
         return cachedObjectMap.put(key, value);
     }
 
+    @SuppressWarnings("unchecked")
+    public Map<Object, Object> putAsMap(String key, Object innerKey, Object value) {
+        final var object = cachedObjectMap.get(key);
+        if (object instanceof Map<?, ?>) {
+            final var objectMap = (Map<Object, Object>) object;
+            objectMap.put(innerKey, value);
+            return objectMap;
+        } else {
+            final var objectMap = new HashMap<>();
+            objectMap.put(innerKey, object);
+            cachedObjectMap.put(key, objectMap);
+            return objectMap;
+        }
+    }
+
     public Object remove(String key) {
         return cachedObjectMap.remove(key);
     }
@@ -91,6 +107,7 @@ public final class WorkflowRunCache implements Serializable {
             cacheObjectMapComplete = false;
         }
 
+        objectOutputStream.defaultWriteObject();
         objectOutputStream.writeBoolean(cacheObjectMapComplete);
         objectOutputStream.writeInt(serializedObjectMap.size());
         for (var entry : serializedObjectMap.entrySet()) {
@@ -101,6 +118,7 @@ public final class WorkflowRunCache implements Serializable {
 
     @Serial
     private void readObject(ObjectInputStream objectInputStream) throws IOException, ClassNotFoundException {
+        objectInputStream.defaultReadObject();
         cacheObjectMapComplete = objectInputStream.readBoolean();
         final var size = objectInputStream.readInt();
         cachedObjectMap = new HashMap<>(size);
@@ -127,13 +145,26 @@ public final class WorkflowRunCache implements Serializable {
             return (T) value;
         }
 
+        final var valueParts = value.split(":");
+        int valuePartsLength = valueParts.length;
+        if (valuePartsLength > 2) {
+            throw new WorkflowRuntimeException(format("Value '%s' has more than 2 parts", value));
+        }
+        final var methodName = valuePartsLength == 2 ? valueParts[1] : "valueOf";
+        var methodParameterTypes = new Class<?>[0];
+        var methodArgs = new Object[0];
+        if (!StringUtils.EMPTY.equals(valueParts[0])) {
+            methodParameterTypes = new Class<?>[] {String.class};
+            methodArgs = new Object[] {valueParts[0]};
+        }
+
         Class<?> newClazz = clazz;
         if (Number.class.equals(clazz)) {
             newClazz = value.contains(".") ? Double.class : Long.class;
         }
 
         try {
-            return (T) newClazz.getMethod("valueOf", String.class).invoke(null, value);
+            return (T) newClazz.getMethod(methodName, methodParameterTypes).invoke(null, methodArgs);
         } catch (Exception e) {
             throw new WorkflowRuntimeException(e);
         }

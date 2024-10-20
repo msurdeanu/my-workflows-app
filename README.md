@@ -14,6 +14,7 @@ All workflows are defined in JSON format and for playing with them, you have a n
 * Spring Boot 3.x as dependency injection framework.
 * [Vaadin 24](https://vaadin.com) as UI framework.
 * [SQLite](https://www.sqlite.org/) as relational database for persisting data.
+* [JSON Schema Validator](https://github.com/networknt/json-schema-validator) as JSON schema validator for workflow scripts.
 * [Groovy](https://groovy-lang.org/) as additional language for defining commands
 * [Janino](https://www.janino.net/) as Java runtime compiler.
 * [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) as another runtime evaluator.
@@ -24,7 +25,9 @@ All workflows are defined in JSON format and for playing with them, you have a n
 * **Authentication** and **authorization** enabled by default.
 * Vaadin **Push** enabled. Through websockets, the server can send updates to the client.
 * Persistence layer based on **SQLite**.
-* Dedicated web pages for **workflow development**, **workflow definitions**, **workflow templates** and **workflow runs**.
+* Dedicated page for **workflow definition script development**, from where you can code your script, inject parameters,
+run the script and see the print in real time. The editor has auto complete to make your life easier.
+* Dedicated web pages for **workflow definitions**, **workflow templates** and **workflow runs**.
 * Dedicated web page for **statistics**.
 
 ## TODOs
@@ -328,6 +331,40 @@ Example of a dummy command:
       "value": 1000
     }
   ]
+}
+```
+
+## Examples of workflow definition scripts
+
+### Make an HTTP GET request, check status code to be OK, extract page body into an variable and print it
+
+```json
+{
+  "commands" : [ {
+    "@type" : "httpRequest",
+    "name" : "Make HTTP request",
+    "inputs" : [ {
+      "name" : "httpRequest.url",
+      "value" : "https://aventurata.ro/wp-json/wp/v2"
+    } ],
+    "asserts" : [ {
+      "name" : "Assert request status code",
+      "value" : "output.getStatusCode() == org.springframework.http.HttpStatus.OK",
+      "@type": "java"
+    } ],
+    "outputs" : [ {
+      "name" : "requestBody",
+      "value" : "output.getBody()",
+      "@type": "java"
+    } ]
+  }, {
+    "@type" : "print",
+    "name" : "Print requestBody",
+    "inputs" : [ {
+      "name" : "print.keys",
+      "value" : [ "requestBody" ]
+    } ]
+  } ]
 }
 ```
 

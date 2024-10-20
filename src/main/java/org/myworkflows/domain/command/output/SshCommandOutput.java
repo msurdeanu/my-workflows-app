@@ -3,13 +3,15 @@ package org.myworkflows.domain.command.output;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.io.Serializable;
+
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-@Builder
 @Getter
-public class SshCommandOutput {
+@Builder
+public class SshCommandOutput implements Serializable {
 
     private final int exitCode;
     private final String output;
