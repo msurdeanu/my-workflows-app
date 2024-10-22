@@ -36,7 +36,7 @@ CREATE TABLE workflow_definitions
 
 INSERT INTO workflow_definitions ("name", "script")
 VALUES ('Sleep command with placeholder',
-        '{"name":"Sleep command with placeholder","commands":[{"name":"Sleep with placeholder","@type":"sleep","inputs":[{"name":"sleep.$$(SLEEP_TIME)","value":1000}]},{"name":"Print placeholder value","@type":"print","inputs":[{"name":"print.keys","value":["$$(SLEEP_TIME)"]}]}]}');
+        '{"commands":[{"name":"Sleep with placeholder","@type":"sleep","inputs":[{"name":"sleep.$$(SLEEP_TIME)","value":1000}]},{"name":"Print placeholder value","@type":"print","inputs":[{"name":"print.keys","value":["$$(SLEEP_TIME)"]}]}]}');
 
 CREATE TABLE workflow_templates
 (
