@@ -6,6 +6,7 @@ import org.myworkflows.domain.WorkflowDefinitionScript;
 import org.myworkflows.serializer.JsonFactory;
 
 import static java.util.Optional.ofNullable;
+import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 
 /**
  * @author Mihai Surdeanu
@@ -24,7 +25,7 @@ public final class WorkflowDefinitionScriptToStringConverter implements Attribut
     @Override
     public WorkflowDefinitionScript convertToEntityAttribute(String data) {
         return ofNullable(data)
-            .map(item -> JsonFactory.fromJsonToObject(item, WorkflowDefinitionScript.class))
+            .map(item -> fromJsonToObject(item, WorkflowDefinitionScript.class))
             .orElse(null);
     }
 

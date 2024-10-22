@@ -1,6 +1,7 @@
 package org.myworkflows.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,6 +23,7 @@ public class WorkflowDefinitionScript {
     private List<AbstractCommand> commands;
 
     @JsonProperty("finallyCommands")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<AbstractCommand> finallyCommands = List.of();
 
     public static WorkflowDefinitionScript of(List<WorkflowDefinitionScript> workflowDefinitionScripts) {
