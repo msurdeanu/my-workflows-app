@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
@@ -47,6 +48,10 @@ public final class WorkflowRunCache implements Serializable {
             .orElseThrow(() -> new WorkflowRuntimeException(
                 format("No value found for key '%s' or value type is not list or value type is not assignable from class '%s' or value is empty list", key,
                     clazz.getName())));
+    }
+
+    public Set<String> getAllKeys() {
+        return cachedObjectMap.keySet();
     }
 
     public Optional<Object> find(String key) {
@@ -100,6 +105,43 @@ public final class WorkflowRunCache implements Serializable {
         return cachedObjectMap.remove(key);
     }
 
+    @SuppressWarnings("unchecked")
+    private <T> T convertValueToType(String value, Class<T> clazz) {
+        if (value == null || String.class.equals(clazz)) {
+            return (T) value;
+        }
+
+        final var valueParts = value.split(":");
+        int valuePartsLength = valueParts.length;
+        if (valuePartsLength > 2) {
+            throw new WorkflowRuntimeException(format("Value '%s' has more than 2 parts", value));
+        }
+        final var methodName = valuePartsLength == 2 ? valueParts[1] : "valueOf";
+        var methodParameterTypes = new Class<?>[0];
+        var methodArgs = new Object[0];
+        if (!StringUtils.EMPTY.equals(valueParts[0])) {
+            methodParameterTypes = new Class<?>[] {String.class};
+            methodArgs = new Object[] {valueParts[0]};
+        }
+
+        Class<?> newClazz = clazz;
+        if (Number.class.equals(clazz)) {
+            newClazz = value.contains(".") ? Double.class : Long.class;
+        }
+
+        try {
+            return (T) newClazz.getMethod(methodName, methodParameterTypes).invoke(null, methodArgs);
+        } catch (Exception exception) {
+            throw new WorkflowRuntimeException(exception);
+        }
+    }
+
+    private <T> List<T> convertValuesToListOfType(String value, Class<T> clazz) {
+        return ofNullable(value)
+            .map(it -> stream(it.split(",")).map(item -> convertValueToType(item, clazz)).toList())
+            .orElse(null);
+    }
+
     @Serial
     private void writeObject(ObjectOutputStream objectOutputStream) throws IOException {
         final var serializedObjectMap = getSerializedObjectMap();
@@ -137,43 +179,6 @@ public final class WorkflowRunCache implements Serializable {
             }
         });
         return objectMap;
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T convertValueToType(String value, Class<T> clazz) {
-        if (value == null || String.class.equals(clazz)) {
-            return (T) value;
-        }
-
-        final var valueParts = value.split(":");
-        int valuePartsLength = valueParts.length;
-        if (valuePartsLength > 2) {
-            throw new WorkflowRuntimeException(format("Value '%s' has more than 2 parts", value));
-        }
-        final var methodName = valuePartsLength == 2 ? valueParts[1] : "valueOf";
-        var methodParameterTypes = new Class<?>[0];
-        var methodArgs = new Object[0];
-        if (!StringUtils.EMPTY.equals(valueParts[0])) {
-            methodParameterTypes = new Class<?>[] {String.class};
-            methodArgs = new Object[] {valueParts[0]};
-        }
-
-        Class<?> newClazz = clazz;
-        if (Number.class.equals(clazz)) {
-            newClazz = value.contains(".") ? Double.class : Long.class;
-        }
-
-        try {
-            return (T) newClazz.getMethod(methodName, methodParameterTypes).invoke(null, methodArgs);
-        } catch (Exception e) {
-            throw new WorkflowRuntimeException(e);
-        }
-    }
-
-    private <T> List<T> convertValuesToListOfType(String value, Class<T> clazz) {
-        return ofNullable(value)
-            .map(it -> stream(it.split(",")).map(item -> convertValueToType(item, clazz)).toList())
-            .orElse(null);
     }
 
 }

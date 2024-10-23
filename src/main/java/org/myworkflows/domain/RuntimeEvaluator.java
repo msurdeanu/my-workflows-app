@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.codehaus.janino.ExpressionEvaluator;
 import org.myworkflows.exception.WorkflowRuntimeException;
-import org.myworkflows.util.StringReplacer;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
@@ -21,6 +20,7 @@ import java.util.regex.Pattern;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.Optional.ofNullable;
+import static org.myworkflows.util.StringReplacer.replace;
 
 /**
  * @author Mihai Surdeanu
@@ -88,7 +88,7 @@ public enum RuntimeEvaluator {
         }
     };
 
-    private static final Map<String, RuntimeEvaluator> ALL_VALUES = new HashMap<>(3);
+    private static final Map<String, RuntimeEvaluator> ALL_VALUES = new HashMap<>(4);
 
     static {
         stream(RuntimeEvaluator.values()).forEach(item -> ALL_VALUES.put(item.getType(), item));
@@ -103,7 +103,7 @@ public enum RuntimeEvaluator {
     }
 
     private static String resolveCacheAccessPatterns(String expression, Pattern cacheAccessPattern, String formatWithoutType, String formatWithType) {
-        final var newExpression = StringReplacer.replace(expression, cacheAccessPattern, (Matcher matcher) -> {
+        final var newExpression = replace(expression, cacheAccessPattern, (Matcher matcher) -> {
             final var name = matcher.group(1);
             final var genericType = matcher.group(2);
             return ofNullable(genericType)

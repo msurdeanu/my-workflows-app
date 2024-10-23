@@ -14,4 +14,8 @@ public final class WorkflowRuntimeException extends RuntimeException {
         super(throwable);
     }
 
+    public WorkflowRuntimeException(String message, Throwable throwable) {
+        super(message, throwable);
+    }
+
 }
