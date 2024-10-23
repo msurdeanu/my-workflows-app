@@ -53,7 +53,7 @@ public final class WorkflowTemplateSchedulerService {
             lock.unlock();
         }
 
-        log.info("Workflow template '{}' has been scheduled. Running frequency is '{}'",
+        log.info("Workflow template '{}' has been scheduled. Running frequency is '{}'.",
             workflowTemplate.getId(), workflowTemplate.getCron());
     }
 

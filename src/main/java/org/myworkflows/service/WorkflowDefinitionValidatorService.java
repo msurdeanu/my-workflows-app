@@ -33,7 +33,7 @@ public final class WorkflowDefinitionValidatorService {
                 stringBuilder.append(line);
             }
         } catch (Exception exception) {
-            throw new WorkflowRuntimeException("An error occurred during process of reading workflow schema from classpath.");
+            throw new WorkflowRuntimeException("An exception occurred during process of reading workflow schema from classpath.", exception);
         }
 
         WORKFLOW_SCHEMA = fromJsonToSchema(fromJsonToObject(stringBuilder.toString(), JsonNode.class));
