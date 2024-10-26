@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 public final class StringReplacerTest {
 
-    private final static Pattern UPPERCASE_PATTERN = Pattern.compile("([A-Z]+)");
+    private static final Pattern UPPERCASE_PATTERN = Pattern.compile("([A-Z]+)");
 
     @Test
     public void testUppercasePattern() {

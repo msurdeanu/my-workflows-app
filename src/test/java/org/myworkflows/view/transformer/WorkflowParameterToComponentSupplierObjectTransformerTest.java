@@ -15,6 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+/**
+ * @author Mihai Surdeanu
+ * @since 1.0.0
+ */
 public final class WorkflowParameterToComponentSupplierObjectTransformerTest {
 
     @Test
