@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.config.LoaderConfig;
 import org.myworkflows.exception.WorkflowRuntimeException;
+import org.myworkflows.holder.ParentClassLoaderHolder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
@@ -51,6 +52,7 @@ public final class JarLoaderService implements LoaderService {
             .toArray(URL[]::new);
 
         urlClassLoader = new URLClassLoader(jarUrls, getClass().getClassLoader());
+        ParentClassLoaderHolder.getInstance().setClassLoader(urlClassLoader);
     }
 
     @Override
@@ -58,6 +60,7 @@ public final class JarLoaderService implements LoaderService {
         ofNullable(urlClassLoader).ifPresent(item -> {
             try {
                 item.close();
+                ParentClassLoaderHolder.getInstance().resetClassLoaderToDefault();
             } catch (IOException e) {
                 throw new WorkflowRuntimeException(e);
             }
