@@ -21,7 +21,7 @@ public record WorkflowRunPrint(String name, Object value) {
 
     public String abbrValue() {
         return safeValueToString(name, ofNullable(value)
-            .map(item -> abbreviate(item.toString(), 64))
+            .map(item -> abbreviate(item.toString(), 48))
             .orElse(NULL_AS_STR));
     }
 

@@ -6,6 +6,7 @@ import org.myworkflows.domain.WorkflowParameter;
 
 import java.util.function.Predicate;
 
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
@@ -20,7 +21,7 @@ public final class WorkflowParameterFilter implements Filter<WorkflowParameter> 
     @Override
     public Predicate<WorkflowParameter> getFilterPredicate() {
         return isNotEmpty(byNameCriteria)
-                ? item -> item.getName().contains(byNameCriteria)
+                ? item -> containsIgnoreCase(item.getName(), byNameCriteria)
                 : item -> true;
     }
 

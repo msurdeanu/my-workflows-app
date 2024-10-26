@@ -47,7 +47,7 @@ public final class PrintCommandTest {
         final var firstPrint = allPrints.getFirst();
         assertInstanceOf(WorkflowRunPrint.class, firstPrint);
         assertEquals("prop", firstPrint.name());
-        assertEquals(64, firstPrint.abbrValue().length());
+        assertEquals(48, firstPrint.abbrValue().length());
         assertEquals("string", firstPrint.type());
     }
 

@@ -76,9 +76,9 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
                 .get());
         });
         final var parameters = new HashMap<String, List<String>>(3);
-        parameters.put("name", names);
-        parameters.put("type", types);
-        parameters.put("value", values);
+        parameters.put("n", names);
+        parameters.put("t", types);
+        parameters.put("v", values);
         return parameters;
     }
 

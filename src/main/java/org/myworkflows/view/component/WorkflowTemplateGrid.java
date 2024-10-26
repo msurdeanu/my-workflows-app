@@ -33,7 +33,7 @@ import java.util.List;
 
 import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 import static java.util.Optional.ofNullable;
-import static org.myworkflows.util.StreamUtil.substract;
+import static org.myworkflows.util.ListUtil.substract;
 
 /**
  * @author Mihai Surdeanu

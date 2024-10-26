@@ -2,6 +2,7 @@ package org.myworkflows.view.transformer;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
@@ -11,6 +12,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.myworkflows.domain.WorkflowParameter;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
@@ -28,6 +30,7 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
     public ComponentSupplierObject transform(WorkflowParameter workflowParameter) {
         final var workflowParameterType = workflowParameter.getType();
         return switch (workflowParameterType) {
+            case DATE -> createDateField(workflowParameter);
             case PASS -> createPasswordField(workflowParameter);
             case INT -> createIntegerField(workflowParameter);
             case DOUBLE -> createNumberField(workflowParameter);
@@ -35,6 +38,19 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
             case S_STR -> createStringSelect(workflowParameter);
             default -> createTextField(workflowParameter);
         };
+    }
+
+    private static ComponentSupplierObject createDateField(WorkflowParameter workflowParameter) {
+        final var datePicker = new DatePicker();
+        datePicker.setValue((LocalDate) workflowParameter.getComputedValue());
+        datePicker.setWidthFull();
+        return ComponentSupplierObject.builder()
+            .component(datePicker)
+            .componentValueSupplier(ComponentValueSupplier.builder()
+                .valueSupplier(datePicker::getValue)
+                .valueAsStringSupplier(() -> datePicker.getValue().toString())
+                .build())
+            .build();
     }
 
     private static ComponentSupplierObject createPasswordField(WorkflowParameter workflowParameter) {
