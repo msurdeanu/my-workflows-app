@@ -11,7 +11,15 @@ import java.util.stream.Collectors;
  * @since 1.0.0
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class StreamUtil {
+public final class ListUtil {
+
+    public static String getValueAtIndex(List<String> values, int index, String defaultValue) {
+        if (index >= 0 && index < values.size()) {
+            return values.get(index);
+        } else {
+            return defaultValue;
+        }
+    }
 
     public static <T> List<T> substract(List<T> list1, List<T> list2) {
         return list1.stream()

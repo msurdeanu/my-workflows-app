@@ -45,6 +45,7 @@ import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.service.WorkflowDefinitionService;
+import org.myworkflows.util.ListUtil;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.HasResizeableWidth;
 import org.myworkflows.view.component.ResponsiveLayout;
@@ -318,23 +319,15 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         if (parameters.isEmpty()) {
             return;
         }
-        final var names = parameters.getOrDefault("name", List.of());
+        final var names = parameters.getOrDefault("n", List.of());
         workflowDevParamGrid.addParameters(IntStream.range(0, names.size()).boxed().flatMap(index -> {
-            final var type = searchValueAtIndex(parameters.getOrDefault("type", List.of()), index, WorkflowParameterType.STR.getValue());
-            final var value = searchValueAtIndex(parameters.getOrDefault("value", List.of()), index, StringUtils.EMPTY);
+            final var type = ListUtil.getValueAtIndex(parameters.getOrDefault("t", List.of()), index, WorkflowParameterType.STR.getValue());
+            final var value = ListUtil.getValueAtIndex(parameters.getOrDefault("v", List.of()), index, StringUtils.EMPTY);
             final var workflowParameterType = ofNullable(WorkflowParameterType.of(type)).orElse(WorkflowParameterType.STR);
             return workflowParameterType.validate(value)
                 .<Stream<WorkflowParameter>>map(error -> Stream.empty())
                 .orElseGet(() -> Stream.of(WorkflowParameter.of(names.get(index), workflowParameterType, value)));
         }).toList());
-    }
-
-    private String searchValueAtIndex(List<String> values, int index, String defaultValue) {
-        if (index >= 0 && index < values.size()) {
-            return values.get(index);
-        } else {
-            return defaultValue;
-        }
     }
 
 }

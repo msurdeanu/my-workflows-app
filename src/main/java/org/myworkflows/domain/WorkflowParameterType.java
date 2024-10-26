@@ -3,9 +3,12 @@ package org.myworkflows.domain;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 import static java.util.Arrays.stream;
 import static java.util.Optional.empty;
 
@@ -47,6 +50,22 @@ public enum WorkflowParameterType {
         @Override
         public Optional<String> validate(String value) {
             return empty();
+        }
+    },
+    DATE("date") {
+        @Override
+        public Object getComputedValue(String value) {
+            return LocalDate.parse(value);
+        }
+
+        @Override
+        public Optional<String> validate(String value) {
+            try {
+                LocalDate.parse(value);
+                return empty();
+            } catch (DateTimeParseException notUsed) {
+                return Optional.of("Date format: " + ISO_LOCAL_DATE);
+            }
         }
     },
     INT("int") {
