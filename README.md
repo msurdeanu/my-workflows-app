@@ -368,6 +368,63 @@ Example of a dummy command:
 }
 ```
 
+### Custom Java command that parses a JSON string based on json-path library
+
+This example loads JAR files from disk during bootstrap phase:
+```yaml
+my-workflows:
+  config:
+    loader:
+      jars:
+        - accessors-smart-2.5.0.jar
+        - json-smart-2.5.0.jar
+        - json-path-2.9.0.jar
+```
+
+```json
+{
+  "commands": [
+    {
+      "name": "Parse JSON using json-path library",
+      "@type": "java",
+      "inputs": [
+        {
+          "name": "java.scriptLines",
+          "value": [
+            "import com.jayway.jsonpath.JsonPath;",
+            "import org.myworkflows.domain.WorkflowRunCache;",
+            "public class DynamicClass {",
+            "  public Object run(WorkflowRunCache cache) {",
+            "    return JsonPath.parse(\"[{'a':1,'b':2}]\").read(\"$[0]['b']\");",
+            "  }",
+            "}"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "test",
+          "value": "output",
+          "@type": "java"
+        }
+      ]
+    },
+    {
+      "@type": "print",
+      "name": "Print placeholder value",
+      "inputs": [
+        {
+          "name": "print.keys",
+          "value": [
+            "test"
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
 ## From development perspective
 
 ### Running the application
