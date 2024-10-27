@@ -52,7 +52,7 @@ public final class JarLoaderService implements LoaderService {
             .toArray(URL[]::new);
 
         urlClassLoader = new URLClassLoader(jarUrls, getClass().getClassLoader());
-        ParentClassLoaderHolder.getInstance().setClassLoader(urlClassLoader);
+        ParentClassLoaderHolder.INSTANCE.setClassLoader(urlClassLoader);
     }
 
     @Override
@@ -60,7 +60,7 @@ public final class JarLoaderService implements LoaderService {
         ofNullable(urlClassLoader).ifPresent(item -> {
             try {
                 item.close();
-                ParentClassLoaderHolder.getInstance().resetClassLoaderToDefault();
+                ParentClassLoaderHolder.INSTANCE.resetClassLoaderToDefault();
             } catch (IOException e) {
                 throw new WorkflowRuntimeException(e);
             }

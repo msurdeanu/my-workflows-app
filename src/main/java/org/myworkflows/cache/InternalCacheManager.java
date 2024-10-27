@@ -41,6 +41,7 @@ public final class InternalCacheManager implements CacheManager {
         WORKFLOW_RUN("workflowRun"),
         MENU_ITEM("menuItem"),
         PLACEHOLDER("placeholder"),
+        DOC_PAGE("docPage"),
         DEFAULT("default");
 
         private final String name;

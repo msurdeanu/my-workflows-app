@@ -8,13 +8,16 @@ import org.springframework.cache.support.SimpleValueWrapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
@@ -94,6 +97,17 @@ public final class InternalCache implements org.springframework.cache.Cache {
             return loadedValue;
         } catch (Exception e) {
             throw new WorkflowRuntimeException(e);
+        }
+    }
+
+    public <T> Set<T> getAllKeys(Class<T> type) {
+        assert type != null;
+        if (isOrderedOrHasLimitedSize()) {
+            return applyFunctionInsideOptimisticReadBlock(null,
+                item -> keys.stream().filter(type::isInstance).map(type::cast).collect(Collectors.toCollection(LinkedHashSet::new)));
+        } else {
+            return applyFunctionInsideOptimisticReadBlock(null,
+                item -> cacheMap.keySet().stream().filter(type::isInstance).map(type::cast).collect(Collectors.toSet()));
         }
     }
 

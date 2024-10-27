@@ -23,9 +23,11 @@ INSERT INTO menu_items ("label", "icon", "path", "role", "position")
 VALUES ('menu.main.workflow-development', 'code', 'class://org.myworkflows.view.WorkflowDevelopmentView', 'ROLE_ADMIN',
         '5');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', '6');
+VALUES ('menu.main.doc-pages', 'book', 'class://org.myworkflows.view.DocPageView', 'ROLE_GUEST', '6');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.github-myworkflows', 'qrcode', 'https://github.com/msurdeanu/my-workflows-app', 'ROLE_GUEST', '7');
+VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', '7');
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.github-myworkflows', 'qrcode', 'https://github.com/msurdeanu/my-workflows-app', 'ROLE_GUEST', '8');
 
 CREATE TABLE workflow_definitions
 (
@@ -114,3 +116,12 @@ CREATE TABLE placeholders
 
 INSERT INTO placeholders ("name", "value")
 VALUES ('SLEEP_TIME', 'sleepTime');
+
+CREATE TABLE doc_pages
+(
+    name  TEXT PRIMARY KEY NOT NULL,
+    value TEXT             NOT NULL
+);
+
+INSERT INTO doc_pages ("name", "value")
+VALUES ('Main', '**This is bold text**');

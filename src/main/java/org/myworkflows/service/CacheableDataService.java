@@ -64,8 +64,7 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
 
     @SuppressWarnings("unchecked")
     public Stream<T> getAllItems() {
-        return cache.getAllValues().stream()
-            .map(item -> (T) item);
+        return cache.getAllValues().stream().map(item -> (T) item);
     }
 
     public void addToCache(CacheableEntry entry) {

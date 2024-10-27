@@ -6,6 +6,7 @@ import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.command.api.ExecutionMethod;
 import org.myworkflows.domain.command.api.ExecutionParam;
+import org.myworkflows.holder.ParentClassLoaderHolder;
 
 import java.util.List;
 import java.util.Set;
@@ -21,8 +22,6 @@ import static java.util.stream.Collectors.joining;
 public final class GroovyCommand extends AbstractCommand {
 
     public static final String PREFIX = "groovy";
-
-    private static final GroovyShell GROOVY_SHELL = new GroovyShell();
 
     public GroovyCommand(String name,
                          Set<ExpressionNameValue> ifs,
@@ -40,7 +39,8 @@ public final class GroovyCommand extends AbstractCommand {
             return null;
         }
 
-        final var script = GROOVY_SHELL.parse(scriptLines.stream().collect(joining(lineSeparator())));
+        final var script = new GroovyShell(ParentClassLoaderHolder.INSTANCE.getClassLoader())
+            .parse(scriptLines.stream().collect(joining(lineSeparator())));
         return script.invokeMethod(methodName, workflowRun.getCache());
     }
 
