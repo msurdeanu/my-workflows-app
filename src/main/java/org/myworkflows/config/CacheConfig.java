@@ -1,6 +1,7 @@
 package org.myworkflows.config;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.myworkflows.cache.InternalCacheManager;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
@@ -14,13 +15,13 @@ import static org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
  * @since 1.0.0
  */
 @Getter
+@Setter
 @Configuration("cacheConfig")
 @ConfigurationProperties(prefix = "my-workflows.config.cache")
 @EnableCaching
 public class CacheConfig {
 
-    private final int workflowRunMaxSize = 1_000;
-    private final long workflowRunExpireAfterWriteSeconds = 86_400;
+    private int workflowRunMaxSize = 1_000;
 
     @Bean
     public InternalCacheManager cacheManager() {

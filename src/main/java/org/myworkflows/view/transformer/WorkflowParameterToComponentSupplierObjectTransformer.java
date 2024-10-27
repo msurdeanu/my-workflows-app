@@ -3,11 +3,18 @@ package org.myworkflows.view.transformer;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.datepicker.DatePickerVariant;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.select.SelectVariant;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextFieldVariant;
+import com.vaadin.flow.server.VaadinRequest;
+import com.vaadin.flow.server.VaadinService;
+import jakarta.servlet.http.Cookie;
 import lombok.Builder;
 import lombok.Getter;
 import org.myworkflows.domain.WorkflowParameter;
@@ -18,6 +25,10 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static java.lang.String.valueOf;
+import static java.util.Optional.ofNullable;
+import static org.myworkflows.util.CookieUtil.createEncryptedCookie;
+import static org.myworkflows.util.CookieUtil.findDecryptedCookieValue;
+import static org.myworkflows.view.util.PrefixUtil.setPrefixComponent;
 
 /**
  * @author Mihai Surdeanu
@@ -42,6 +53,7 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
 
     private static ComponentSupplierObject createDateField(WorkflowParameter workflowParameter) {
         final var datePicker = new DatePicker();
+        datePicker.addThemeVariants(DatePickerVariant.LUMO_SMALL);
         datePicker.setValue((LocalDate) workflowParameter.getComputedValue());
         datePicker.setWidthFull();
         return ComponentSupplierObject.builder()
@@ -54,9 +66,16 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
     }
 
     private static ComponentSupplierObject createPasswordField(WorkflowParameter workflowParameter) {
+        final var allCookies = getAllCookies();
         final var passwordField = new PasswordField();
-        passwordField.setValue((String) workflowParameter.getComputedValue());
+        passwordField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
+        passwordField.setValue(findDecryptedCookieValue(allCookies, workflowParameter.getName())
+            .orElseGet(() -> (String) workflowParameter.getComputedValue()));
         passwordField.setWidthFull();
+        final var cookieIcon = VaadinIcon.CLOUD_UPLOAD.create();
+        cookieIcon.addClickListener(event -> createEncryptedCookie(allCookies, workflowParameter.getName(), passwordField.getValue())
+            .ifPresent(cookie -> VaadinService.getCurrentResponse().addCookie(cookie)));
+        setPrefixComponent(passwordField, cookieIcon);
         return ComponentSupplierObject.builder()
             .component(passwordField)
             .componentValueSupplier(ComponentValueSupplier.builder()
@@ -68,6 +87,7 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
 
     private static ComponentSupplierObject createIntegerField(WorkflowParameter workflowParameter) {
         final var integerField = new IntegerField();
+        integerField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
         integerField.setValue((Integer) workflowParameter.getComputedValue());
         integerField.setWidthFull();
         return ComponentSupplierObject.builder()
@@ -81,6 +101,7 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
 
     private static ComponentSupplierObject createNumberField(WorkflowParameter workflowParameter) {
         final var numberField = new NumberField();
+        numberField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
         numberField.setValue((Double) workflowParameter.getComputedValue());
         numberField.setWidthFull();
         return ComponentSupplierObject.builder()
@@ -109,6 +130,7 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
     private static ComponentSupplierObject createStringSelect(WorkflowParameter workflowParameter) {
         final var singleValues = (List<String>) workflowParameter.getComputedValue();
         final var stringSelect = new Select<String>();
+        stringSelect.addThemeVariants(SelectVariant.LUMO_SMALL);
         stringSelect.setItems(singleValues);
         stringSelect.setValue(singleValues.getFirst());
         stringSelect.setWidthFull();
@@ -124,6 +146,7 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
 
     private static ComponentSupplierObject createTextField(WorkflowParameter workflowParameter) {
         final var textField = new TextField();
+        textField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
         textField.setValue((String) workflowParameter.getComputedValue());
         textField.setWidthFull();
         return ComponentSupplierObject.builder()
@@ -148,6 +171,12 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
             stringBuilder.append(",");
         }
         return stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
+    }
+
+    private static Cookie[] getAllCookies() {
+        return ofNullable(VaadinService.getCurrentRequest())
+            .map(VaadinRequest::getCookies)
+            .orElseGet(() -> new Cookie[] {});
     }
 
     @Getter

@@ -17,6 +17,6 @@ import java.util.List;
 @ConfigurationProperties(prefix = "my-workflows.config.loader")
 public class LoaderConfig {
 
-    private List<String> jars = List.of();
+    private final List<String> jars = List.of();
 
 }

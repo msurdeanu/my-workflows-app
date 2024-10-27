@@ -11,7 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public final class SecuredPasswordGenerator {
 
     public static void main(String[] args) {
-        log.info(encode("user"));
+        log.info(encode("test"));
     }
 
     private static String encode(String password) {
