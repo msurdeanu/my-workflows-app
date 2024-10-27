@@ -48,9 +48,14 @@ logging:
 
 my-workflows:
   config:
+    encryption:
+      # Algorithm used to encrypt cookies for storing sensitive data
+      algorithm: "AES"
+      # Secret key used to encrypt cookies internally for storing sensitive data
+      secret-key: "$2a$10$2KfdoXL0u.t4WnK7h9PZjOLnJZir7yvD3i84SlPI4k3oChci0ZR2"
     executor:
       # Number of threads used to schedule workflow templates using cron-jobs.
-      workflow-scheduler-pool-size: 2
+      workflow-scheduler-pool-size: 4
       # Number of threads part of workflow pool size.
       # Those threads are eligible to process submitted workflows.
       workflow-pool-size: 4

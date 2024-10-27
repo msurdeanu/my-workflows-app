@@ -1,5 +1,7 @@
 package org.myworkflows.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.core.NestedExceptionUtils;
 
 import static java.util.Optional.ofNullable;
@@ -8,6 +10,7 @@ import static java.util.Optional.ofNullable;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ExceptionUtil {
 
     private static final String DOT = ".";
