@@ -31,6 +31,7 @@ public class CacheConfig {
         cacheManager.addCache(CacheNameEnum.WORKFLOW_PARAMETER, Integer.MAX_VALUE, true);
         cacheManager.addCache(CacheNameEnum.MENU_ITEM, Integer.MAX_VALUE, false);
         cacheManager.addCache(CacheNameEnum.PLACEHOLDER, Integer.MAX_VALUE, false);
+        cacheManager.addCache(CacheNameEnum.DOC_PAGE, Integer.MAX_VALUE, true);
         return cacheManager;
     }
 

@@ -5,11 +5,13 @@
 
 #responsiveLayout .header-left {
     width: 50%;
+    margin-top: 10px;
     padding-left: 25px;
 }
 
 #responsiveLayout .header-right {
     width: 50%;
+    margin-top: 10px;
     padding-right: 25px;
 }
 

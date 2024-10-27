@@ -47,7 +47,7 @@ public final class JavaCommand extends AbstractCommand {
         final var resolvedScriptLines = scriptLines.stream().collect(joining(lineSeparator()));
         try {
             final var compiler = new SimpleCompiler();
-            compiler.setParentClassLoader(ParentClassLoaderHolder.getInstance().getClassLoader());
+            compiler.setParentClassLoader(ParentClassLoaderHolder.INSTANCE.getClassLoader());
             compiler.cook(resolvedScriptLines);
 
             final var dynamicClass = compiler.getClassLoader().loadClass(className);
