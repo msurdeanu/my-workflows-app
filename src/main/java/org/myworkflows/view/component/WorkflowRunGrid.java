@@ -7,9 +7,13 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.component.popover.PopoverVariant;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.service.WorkflowRunService;
@@ -85,6 +89,12 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         return ofNullable(workflowRun.getFailureMessage()).map(item -> {
             final var errorSpan = new Span(getTranslation("workflow-runs.main-grid.status.error", workflowRun.getHumanReadableDuration()));
             errorSpan.getElement().getThemeList().add("badge error small");
+            final var popover = new Popover();
+            popover.setTarget(errorSpan);
+            popover.setWidth("300px");
+            popover.addThemeVariants(PopoverVariant.ARROW);
+            popover.setPosition(PopoverPosition.BOTTOM);
+            popover.add(createGraniteAlert(workflowRun));
             return errorSpan;
         }).orElseGet(() -> {
             if (workflowRun.getDuration() >= 0) {
@@ -105,6 +115,12 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         button.setTooltipText(workflowRun.getCreated().toString());
         button.addClickListener(event -> new WorkflowRunDetailsDialog(workflowRun).open());
         return button;
+    }
+
+    private Component createGraniteAlert(WorkflowRun workflowRun) {
+        final var span = new Span(workflowRun.getFailureMessage());
+        span.addClassNames(LumoUtility.TextColor.ERROR);
+        return span;
     }
 
 }

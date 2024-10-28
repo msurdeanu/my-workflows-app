@@ -1,6 +1,5 @@
 package org.myworkflows.view;
 
-import com.flowingcode.vaadin.addons.granitealert.GraniteAlert;
 import com.networknt.schema.ValidationMessage;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -12,6 +11,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.ListItem;
 import com.vaadin.flow.component.html.Span;
@@ -29,6 +29,7 @@ import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteConfiguration;
 import com.vaadin.flow.shared.Registration;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.f0rce.ace.AceEditor;
 import de.f0rce.ace.enums.AceMode;
 import jakarta.annotation.security.RolesAllowed;
@@ -78,7 +79,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private static final String READ_ONLY = "ro";
 
     private final AceEditor editor = new AceEditor();
-    private final GraniteAlert currentWorkflowStatus = new GraniteAlert();
+    private final Div currentWorkflowStatus = new Div();
     private final WorkflowDevParamGrid workflowDevParamGrid = new WorkflowDevParamGrid();
     private final WorkflowPrintGrid workflowPrintGrid = new WorkflowPrintGrid();
 
@@ -102,13 +103,12 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         editor.setMode(AceMode.json);
         editor.setSofttabs(true);
         editor.setTabSize(2);
-        editor.setMinHeight("400px");
-        editor.setMaxHeight("600px");
+        editor.setHeight("400px");
         editor.addFocusShortcut(Key.KEY_E, KeyModifier.ALT);
         editor.setAutoComplete(true);
         editor.setLiveAutocompletion(true);
         EditorAutoCompleteUtil.apply(editor);
-        currentWorkflowStatus.setCompact(true);
+        currentWorkflowStatus.addClassNames(LumoUtility.BorderRadius.LARGE, LumoUtility.Padding.SMALL, LumoUtility.FontSize.SMALL);
         currentWorkflowStatus.setVisible(false);
 
         filterByDefinition = createFilterByTemplate();
@@ -271,34 +271,35 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
 
     private void updateWorkflowProgress(Set<ValidationMessage> validationMessages) {
         currentWorkflowStatus.removeAll();
-
-        currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.ERROR);
+        currentWorkflowStatus.removeClassNames(LumoUtility.Background.SUCCESS_10, LumoUtility.Background.WARNING_10);
+        currentWorkflowStatus.addClassName(LumoUtility.Background.ERROR_10);
         currentWorkflowStatus.add(new Span(getTranslation("workflow-development.validation.message")));
         final var listItems = validationMessages.stream()
             .map(ValidationMessage::getMessage)
             .map(ListItem::new)
             .toList();
         currentWorkflowStatus.add(new UnorderedList(listItems.toArray(listItems.toArray(new ListItem[0]))));
-
         currentWorkflowStatus.setVisible(true);
     }
 
     private void updateWorkflowProgress(WorkflowRun workflowRun) {
         currentWorkflowStatus.removeAll();
-
         if (workflowRun.getDuration() > 0) {
             ofNullable(workflowRun.getFailureMessage()).ifPresentOrElse(error -> {
-                currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.ERROR);
+                currentWorkflowStatus.removeClassNames(LumoUtility.Background.SUCCESS_10, LumoUtility.Background.WARNING_10);
+                currentWorkflowStatus.addClassName(LumoUtility.Background.ERROR_10);
                 currentWorkflowStatus.add(new Span(getTranslation("workflow-development.error.message",
                     valueOf(workflowRun.getId()), workflowRun.getHumanReadableDuration(),
                     workflowRun.getFailureMessage())));
             }, () -> {
-                currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.SUCCESS);
+                currentWorkflowStatus.removeClassNames(LumoUtility.Background.ERROR_10, LumoUtility.Background.WARNING_10);
+                currentWorkflowStatus.addClassName(LumoUtility.Background.SUCCESS_10);
                 currentWorkflowStatus.add(new Span(getTranslation("workflow-development.success.message",
                     valueOf(workflowRun.getId()), workflowRun.getHumanReadableDuration())));
             });
         } else {
-            currentWorkflowStatus.setLevel(GraniteAlert.GraniteAlertLevel.INFO);
+            currentWorkflowStatus.removeClassNames(LumoUtility.Background.ERROR_10, LumoUtility.Background.SUCCESS_10);
+            currentWorkflowStatus.addClassName(LumoUtility.Background.WARNING_10);
             currentWorkflowStatus.add(new Span(getTranslation("workflow-development.in-progress.message",
                 valueOf(workflowRun.getId()))));
         }

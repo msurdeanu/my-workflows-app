@@ -7,58 +7,118 @@
       "type": "array",
       "minItems": 1,
       "maxItems": 100,
-      "items": { "$ref": "#/$defs/command" }
+      "items": {
+        "$ref": "#/$defs/command"
+      }
     },
     "finallyCommands": {
       "type": "array",
       "minItems": 0,
       "maxItems": 10,
-      "items": { "$ref": "#/$defs/command" }
+      "items": {
+        "$ref": "#/$defs/command"
+      }
     }
   },
   "$defs": {
     "command": {
       "type": "object",
-      "required": [ "name", "@type" ],
+      "required": [
+        "name",
+        "@type"
+      ],
       "properties": {
         "name": {
           "type": "string",
           "description": "The name of the command."
         },
         "@type": {
-          "enum": ["database", "groovy", "httpRequest", "java", "nothing", "print", "sleep", "sshExec", "sshShell", "waitUntilSubPasses"]
+          "enum": [
+            "database",
+            "groovy",
+            "httpRequest",
+            "java",
+            "loop",
+            "nothing",
+            "print",
+            "sleep",
+            "sshExec",
+            "sshShell",
+            "waitUntilSubPasses"
+          ]
         },
         "ifs": {
           "type": "array",
-          "items": { "$ref": "#/$defs/expression" }
+          "items": {
+            "$ref": "#/$defs/expression"
+          }
         },
         "inputs": {
           "type": "array",
-          "items": { "$ref": "#/$defs/expression" }
+          "items": {
+            "$ref": "#/$defs/expression"
+          }
         },
         "asserts": {
           "type": "array",
-          "items": { "$ref": "#/$defs/expression" }
+          "items": {
+            "$ref": "#/$defs/expression"
+          }
         },
         "outputs": {
           "type": "array",
-          "items": { "$ref": "#/$defs/expression" }
+          "items": {
+            "$ref": "#/$defs/expression"
+          }
         }
       },
-      "if": {
-        "properties": {
-          "@type": { "const": "waitUntilSubPasses" }
-        }
-      },
-      "then": {
-        "properties": {
-          "subcommands": {
-            "type": "array",
-            "items": { "$ref": "#/$defs/command" }
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "const": "loop"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "loop": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/command"
+                },
+                "description": "Looped commands to be executed."
+              }
+            },
+            "required": [
+              "loop"
+            ]
           }
         },
-        "required": ["subcommands"]
-      },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "const": "waitUntilSubPasses"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "subcommands": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/command"
+                }
+              }
+            },
+            "required": [
+              "subcommands"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false,
       "patternProperties": {
         "^_comment.*": {}
@@ -66,18 +126,28 @@
     },
     "expression": {
       "type": "object",
-      "required": [ "name", "value" ],
+      "required": [
+        "name",
+        "value"
+      ],
       "properties": {
         "name": {
           "type": "string",
           "description": "The name of the expression."
         },
         "value": {
-          "type": ["any"],
+          "type": [
+            "any"
+          ],
           "description": "The value of the expression."
         },
         "@type": {
-          "enum": ["groovy", "java", "plain", "spel"]
+          "enum": [
+            "groovy",
+            "java",
+            "plain",
+            "spel"
+          ]
         }
       },
       "additionalProperties": false,
