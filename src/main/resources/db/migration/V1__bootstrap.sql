@@ -125,3 +125,6 @@ CREATE TABLE doc_pages
 
 INSERT INTO doc_pages ("name", "value")
 VALUES ('Main', '**This is bold text**');
+
+INSERT INTO doc_pages ("name", "value")
+VALUES ('Test', '_This is italic text_');

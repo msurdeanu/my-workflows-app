@@ -5,7 +5,9 @@ import com.flowingcode.vaadin.addons.markdown.MarkdownEditor;
 import com.flowingcode.vaadin.addons.markdown.MarkdownViewer;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
@@ -18,6 +20,8 @@ import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import org.myworkflows.domain.DocPage;
+import org.myworkflows.domain.DocPageEventHandler;
+import org.myworkflows.domain.UserRole;
 import org.myworkflows.service.DocPageService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;
@@ -34,14 +38,17 @@ import static java.util.Optional.ofNullable;
  */
 @PermitAll
 @Route(value = DocPageView.ROUTE, layout = BaseLayout.class)
-public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, HasUrlParameter<String> {
+public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, HasUrlParameter<String>, DocPageEventHandler {
 
     public static final String ROUTE = "doc-pages";
 
     private static final String EDIT_MODE = "em";
 
     private final Tabs tabs = new Tabs();
+    private final Map<String, Tab> tabMap = new HashMap<>();
     private final VerticalLayout tabContent = new VerticalLayout();
+
+    private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
 
     private final DocPageService docPageService;
 
@@ -50,7 +57,11 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
     public DocPageView(DocPageService docPageService) {
         this.docPageService = docPageService;
 
-        docPageService.getAllNames().stream().map(Tab::new).forEach(tabs::add);
+        docPageService.getAllNames().forEach(name -> {
+            final var tab = new Tab(name);
+            tabMap.put(name, tab);
+            tabs.add(tab);
+        });
         tabs.addThemeVariants(TabsVariant.LUMO_CENTERED);
         tabs.addSelectedChangeListener(event -> setTabContent(event.getSelectedTab()));
         setTabContent(tabs.getSelectedTab());
@@ -67,8 +78,21 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
 
     @Override
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String pageName) {
-        // TODO: filter by page name
+        ofNullable(pageName).flatMap(name -> ofNullable(tabMap.get(name))).ifPresent(tab -> {
+            tabs.setSelectedTab(tab);
+            setTabContent(tabs.getSelectedTab());
+        });
         processEditModeIfPresent(beforeEvent.getLocation().getQueryParameters());
+    }
+
+    @Override
+    public void onDelete(DocPage docPage) {
+        docPageService.delete(docPage);
+    }
+
+    @Override
+    public void onValueUpdated(DocPage docPage, String newValue) {
+        docPageService.updateValue(docPage, newValue);
     }
 
     private void processEditModeIfPresent(QueryParameters queryParameters) {
@@ -93,19 +117,39 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
     }
 
     private Component createMarkdownEditor(DocPage docPage) {
+        final var layout = new VerticalLayout();
         final var markdownEditor = new MarkdownEditor();
         markdownEditor.setWidthFull();
         markdownEditor.setHeight("400px");
         markdownEditor.setMaxLength(32768);
-        markdownEditor.setDataColorMode(BaseMarkdownComponent.DataColorMode.LIGTH);
+        markdownEditor.setDataColorMode(BaseMarkdownComponent.DataColorMode.LIGHT);
         markdownEditor.setContent(docPage.getValue());
-        return markdownEditor;
+        layout.add(markdownEditor);
+        if (isLoggedAsAdmin) {
+            final var horizontalLayout = new HorizontalLayout();
+            horizontalLayout.setSpacing(true);
+            horizontalLayout.setWidthFull();
+
+            final var updateDocPageButton = new Button(getTranslation("doc-pages.update.button"), VaadinIcon.EDIT.create());
+            updateDocPageButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+            updateDocPageButton.getStyle().set("flex", "1 1 50%");
+            updateDocPageButton.addClickListener(event -> onValueUpdated(docPage, markdownEditor.getContent()));
+            // TODO: use confirmation dialog for deletes
+            final var deleteDocPageButton = new Button(getTranslation("doc-pages.delete.button"), VaadinIcon.TRASH.create());
+            deleteDocPageButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+            deleteDocPageButton.getStyle().set("flex", "1 1 50%");
+            deleteDocPageButton.addClickListener(event -> onDelete(docPage));
+
+            horizontalLayout.add(updateDocPageButton, deleteDocPageButton);
+            layout.add(horizontalLayout);
+        }
+        return layout;
     }
 
     private Component createMarkdownViewer(DocPage docPage) {
         final var markdownViewer = new MarkdownViewer();
-        markdownViewer.setWidthFull();
-        markdownViewer.setDataColorMode(BaseMarkdownComponent.DataColorMode.LIGTH);
+        markdownViewer.setSizeFull();
+        markdownViewer.setDataColorMode(BaseMarkdownComponent.DataColorMode.LIGHT);
         markdownViewer.setContent(docPage.getValue());
         return markdownViewer;
     }
