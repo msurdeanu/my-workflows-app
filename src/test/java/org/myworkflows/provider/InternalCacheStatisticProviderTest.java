@@ -1,6 +1,7 @@
 package org.myworkflows.provider;
 
 import org.junit.jupiter.api.Test;
+import org.myworkflows.cache.InternalCache;
 import org.myworkflows.cache.InternalCacheManager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,8 +19,8 @@ public final class InternalCacheStatisticProviderTest {
     public void whenCacheStatisticProviderIsCalledWithTwoCachesThenEverythingWorksAsExpected() {
         // given
         final var internalCacheManager = new InternalCacheManager();
-        internalCacheManager.addCache(WORKFLOW_RUN, 100, true);
-        internalCacheManager.addCache(WORKFLOW_TEMPLATE, Integer.MAX_VALUE, false);
+        internalCacheManager.addCache(WORKFLOW_RUN, 100, InternalCache.InternalCacheOrder.REVERSE);
+        internalCacheManager.addCache(WORKFLOW_TEMPLATE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NO);
 
         // when & then
         final var internalCacheStatisticProvider = new InternalCacheStatisticProvider(internalCacheManager);
@@ -28,9 +29,9 @@ public final class InternalCacheStatisticProviderTest {
         assertNotNull(statisticItemGroup);
         assertEquals(2, statisticItemGroup.getLeafs().size());
         assertEquals("statistics.internal-caches.group.workflowTemplate.name", statisticItemGroup.getLeafs().getFirst().getName());
-        assertEquals("(0, ∞, false)", statisticItemGroup.getLeafs().getFirst().getValue());
+        assertEquals("(0, ∞, NO)", statisticItemGroup.getLeafs().getFirst().getValue());
         assertEquals("statistics.internal-caches.group.workflowRun.name", statisticItemGroup.getLeafs().getLast().getName());
-        assertEquals("(0, 100, true)", statisticItemGroup.getLeafs().getLast().getValue());
+        assertEquals("(0, 100, REVERSE)", statisticItemGroup.getLeafs().getLast().getValue());
     }
 
 }

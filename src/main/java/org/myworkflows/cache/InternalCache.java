@@ -17,9 +17,10 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Mihai Surdeanu
@@ -33,7 +34,7 @@ public final class InternalCache implements org.springframework.cache.Cache {
     private final int maxSize;
 
     @Getter
-    private final boolean ordered;
+    private final InternalCacheOrder cacheOrder;
 
     private final Map<Object, Object> cacheMap = new HashMap<>();
 
@@ -42,17 +43,17 @@ public final class InternalCache implements org.springframework.cache.Cache {
     private final StampedLock stampedLock = new StampedLock();
 
     public InternalCache(String name) {
-        this(name, Integer.MAX_VALUE, false);
+        this(name, Integer.MAX_VALUE, InternalCacheOrder.NO);
     }
 
     public InternalCache(String name, int maxSize) {
-        this(name, maxSize, false);
+        this(name, maxSize, InternalCacheOrder.NO);
     }
 
-    public InternalCache(String name, int maxSize, boolean ordered) {
+    public InternalCache(String name, int maxSize, InternalCacheOrder cacheOrder) {
         this.name = name;
         this.maxSize = Integer.max(1, maxSize);
-        this.ordered = ordered;
+        this.cacheOrder = cacheOrder;
     }
 
     @Override
@@ -86,28 +87,27 @@ public final class InternalCache implements org.springframework.cache.Cache {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(@NonNull Object key, @NonNull Callable<T> valueLoader) {
-        final var value = applyFunctionInsideOptimisticReadBlock(key, cacheMap::get);
-        if (value != null) {
-            return (T) value;
-        }
-
-        try {
-            T loadedValue = valueLoader.call();
-            put(key, loadedValue);
-            return loadedValue;
-        } catch (Exception e) {
-            throw new WorkflowRuntimeException(e);
-        }
+        return ofNullable(applyFunctionInsideOptimisticReadBlock(key, cacheMap::get))
+            .map(item -> (T) item)
+            .orElseGet(() -> {
+                try {
+                    T loadedValue = valueLoader.call();
+                    put(key, loadedValue);
+                    return loadedValue;
+                } catch (Exception e) {
+                    throw new WorkflowRuntimeException(e);
+                }
+            });
     }
 
     public <T> Set<T> getAllKeys(Class<T> type) {
         assert type != null;
         if (isOrderedOrHasLimitedSize()) {
             return applyFunctionInsideOptimisticReadBlock(null,
-                item -> keys.stream().filter(type::isInstance).map(type::cast).collect(Collectors.toCollection(LinkedHashSet::new)));
+                item -> keys.stream().filter(type::isInstance).map(type::cast).collect(toCollection(LinkedHashSet::new)));
         } else {
             return applyFunctionInsideOptimisticReadBlock(null,
-                item -> cacheMap.keySet().stream().filter(type::isInstance).map(type::cast).collect(Collectors.toSet()));
+                item -> cacheMap.keySet().stream().filter(type::isInstance).map(type::cast).collect(toSet()));
         }
     }
 
@@ -128,14 +128,18 @@ public final class InternalCache implements org.springframework.cache.Cache {
         acceptConsumerInsideWriteBlock(key, item -> {
             if (isOrderedOrHasLimitedSize()) {
                 find(item).ifPresentOrElse(oldItem -> {
-                    removeFromTheEnd(item);
+                    removeItemFromTheBeginning(item);
                     if (oldItem != value) {
                         cacheMap.put(item, value);
                     }
                 }, () -> cacheMap.put(item, value));
-                keys.addFirst(item);
+                if (cacheOrder == InternalCacheOrder.NORMAL) {
+                    keys.addLast(item);
+                } else {
+                    keys.addFirst(item);
+                }
                 if (cacheMap.size() > maxSize) {
-                    removeFromTheEnd(keys.getLast());
+                    removeItemFromTheList();
                 }
             } else {
                 cacheMap.put(item, value);
@@ -147,7 +151,7 @@ public final class InternalCache implements org.springframework.cache.Cache {
     public void evict(@NonNull Object key) {
         acceptConsumerInsideWriteBlock(key, item -> {
             if (isOrderedOrHasLimitedSize()) {
-                removeFromTheEnd(item);
+                removeItemFromTheBeginning(item);
             }
             cacheMap.remove(item);
         });
@@ -168,14 +172,33 @@ public final class InternalCache implements org.springframework.cache.Cache {
     }
 
     private boolean isOrderedOrHasLimitedSize() {
-        return ordered || maxSize < Integer.MAX_VALUE;
+        return cacheOrder != InternalCacheOrder.NO || maxSize < Integer.MAX_VALUE;
     }
 
     private Optional<Object> find(Object key) {
         return ofNullable(cacheMap.get(key));
     }
 
-    private void removeFromTheEnd(Object key) {
+    private void removeItemFromTheList() {
+        if (cacheOrder == InternalCacheOrder.NORMAL) {
+            removeItemFromTheBeginning(keys.getFirst());
+        } else {
+            removeItemFromTheEnd(keys.getLast());
+        }
+    }
+
+    private void removeItemFromTheBeginning(Object key) {
+        final var iterator = keys.iterator();
+        while (iterator.hasNext()) {
+            final var element = iterator.next();
+            if (element.equals(key)) {
+                iterator.remove();
+                break;
+            }
+        }
+    }
+
+    private void removeItemFromTheEnd(Object key) {
         final var iterator = keys.listIterator(keys.size());
         while (iterator.hasPrevious()) {
             final var element = iterator.previous();
@@ -207,6 +230,10 @@ public final class InternalCache implements org.springframework.cache.Cache {
         } finally {
             stampedLock.unlockWrite(stamp);
         }
+    }
+
+    public enum InternalCacheOrder {
+        NO, NORMAL, REVERSE
     }
 
 }

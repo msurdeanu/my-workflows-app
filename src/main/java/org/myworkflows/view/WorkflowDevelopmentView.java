@@ -18,6 +18,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
@@ -54,6 +55,7 @@ import org.myworkflows.view.component.WorkflowDevParamGrid;
 import org.myworkflows.view.component.WorkflowPrintGrid;
 import org.myworkflows.view.util.ClipboardUtil;
 import org.myworkflows.view.util.EditorAutoCompleteUtil;
+import org.myworkflows.view.util.RequestUtil;
 
 import java.util.List;
 import java.util.Set;
@@ -191,7 +193,10 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             } else {
                 url = url + "?" + READ_ONLY;
             }
-            ClipboardUtil.copyTo(getElement(), url);
+            RequestUtil.getFullUrl(url).ifPresent(fullUrl -> {
+                ClipboardUtil.copyTo(getElement(), fullUrl);
+                Notification.show(getTranslation("workflow-development.clipboard.message"));
+            });
         });
         return button;
     }
