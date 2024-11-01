@@ -44,8 +44,8 @@ public final class InternalCacheStatisticProvider implements StatisticProvider {
     }
 
     private String cacheToStats(InternalCache cache) {
-        return format("(%d, %s, %b)", cache.size(),
-            cache.getMaxSize() == Integer.MAX_VALUE ? "∞" : valueOf(cache.getMaxSize()), cache.isOrdered());
+        return format("(%d, %s, %s)", cache.size(),
+            cache.getMaxSize() == Integer.MAX_VALUE ? "∞" : valueOf(cache.getMaxSize()), cache.getCacheOrder().name());
     }
 
 }

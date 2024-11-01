@@ -34,9 +34,9 @@ public class InternalCacheTest {
     }
 
     @Test
-    public void testOrderedCache() {
+    public void testReverseOrderedCache() {
         // given
-        final var cache = new InternalCache("test", 3, true);
+        final var cache = new InternalCache("test", 3, InternalCache.InternalCacheOrder.REVERSE);
 
         // when & then
         cache.get("key1", () -> "value1");

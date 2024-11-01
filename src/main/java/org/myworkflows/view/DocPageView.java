@@ -6,6 +6,7 @@ import com.flowingcode.vaadin.addons.markdown.MarkdownViewer;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -18,7 +19,9 @@ import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouterLink;
 import jakarta.annotation.security.PermitAll;
+import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.DocPage;
 import org.myworkflows.domain.DocPageEventHandler;
 import org.myworkflows.domain.UserRole;
@@ -58,7 +61,11 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
         this.docPageService = docPageService;
 
         docPageService.getAllNames().forEach(name -> {
-            final var tab = new Tab(name);
+            final var tab = new Tab();
+            final var layout = new HorizontalLayout(new Span(name), createShareIcon(name));
+            layout.setSpacing(true);
+            tab.add(layout);
+            tab.setId(name);
             tabMap.put(name, tab);
             tabs.add(tab);
         });
@@ -77,8 +84,8 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
     }
 
     @Override
-    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String pageName) {
-        ofNullable(pageName).flatMap(name -> ofNullable(tabMap.get(name))).ifPresent(tab -> {
+    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String item) {
+        ofNullable(item).flatMap(name -> ofNullable(tabMap.get(name))).ifPresent(tab -> {
             tabs.setSelectedTab(tab);
             setTabContent(tabs.getSelectedTab());
         });
@@ -107,7 +114,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
     private void setTabContent(Tab tab) {
         tabContent.removeAll();
 
-        docPageService.findByName(tab.getLabel()).ifPresent(docPage -> {
+        tab.getId().flatMap(docPageService::findByName).ifPresent(docPage -> {
             if (editable) {
                 tabContent.add(createMarkdownEditor(docPage));
             } else {
@@ -152,6 +159,14 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
         markdownViewer.setDataColorMode(BaseMarkdownComponent.DataColorMode.LIGHT);
         markdownViewer.setContent(docPage.getValue());
         return markdownViewer;
+    }
+
+    private Component createShareIcon(String name) {
+        final var routerLink = new RouterLink(StringUtils.EMPTY, DocPageView.class, name);
+        final var icon = VaadinIcon.LINK.create();
+        icon.setSize("12px");
+        routerLink.add(icon);
+        return routerLink;
     }
 
     private Component createSwitchModeButton() {
