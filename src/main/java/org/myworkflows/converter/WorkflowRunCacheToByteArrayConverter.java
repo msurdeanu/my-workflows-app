@@ -31,7 +31,7 @@ public final class WorkflowRunCacheToByteArrayConverter implements AttributeConv
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
              ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
             objectOutputStream.writeObject(attribute);
-            return compressAndLog(byteArrayOutputStream, attribute);
+            return toObject(compress(byteArrayOutputStream.toByteArray()));
         } catch (IOException exception) {
             throw new WorkflowRuntimeException(exception);
         }
@@ -45,16 +45,6 @@ public final class WorkflowRunCacheToByteArrayConverter implements AttributeConv
         } catch (IOException | ClassNotFoundException | DataFormatException exception) {
             throw new WorkflowRuntimeException(exception);
         }
-    }
-
-    private Byte[] compressAndLog(ByteArrayOutputStream byteArrayOutputStream, WorkflowRunCache workflowRunCache) {
-        final var initialByteArray = byteArrayOutputStream.toByteArray();
-        final var compressedByteArray = compress(initialByteArray);
-        if (log.isDebugEnabled()) {
-            log.debug("Workflow run cache with keys '{}', will be saved in database with {}% memory reduction by using compression.",
-                workflowRunCache.getAllKeys(), (initialByteArray.length - compressedByteArray.length) * 100 / initialByteArray.length);
-        }
-        return toObject(compressedByteArray);
     }
 
 }

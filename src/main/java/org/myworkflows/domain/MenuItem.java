@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.Setter;
 import org.myworkflows.converter.MenuItemPathToStringConverter;
 import org.myworkflows.converter.UserRoleToStringConverter;
 
@@ -14,6 +15,7 @@ import org.myworkflows.converter.UserRoleToStringConverter;
  */
 @Entity
 @Getter
+@Setter
 @Table(name = "menu_items")
 public class MenuItem {
 

@@ -27,7 +27,7 @@ public final class ListUtilTest {
     }
 
     @Test
-    public void substractionWorksAsExpected() {
+    public void substractWorksAsExpected() {
         // given
         final var firstList = List.of("a", "b", "c");
         final var secondList = List.of("a", "d");
