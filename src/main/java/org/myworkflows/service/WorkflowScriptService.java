@@ -84,7 +84,8 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
                                WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var workflowRun = new WorkflowRun(onSubmitEvent.getWorkflowTemplateId());
         injectParametersIntoRun(onSubmitEvent.getWorkflowParameters(), workflowRun);
-        threadPoolExecutor.submit(() -> runSynchronously(workflowDefinitionScript, workflowRun, onSubmitEvent.getToken()));
+        final var future = threadPoolExecutor.submit(() -> runSynchronously(workflowDefinitionScript, workflowRun, onSubmitEvent.getToken()));
+        workflowRun.setFuture(future);
         return workflowRun;
     }
 

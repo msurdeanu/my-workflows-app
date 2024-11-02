@@ -92,6 +92,8 @@ CREATE TABLE workflow_runs
     created              DATETIME         NOT NULL
 );
 
+CREATE INDEX workflow_runs_created_index ON workflow_runs (created DESC);
+
 CREATE TABLE users
 (
     id       INTEGER PRIMARY KEY AUTOINCREMENT,

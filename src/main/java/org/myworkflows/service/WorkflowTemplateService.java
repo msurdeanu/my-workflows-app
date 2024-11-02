@@ -8,6 +8,9 @@ import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.filter.WorkflowTemplateFilter;
 import org.myworkflows.repository.WorkflowTemplateRepository;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,27 +24,19 @@ import static java.util.Optional.ofNullable;
  * @since 1.0.0
  */
 @Service
-public final class WorkflowTemplateService extends CacheableDataService<WorkflowTemplate, WorkflowTemplateFilter> {
+public final class WorkflowTemplateService extends CacheableDataService<WorkflowTemplate, WorkflowTemplateFilter> implements LoaderService {
 
     public WorkflowTemplateService(ApplicationManager applicationManager) {
         super(applicationManager, CacheNameEnum.WORKFLOW_TEMPLATE);
     }
 
-    public void loadAndSchedule(@NonNull WorkflowTemplate workflowTemplate) {
-        lock.lock();
-        try {
-            ofNullable(cache.get(workflowTemplate.getId(), WorkflowTemplate.class))
-                .filter(WorkflowTemplate::isEnabledForScheduling)
-                .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
-                    .unschedule(workflowTemplate));
-            cache.put(workflowTemplate.getId(), workflowTemplate);
-            if (workflowTemplate.isEnabled()) {
-                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
-                    .schedule(workflowTemplate);
-            }
-        } finally {
-            lock.unlock();
-        }
+    @Order(50)
+    @EventListener(ApplicationReadyEvent.class)
+    @Override
+    public void load() {
+        applicationManager.getBeanOfType(WorkflowTemplateRepository.class)
+            .findAll()
+            .forEach(this::loadAndSchedule);
     }
 
     public void create(String name) {
@@ -134,6 +129,23 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
     @Override
     protected WorkflowTemplateFilter createFilter() {
         return new WorkflowTemplateFilter();
+    }
+
+    private void loadAndSchedule(@NonNull WorkflowTemplate workflowTemplate) {
+        lock.lock();
+        try {
+            ofNullable(cache.get(workflowTemplate.getId(), WorkflowTemplate.class))
+                .filter(WorkflowTemplate::isEnabledForScheduling)
+                .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
+                    .unschedule(workflowTemplate));
+            cache.put(workflowTemplate.getId(), workflowTemplate);
+            if (workflowTemplate.isEnabled()) {
+                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
+                    .schedule(workflowTemplate);
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
 }

@@ -6,6 +6,9 @@ import org.myworkflows.cache.InternalCacheManager;
 import org.myworkflows.domain.CacheableEntry;
 import org.myworkflows.domain.DocPage;
 import org.myworkflows.repository.DocPageRepository;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -19,7 +22,7 @@ import static java.util.Optional.ofNullable;
  * @since 1.0.0
  */
 @Service
-public final class DocPageService {
+public final class DocPageService implements LoaderService {
 
     private final ReentrantLock lock = new ReentrantLock();
 
@@ -30,6 +33,15 @@ public final class DocPageService {
         this.applicationManager = applicationManager;
         docPageCache = (InternalCache) applicationManager.getBeanOfType(InternalCacheManager.class)
             .getCache(InternalCacheManager.CacheNameEnum.DOC_PAGE.getName());
+    }
+
+    @Order(200)
+    @EventListener(ApplicationReadyEvent.class)
+    @Override
+    public void load() {
+        applicationManager.getBeanOfType(DocPageRepository.class)
+            .findAll()
+            .forEach(this::addToCache);
     }
 
     public void addToCache(CacheableEntry entry) {

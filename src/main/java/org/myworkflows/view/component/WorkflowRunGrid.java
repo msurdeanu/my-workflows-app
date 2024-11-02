@@ -6,6 +6,9 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
@@ -60,6 +63,9 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderDetails))
             .setHeader(getTranslation("workflow-runs.main-grid.details.column"))
             .setAutoWidth(true);
+        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
+            .setHeader(getTranslation("workflow-runs.main-grid.actions.column"))
+            .setAutoWidth(true);
         paginatedGrid.setEmptyStateText(getTranslation("workflow-runs.main-grid.no-result"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
@@ -94,7 +100,7 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
             popover.setWidth("300px");
             popover.addThemeVariants(PopoverVariant.ARROW);
             popover.setPosition(PopoverPosition.BOTTOM);
-            popover.add(createGraniteAlert(workflowRun));
+            popover.add(createExceptionBlock(workflowRun));
             return errorSpan;
         }).orElseGet(() -> {
             if (workflowRun.getDuration() >= 0) {
@@ -117,7 +123,35 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         return button;
     }
 
-    private Component createGraniteAlert(WorkflowRun workflowRun) {
+    private Component renderActions(WorkflowRun workflowRun) {
+        final var layout = new HorizontalLayout();
+        if (workflowRun.isRunning()) {
+            final var cancelRunButton = new Button(VaadinIcon.CLOSE.create());
+            cancelRunButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+            cancelRunButton.addClickListener(event -> cancelRun(workflowRun));
+            layout.add(cancelRunButton);
+        } else {
+            final var deleteRunButton = new Button(VaadinIcon.TRASH.create());
+            deleteRunButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+            deleteRunButton.addClickListener(event -> deleteRun(workflowRun));
+            layout.add(deleteRunButton);
+        }
+        return layout;
+    }
+
+    private void cancelRun(WorkflowRun workflowRun) {
+        if (workflowRun.cancelAndInterruptIfRunning()) {
+            Notification.show(getTranslation("workflow-runs.main-grid.run.cancelled"));
+            paginatedGrid.getDataProvider().refreshItem(workflowRun);
+        }
+    }
+
+    private void deleteRun(WorkflowRun workflowRun) {
+        workflowRunService.delete(workflowRun);
+        refreshPage();
+    }
+
+    private Component createExceptionBlock(WorkflowRun workflowRun) {
         final var span = new Span(workflowRun.getFailureMessage());
         span.addClassNames(LumoUtility.TextColor.ERROR);
         return span;

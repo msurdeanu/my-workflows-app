@@ -5,15 +5,16 @@ import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.myworkflows.converter.WorkflowRunCacheToByteArrayConverter;
+import lombok.Setter;
 import org.myworkflows.converter.SetOfStringToStringConverter;
 import org.myworkflows.converter.UuidToByteArrayConverter;
+import org.myworkflows.converter.WorkflowRunCacheToByteArrayConverter;
 import org.myworkflows.util.ExceptionUtil;
-import org.springframework.data.domain.Persistable;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -22,9 +23,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static java.lang.String.join;
+import static java.util.Optional.ofNullable;
 import static org.myworkflows.util.LangUtil.pluralize;
 
 /**
@@ -36,9 +39,10 @@ import static org.myworkflows.util.LangUtil.pluralize;
 @Table(name = "workflow_runs")
 @AllArgsConstructor
 @NoArgsConstructor
-public class WorkflowRun implements CacheableEntry, Persistable<UUID> {
+public class WorkflowRun implements CacheableEntry {
 
     @Id
+    @Getter
     @Convert(converter = UuidToByteArrayConverter.class)
     private UUID id = UUID.randomUUID();
 
@@ -66,18 +70,12 @@ public class WorkflowRun implements CacheableEntry, Persistable<UUID> {
     @Getter
     private Instant created = Instant.now();
 
+    @Setter
+    @Transient
+    private Future<?> future;
+
     public WorkflowRun(Integer workflowTemplateId) {
         this.workflowTemplateId = workflowTemplateId;
-    }
-
-    @Override
-    public UUID getId() {
-        return id;
-    }
-
-    @Override
-    public boolean isNew() {
-        return true;
     }
 
     @Override
@@ -121,6 +119,14 @@ public class WorkflowRun implements CacheableEntry, Persistable<UUID> {
 
     public void markAsCompleted(long duration) {
         this.duration = duration;
+    }
+
+    public boolean isRunning() {
+        return ofNullable(future).map(item -> !item.isDone() && !item.isCancelled()).orElse(false);
+    }
+
+    public boolean cancelAndInterruptIfRunning() {
+        return isRunning() && future.cancel(true);
     }
 
 }

@@ -1,4 +1,4 @@
-package org.myworkflows.service.loader;
+package org.myworkflows.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
