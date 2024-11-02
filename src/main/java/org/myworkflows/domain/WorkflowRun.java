@@ -7,7 +7,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -34,7 +33,6 @@ import static org.myworkflows.util.LangUtil.pluralize;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
-@Builder
 @Entity
 @Table(name = "workflow_runs")
 @AllArgsConstructor
