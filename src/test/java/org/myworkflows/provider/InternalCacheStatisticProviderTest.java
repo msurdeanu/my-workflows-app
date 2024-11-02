@@ -20,7 +20,7 @@ public final class InternalCacheStatisticProviderTest {
         // given
         final var internalCacheManager = new InternalCacheManager();
         internalCacheManager.addCache(WORKFLOW_RUN, 100, InternalCache.InternalCacheOrder.REVERSE);
-        internalCacheManager.addCache(WORKFLOW_TEMPLATE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NO);
+        internalCacheManager.addCache(WORKFLOW_TEMPLATE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NONE);
 
         // when & then
         final var internalCacheStatisticProvider = new InternalCacheStatisticProvider(internalCacheManager);
@@ -29,7 +29,7 @@ public final class InternalCacheStatisticProviderTest {
         assertNotNull(statisticItemGroup);
         assertEquals(2, statisticItemGroup.getLeafs().size());
         assertEquals("statistics.internal-caches.group.workflowTemplate.name", statisticItemGroup.getLeafs().getFirst().getName());
-        assertEquals("(0, ∞, NO)", statisticItemGroup.getLeafs().getFirst().getValue());
+        assertEquals("(0, ∞, NONE)", statisticItemGroup.getLeafs().getFirst().getValue());
         assertEquals("statistics.internal-caches.group.workflowRun.name", statisticItemGroup.getLeafs().getLast().getName());
         assertEquals("(0, 100, REVERSE)", statisticItemGroup.getLeafs().getLast().getValue());
     }
