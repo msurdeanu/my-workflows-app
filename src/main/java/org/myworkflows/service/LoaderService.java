@@ -1,4 +1,4 @@
-package org.myworkflows.service.loader;
+package org.myworkflows.service;
 
 /**
  * @author Mihai Surdeanu

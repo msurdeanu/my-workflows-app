@@ -9,7 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class InternalCacheTest {
+/**
+ * @author Mihai Surdeanu
+ * @since 1.0.0
+ */
+public final class InternalCacheTest {
 
     @Test
     public void testNonOrderedCache() {
@@ -52,8 +56,8 @@ public class InternalCacheTest {
         cache.put("key2", "other");
         assertEquals(3, cache.size());
         final var newValues = cache.getAllValues().toArray();
-        assertEquals("other", newValues[0]);
-        assertEquals("value3", newValues[1]);
+        assertEquals("value3", newValues[0]);
+        assertEquals("other", newValues[1]);
         assertEquals("value1", newValues[2]);
     }
 

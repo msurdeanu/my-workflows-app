@@ -22,12 +22,12 @@ import java.util.concurrent.TimeUnit;
 @EnableScheduling
 public class ExecutorConfig {
 
-    private int workflowSchedulerPoolSize = 2;
+    private int workflowSchedulerPoolSize = 4;
 
-    private int workflowPoolSize = 4;
+    private int workflowPoolSize = 8;
     private int workflowPoolCapacity = 1_000;
 
-    private int eventPoolSize = 2;
+    private int eventPoolSize = 4;
     private int eventPoolCapacity = 1_000;
 
     @Bean(name = "workflow-scheduler-pool")
