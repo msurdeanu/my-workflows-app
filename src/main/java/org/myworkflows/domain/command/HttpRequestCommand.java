@@ -36,13 +36,13 @@ public final class HttpRequestCommand extends AbstractCommand {
 
     @ExecutionMethod(prefix = "httpRequest")
     public ResponseEntity<String> httpRequest(@ExecutionParam String url,
-                                              @ExecutionParam(required = false, defaultValue = "GET") HttpMethod method,
+                                              @ExecutionParam(required = false, defaultValue = "GET") String method,
                                               @ExecutionParam(required = false) String body,
                                               @ExecutionParam(required = false, defaultValue = ":of") Map<String, String> headers,
                                               @ExecutionParam(required = false, defaultValue = "15000") Long connectionTimeout,
                                               @ExecutionParam(required = false, defaultValue = "60000") Long readTimeout) {
         return createRestTemplate(connectionTimeout, readTimeout)
-            .exchange(fromUriString(url).build(true).toUri(), method,
+            .exchange(fromUriString(url).build(true).toUri(), HttpMethod.valueOf(method),
                 createHttpEntity(body, headers), String.class);
     }
 
