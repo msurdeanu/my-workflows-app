@@ -2,6 +2,8 @@ package org.myworkflows.domain.command;
 
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.janino.SimpleCompiler;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.WorkflowRun;
@@ -11,6 +13,7 @@ import org.myworkflows.domain.command.api.ExecutionParam;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.holder.ParentClassLoaderHolder;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -39,7 +42,8 @@ public final class JavaCommand extends AbstractCommand {
     public Object java(@ExecutionParam WorkflowRun workflowRun,
                        @ExecutionParam List<String> scriptLines,
                        @ExecutionParam(required = false, defaultValue = "run") String methodName,
-                       @ExecutionParam(required = false, defaultValue = "DynamicClass") String className) {
+                       @ExecutionParam(required = false, defaultValue = "DynamicClass") String className,
+                       @ExecutionParam(required = false) List<String> fileNames) {
         if (scriptLines.isEmpty()) {
             return null;
         }
@@ -48,6 +52,7 @@ public final class JavaCommand extends AbstractCommand {
         try {
             final var compiler = new SimpleCompiler();
             compiler.setParentClassLoader(ParentClassLoaderHolder.INSTANCE.getClassLoader());
+            processFileNames(compiler, fileNames);
             compiler.cook(resolvedScriptLines);
 
             final var dynamicClass = compiler.getClassLoader().loadClass(className);
@@ -58,6 +63,14 @@ public final class JavaCommand extends AbstractCommand {
         } catch (Exception exception) {
             log.debug("Command '{}' thrown an exception.", getName(), exception);
             throw new WorkflowRuntimeException(exception);
+        }
+    }
+
+    private void processFileNames(SimpleCompiler compiler, List<String> fileNames) throws CompileException, IOException {
+        for (String fileName: fileNames) {
+            if (!StringUtils.EMPTY.equals(fileName)) {
+                compiler.cookFile(fileName);
+            }
         }
     }
 

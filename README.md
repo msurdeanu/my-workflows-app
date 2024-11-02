@@ -1,7 +1,7 @@
 # MyWorkflows
 
-[MyWorkflows](https://myworkflows.org) is a simple tool for creating workflows to automate daily manual tasks.
-You can easily create workflows, schedule them using cron-jobs and see their output.
+[MyWorkflows](https://myworkflows.org) is a simple tool for helping you to automate manual tasks.
+You can encapsulate manual tasks as workflows, you can schedule them and see their output.
 
 Uses Java as programming language and Vaadin as UI framework.
 
@@ -11,12 +11,12 @@ All workflows are defined in JSON format and for playing with them, you have a n
 ## Technology stack
 
 * Java 21 as programming language.
-* Spring Boot 3.x as dependency injection framework.
+* Spring Boot 3.x as DI framework.
 * [Vaadin 24](https://vaadin.com) as UI framework.
 * [SQLite](https://www.sqlite.org/) as relational database for persisting data.
 * [JSON Schema Validator](https://github.com/networknt/json-schema-validator) as JSON schema validator for workflow
   scripts.
-* [Groovy](https://groovy-lang.org/) as additional language for defining commands
+* [Groovy](https://groovy-lang.org/) as additional language for defining commands.
 * [Janino](https://www.janino.net/) as Java runtime compiler.
 * [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) as another runtime evaluator.
 
@@ -100,25 +100,28 @@ You are allowed to use placeholders inside any `input`, `assert` and `output` (`
 
 Expressions are the heart of this tool.
 By using them, you will be able to pass information between commands.
-Expressions are evaluated at runtime, and they can be used anywhere in an `input`, `assert`, `output` and `if`structure.
-Inside this structure, the expression will always be defined inside `value` field.
+Expressions are evaluated at runtime, and they can be used anywhere inside an `input`, `assert`, `output` or `if` structure.
+Inside this structure, the expression will always be encapsulated inside `value` field.
 Each expression is evaluated by a runtime evaluator specified by the user, after filling `@type` field.
 
-For the moment, there are 3 runtime evaluators supported:
+For the moment, there are **3 runtime evaluators** supported:
 
-1. set `@type` to `groovy` if you want to enable Groovy runtime evaluator.
-2. set `@type` to `java` if you want to enable Java runtime evaluator based on [Janino](https://www.janino.net/) runtime
+1. Set `@type` to `groovy` if you want to enable Groovy runtime evaluator.
+2. Set `@type` to `java` if you want to enable Java runtime evaluator based on [Janino](https://www.janino.net/) runtime
    compiler.
-3. set `@type` to `spel` if you want to
+3. Set `@type` to `spel` if you want to
    enable [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) runtime evaluator.
+
+If `@type` is not set, the default value for this field will be set to `plain` which means the value will be treated
+as it is.
 
 ##### Examples
 
-###### Retrieve exit code after running sshExec command by using SpEL runtime evaluator
+###### Retrieve exit code after running `sshExec` command by using SpEL runtime evaluator
 
 ```json
 {
-  "name": "Asserts exitCode to be equal with 0",
+  "name": "Asserts output exitCode to be equal with 0",
   "@type": "spel",
   "value": "#output.getExitCode() == 0"
 }
@@ -138,12 +141,11 @@ For the moment, there are 3 runtime evaluators supported:
 
 If you analyze all the above examples, you are going to see that sometimes is quite difficult to write the expression,
 because is too long. In addition, by accessing the workflow run cache using the following pattern
-`cache.get('sleepTime')`, it makes the expression harder to be read. Basically, it's not human-readable ...
+`cache.get('sleepTime')`, it makes the expression harder to be read.
 
 This is why, you can use a simplified version by using **cache access pattern feature** exposed by this tool.
 
 If we take one of the previous examples:
-
 ```json
 {
   "name": "sleep.time",
@@ -153,7 +155,6 @@ If we take one of the previous examples:
 ```
 
 we can rewrite it like this:
-
 ```json
 {
   "name": "sleep.time",
@@ -163,9 +164,10 @@ we can rewrite it like this:
 ```
 
 The tool will be able to recognize every string pattern inside `value` which matches the following regex pattern:
-`\$\(([a-zA-Z0-9_.]+)(:[a-zA-Z0-9_.]+)?\)`. The string between parenthesis is split in two parts: first part defines
-the name of the variable that we are going to search into workflow run cache (as you can see this is mandatory) and
-the second part is optional and defines the type of the value that we are looking for.
+`\$\(([a-zA-Z0-9_.]+)(:[a-zA-Z0-9_.]+)?\)`.
+The string between parenthesis is split in two parts: first part defines name of the variable that we are going to
+search into workflow run cache (this part is mandatory) and the second part (which is optional) and defines type of 
+the value that we are looking for.
 
 If there is no variable named `sleepTime` of type `Integer` in the workflow run cache, during workflow execution phase,
 you are going to receive a runtime exception.
@@ -173,7 +175,7 @@ you are going to receive a runtime exception.
 #### JAR loading at runtime
 
 The tool is capable of loading a list of JAR files at runtime, during application initialization phase.
-This is quite useful if you want to extend Java or Groovy commands with more functionality.
+This is quite useful if you want to extend `java` or `groovy` commands with more functionalities.
 
 In order to do this, please use the following application config property:
 
@@ -498,7 +500,7 @@ Vaadin web applications are full-stack and include both client-side and server-s
 | &nbsp;&nbsp;&nbsp;&nbsp;`ApplicationReadyManager.java`       | Manager class used to register all internal listeners |
 | &nbsp;&nbsp;&nbsp;&nbsp;`EventBroadcaster.java`              | Class responsible for generating async events         |
 
-### How to deploy this application on your Ubuntu server?
+### How to deploy this application to your Ubuntu server?
 
 First of all, make sure you have **OpenJDK 21** installed on your server.
 It's recommended to use OpenJDK distribution for your JDK.

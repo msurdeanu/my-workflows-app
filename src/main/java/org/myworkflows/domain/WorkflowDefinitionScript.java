@@ -8,7 +8,8 @@ import lombok.Setter;
 import org.myworkflows.domain.command.AbstractCommand;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Mihai Surdeanu
@@ -30,10 +31,10 @@ public class WorkflowDefinitionScript {
         final var workflowDefinitionScript = new WorkflowDefinitionScript();
         workflowDefinitionScript.setCommands(workflowDefinitionScripts.stream()
             .flatMap(item -> item.getCommands().stream())
-            .collect(Collectors.toList()));
+            .collect(toList()));
         workflowDefinitionScript.setFinallyCommands(workflowDefinitionScripts.stream()
             .flatMap(item -> item.getFinallyCommands().stream())
-            .collect(Collectors.toList()));
+            .collect(toList()));
         return workflowDefinitionScript;
     }
 

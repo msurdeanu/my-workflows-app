@@ -4,11 +4,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 import static java.util.Arrays.stream;
 import static java.util.Optional.empty;
 
@@ -64,7 +64,23 @@ public enum WorkflowParameterType {
                 LocalDate.parse(value);
                 return empty();
             } catch (DateTimeParseException notUsed) {
-                return Optional.of("Date format: " + ISO_LOCAL_DATE);
+                return Optional.of("Format: yyyy-MM-dd");
+            }
+        }
+    },
+    TIME("time") {
+        @Override
+        public Object getComputedValue(String value) {
+            return LocalTime.parse(value);
+        }
+
+        @Override
+        public Optional<String> validate(String value) {
+            try {
+                LocalTime.parse(value);
+                return empty();
+            } catch (DateTimeParseException notUsed) {
+                return Optional.of("Format: HH:mm");
             }
         }
     },
@@ -80,11 +96,11 @@ public enum WorkflowParameterType {
                 Integer.parseInt(value);
                 return empty();
             } catch (NumberFormatException notUsed) {
-                return Optional.of("Value is not an integer");
+                return Optional.of("Value is not an int");
             }
         }
     },
-    DOUBLE("double") {
+    DOUBLE("dbl") {
         @Override
         public Object getComputedValue(String value) {
             return Double.valueOf(value);
@@ -109,7 +125,7 @@ public enum WorkflowParameterType {
         @Override
         public Optional<String> validate(String value) {
             return Boolean.TRUE.toString().equalsIgnoreCase(value) || Boolean.FALSE.toString().equalsIgnoreCase(value)
-                ? empty() : Optional.of("Value is not a boolean");
+                ? empty() : Optional.of("Value is not a bool");
         }
     };
 
