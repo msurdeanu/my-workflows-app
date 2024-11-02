@@ -12,6 +12,8 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
+import com.vaadin.flow.component.timepicker.TimePicker;
+import com.vaadin.flow.component.timepicker.TimePickerVariant;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.VaadinService;
 import jakarta.servlet.http.Cookie;
@@ -20,6 +22,7 @@ import lombok.Getter;
 import org.myworkflows.domain.WorkflowParameter;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
@@ -37,11 +40,14 @@ import static org.myworkflows.view.util.PrefixUtil.setPrefixComponent;
 public final class WorkflowParameterToComponentSupplierObjectTransformer
     implements Transformer<WorkflowParameter, WorkflowParameterToComponentSupplierObjectTransformer.ComponentSupplierObject> {
 
+    private static final String COMMA = ",";
+
     @Override
     public ComponentSupplierObject transform(WorkflowParameter workflowParameter) {
         final var workflowParameterType = workflowParameter.getType();
         return switch (workflowParameterType) {
             case DATE -> createDateField(workflowParameter);
+            case TIME -> createTimeField(workflowParameter);
             case PASS -> createPasswordField(workflowParameter);
             case INT -> createIntegerField(workflowParameter);
             case DOUBLE -> createNumberField(workflowParameter);
@@ -61,6 +67,20 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
             .componentValueSupplier(ComponentValueSupplier.builder()
                 .valueSupplier(datePicker::getValue)
                 .valueAsStringSupplier(() -> datePicker.getValue().toString())
+                .build())
+            .build();
+    }
+
+    private static ComponentSupplierObject createTimeField(WorkflowParameter workflowParameter) {
+        final var timePicker = new TimePicker();
+        timePicker.addThemeVariants(TimePickerVariant.LUMO_SMALL);
+        timePicker.setValue((LocalTime) workflowParameter.getComputedValue());
+        timePicker.setWidthFull();
+        return ComponentSupplierObject.builder()
+            .component(timePicker)
+            .componentValueSupplier(ComponentValueSupplier.builder()
+                .valueSupplier(timePicker::getValue)
+                .valueAsStringSupplier(() -> timePicker.getValue().toString())
                 .build())
             .build();
     }
@@ -161,14 +181,14 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
     private static <T> String getAllItemsWithUserSelectionFirst(T userSelection, Collection<T> allItems) {
         final var stringBuilder = new StringBuilder();
         stringBuilder.append(userSelection.toString());
-        stringBuilder.append(",");
+        stringBuilder.append(COMMA);
         for (T item : allItems) {
             final var itemAsString = item.toString();
             if (itemAsString.equals(userSelection)) {
                 continue;
             }
             stringBuilder.append(itemAsString);
-            stringBuilder.append(",");
+            stringBuilder.append(COMMA);
         }
         return stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
     }

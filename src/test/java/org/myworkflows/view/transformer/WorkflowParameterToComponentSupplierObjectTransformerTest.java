@@ -7,6 +7,7 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.timepicker.TimePicker;
 import org.junit.jupiter.api.Test;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
@@ -73,6 +74,24 @@ public final class WorkflowParameterToComponentSupplierObjectTransformerTest {
         final var field = (DatePicker) component;
         assertEquals("2024-01-20", field.getValue().toString());
         assertEquals("2024-01-20", componentValueSupplier.getValueAsStringSupplier().get());
+    }
+
+    @Test
+    public void whenWorkflowParameterIsATimeThenATimePickerIsCreated() {
+        // given
+        final var transformer = new WorkflowParameterToComponentSupplierObjectTransformer();
+
+        // when & then
+        final var componentSupplierObject = transformer.transform(WorkflowParameter.of("test", WorkflowParameterType.TIME, "07:00"));
+        assertNotNull(componentSupplierObject);
+        final var component = componentSupplierObject.getComponent();
+        final var componentValueSupplier = componentSupplierObject.getComponentValueSupplier();
+        assertNotNull(component);
+        assertNotNull(componentValueSupplier);
+        assertInstanceOf(TimePicker.class, component);
+        final var field = (TimePicker) component;
+        assertEquals("07:00", field.getValue().toString());
+        assertEquals("07:00", componentValueSupplier.getValueAsStringSupplier().get());
     }
 
     @Test
