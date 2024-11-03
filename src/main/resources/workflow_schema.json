@@ -48,6 +48,12 @@
             "waitUntilSubPasses"
           ]
         },
+        "subcommands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/command"
+          }
+        },
         "ifs": {
           "type": "array",
           "items": {
@@ -83,17 +89,8 @@
             }
           },
           "then": {
-            "properties": {
-              "loop": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/command"
-                },
-                "description": "Looped commands to be executed."
-              }
-            },
             "required": [
-              "loop"
+              "subcommands"
             ]
           }
         },
@@ -106,14 +103,6 @@
             }
           },
           "then": {
-            "properties": {
-              "subcommands": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/command"
-                }
-              }
-            },
             "required": [
               "subcommands"
             ]
