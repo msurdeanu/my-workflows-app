@@ -7,7 +7,6 @@ import org.myworkflows.domain.command.api.ExecutionParam;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.time.Duration.ofMillis;
+import static org.springframework.http.HttpMethod.valueOf;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
 /**
@@ -42,7 +42,7 @@ public final class HttpRequestCommand extends AbstractCommand {
                                               @ExecutionParam(required = false, defaultValue = "15000") Long connectionTimeout,
                                               @ExecutionParam(required = false, defaultValue = "60000") Long readTimeout) {
         return createRestTemplate(connectionTimeout, readTimeout)
-            .exchange(fromUriString(url).build(true).toUri(), HttpMethod.valueOf(method),
+            .exchange(fromUriString(url).build(true).toUri(), valueOf(method),
                 createHttpEntity(body, headers), String.class);
     }
 
