@@ -1,7 +1,10 @@
 package org.myworkflows.view;
 
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.HasUrlParameter;
@@ -16,6 +19,8 @@ import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowDefinitionGrid;
+
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Optional.ofNullable;
 
@@ -48,7 +53,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
         workflowDefinitionGrid = new WorkflowDefinitionGrid(this);
         workflowDefinitionGrid.setDataProvider(configurableFilterDataProvider);
 
-        add(createHeader(getTranslation("workflow-definitions.page.title")));
+        add(createHeader(getTranslation("workflow-definitions.page.title"), createFilterByName()));
         add(createContent(workflowDefinitionGrid));
         add(createFooter());
     }
@@ -65,12 +70,30 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
 
     @Override
     public void onDelete(WorkflowDefinition workflowDefinition) {
-        workflowDefinitionService.delete(workflowDefinition);
+        if (workflowDefinitionService.delete(workflowDefinition) > 0) {
+            workflowDefinitionGrid.refreshPage();
+        }
     }
 
     @Override
     public void onNameUpdated(WorkflowDefinition workflowDefinition, String newName) {
         workflowDefinitionService.updateName(workflowDefinition, newName);
+    }
+
+    private Component createFilterByName() {
+        final var filterByNameTextField = new TextField();
+        filterByNameTextField.setPlaceholder(getTranslation("workflow-definitions.filter.by-name.placeholder"));
+        filterByNameTextField.setHelperText(getTranslation("workflow-definitions.filter.by-name.helper"));
+        filterByNameTextField.setClearButtonVisible(true);
+        filterByNameTextField.setValueChangeMode(ValueChangeMode.LAZY);
+        filterByNameTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));
+        filterByNameTextField.addValueChangeListener(event -> onFilterByName(event.getValue()));
+        return filterByNameTextField;
+    }
+
+    private void onFilterByName(String value) {
+        workflowDefinitionFilter.setByNameCriteria(value);
+        workflowDefinitionGrid.refreshPage();
     }
 
     private void onFilterById(int value) {

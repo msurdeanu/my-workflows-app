@@ -1,5 +1,6 @@
 package org.myworkflows.service;
 
+import jakarta.transaction.Transactional;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
 import org.myworkflows.domain.WorkflowDefinition;
@@ -18,7 +19,7 @@ import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
  * @since 1.0.0
  */
 @Service
-public final class WorkflowDefinitionService extends CacheableDataService<WorkflowDefinition, WorkflowDefinitionFilter> implements LoaderService {
+public class WorkflowDefinitionService extends CacheableDataService<WorkflowDefinition, WorkflowDefinitionFilter> implements LoaderService {
 
     public WorkflowDefinitionService(ApplicationManager applicationManager) {
         super(applicationManager, CacheNameEnum.WORKFLOW_DEFINITION);
@@ -33,11 +34,15 @@ public final class WorkflowDefinitionService extends CacheableDataService<Workfl
             .forEach(this::addToCache);
     }
 
-    public void delete(WorkflowDefinition workflowDefinition) {
+    @Transactional
+    public int delete(WorkflowDefinition workflowDefinition) {
         lock.lock();
         try {
-            cache.evict(workflowDefinition.getId());
-            // TODO: Proceed with a soft delete
+            final var rowsAffected = applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).deleteIfNotUsed(workflowDefinition.getId());
+            if (rowsAffected > 0) {
+                cache.evict(workflowDefinition.getId());
+            }
+            return rowsAffected;
         } finally {
             lock.unlock();
         }

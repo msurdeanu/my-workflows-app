@@ -44,7 +44,7 @@ public class WorkflowParameterView extends ResponsiveLayout implements HasDynami
         workflowParameterGrid = new WorkflowParameterGrid(workflowParameterService);
         workflowParameterGrid.setDataProvider(configurableFilterDataProvider);
 
-        add(createHeader(getTranslation("workflow-params.page.title"), createFilterById()));
+        add(createHeader(getTranslation("workflow-params.page.title"), createFilterByName()));
         add(createContent(workflowParameterGrid));
         add(createFooter());
     }
@@ -54,20 +54,19 @@ public class WorkflowParameterView extends ResponsiveLayout implements HasDynami
         return getTranslation("site.base.title", getTranslation("menu.main.workflow-params"));
     }
 
-    private Component createFilterById() {
+    private Component createFilterByName() {
         final var filterByNameTextField = new TextField();
         filterByNameTextField.setPlaceholder(getTranslation("workflow-params.filter.by-name.placeholder"));
         filterByNameTextField.setHelperText(getTranslation("workflow-params.filter.by-name.helper"));
         filterByNameTextField.setClearButtonVisible(true);
         filterByNameTextField.setValueChangeMode(ValueChangeMode.LAZY);
         filterByNameTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));
-        filterByNameTextField.addValueChangeListener(event -> onFilteringByName(event.getValue()));
+        filterByNameTextField.addValueChangeListener(event -> onFilterByName(event.getValue()));
         return filterByNameTextField;
     }
 
-    private void onFilteringByName(String value) {
+    private void onFilterByName(String value) {
         workflowParameterFilter.setByNameCriteria(value);
-
         workflowParameterGrid.refreshPage();
     }
 

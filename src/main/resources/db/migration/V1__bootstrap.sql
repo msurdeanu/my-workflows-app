@@ -53,10 +53,18 @@ VALUES ('1', '"Sleep command with placeholder" template', '0 0 * * * MON-FRI');
 
 CREATE TABLE workflow_templates_workflow_definitions
 (
-    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
     workflow_template_id   INTEGER NOT NULL,
-    workflow_definition_id INTEGER NOT NULL
+    workflow_definition_id INTEGER NOT NULL,
+    PRIMARY KEY (workflow_template_id, workflow_definition_id),
+    FOREIGN KEY (workflow_template_id) REFERENCES workflow_templates (id),
+    FOREIGN KEY (workflow_definition_id) REFERENCES workflow_definitions (id)
 );
+
+CREATE INDEX workflow_templates_workflow_definitions_workflow_template_id_index
+    ON workflow_templates_workflow_definitions (workflow_template_id);
+
+CREATE INDEX workflow_templates_workflow_definitions_workflow_definition_id_index
+    ON workflow_templates_workflow_definitions (workflow_definition_id);
 
 INSERT INTO workflow_templates_workflow_definitions ("workflow_template_id", "workflow_definition_id")
 VALUES (1, 1);
@@ -73,10 +81,18 @@ VALUES ('sleepTime', 'str', 'sleepTime');
 
 CREATE TABLE workflow_templates_workflow_parameters
 (
-    id                      INTEGER PRIMARY KEY AUTOINCREMENT,
     workflow_template_id    INTEGER NOT NULL,
-    workflow_parameter_name TEXT    NOT NULL
+    workflow_parameter_name TEXT    NOT NULL,
+    PRIMARY KEY (workflow_template_id, workflow_parameter_name),
+    FOREIGN KEY (workflow_template_id) REFERENCES workflow_templates (id),
+    FOREIGN KEY (workflow_parameter_name) REFERENCES workflow_parameters (name)
 );
+
+CREATE INDEX workflow_templates_workflow_parameters_workflow_template_id_index
+    ON workflow_templates_workflow_parameters (workflow_template_id);
+
+CREATE INDEX workflow_templates_workflow_parameters_workflow_parameter_name_index
+    ON workflow_templates_workflow_parameters (workflow_parameter_name);
 
 INSERT INTO workflow_templates_workflow_parameters ("workflow_template_id", "workflow_parameter_name")
 VALUES (1, 'sleepTime');
@@ -89,7 +105,8 @@ CREATE TABLE workflow_runs
     printed_keys         TEXT,
     failure_message      TEXT,
     duration             INTEGER          NOT NULL DEFAULT (0),
-    created              DATETIME         NOT NULL
+    created              DATETIME         NOT NULL,
+    FOREIGN KEY (workflow_template_id) REFERENCES workflow_templates (id) ON DELETE CASCADE
 );
 
 CREATE INDEX workflow_runs_created_index ON workflow_runs (created DESC);
