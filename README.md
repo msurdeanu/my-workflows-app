@@ -202,6 +202,16 @@ Since comments are useful sometimes, there is a hack that can be implemented to 
 dedicated field called `_comment.*`.
 This field can be used anywhere in the workflow definition.
 
+#### Shortcuts
+
+Shortcuts are present for multiple views, and they are here to improve your end-user experience.
+
+* **Workflow Development** view:
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> = runs the workflow immediately
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>U</kbd> = updates the workflow immediately
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd> = reformats the code present inside the editor. Needs editor focus.
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>W</kbd> = wraps / unwraps the code present inside the editor. Needs editor focus.
+
 ## Predefined type of commands
 
 ### Database command
