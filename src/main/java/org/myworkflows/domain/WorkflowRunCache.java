@@ -95,7 +95,7 @@ public final class WorkflowRunCache implements Serializable {
             return objectMap;
         } else {
             final var objectMap = new HashMap<>();
-            objectMap.put(innerKey, object);
+            objectMap.put(innerKey, value);
             cachedObjectMap.put(key, objectMap);
             return objectMap;
         }
