@@ -69,10 +69,11 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
         lock.lock();
         try {
             workflowTemplate.toggleOnEnabling();
+            final var workflowTemplateSchedulerService = applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class);
             if (workflowTemplate.isEnabled()) {
-                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class).unschedule(workflowTemplate);
+                workflowTemplateSchedulerService.schedule(workflowTemplate);
             } else {
-                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class).schedule(workflowTemplate);
+                workflowTemplateSchedulerService.unschedule(workflowTemplate);
             }
             applicationManager.getBeanOfType(WorkflowTemplateRepository.class).save(workflowTemplate);
         } finally {

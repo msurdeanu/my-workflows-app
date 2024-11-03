@@ -35,6 +35,7 @@
         "@type": {
           "enum": [
             "database",
+            "email",
             "groovy",
             "httpRequest",
             "java",

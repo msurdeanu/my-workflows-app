@@ -21,12 +21,10 @@ public interface WorkflowRunRepository extends JpaRepository<WorkflowRun, UUID> 
     @Modifying
     @Query(value = """
         DELETE FROM workflow_runs
-        WHERE ROWID NOT IN (
-            SELECT ROWID
-            FROM workflow_runs
-            ORDER BY created DESC
-            LIMIT :cacheSize
-        )
+               WHERE created <= (SELECT created
+                                 FROM workflow_runs
+                                 ORDER BY created DESC
+                                 LIMIT 1 OFFSET :cacheSize)
         """, nativeQuery = true)
     int deleteOldEntries(@Param("cacheSize") int cacheSize);
 
