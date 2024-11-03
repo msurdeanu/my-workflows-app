@@ -100,7 +100,8 @@ You are allowed to use placeholders inside any `input`, `assert` and `output` (`
 
 Expressions are the heart of this tool.
 By using them, you will be able to pass information between commands.
-Expressions are evaluated at runtime, and they can be used anywhere inside an `input`, `assert`, `output` or `if` structure.
+Expressions are evaluated at runtime, and they can be used anywhere inside an `input`, `assert`, `output` or `if`
+structure.
 Inside this structure, the expression will always be encapsulated inside `value` field.
 Each expression is evaluated by a runtime evaluator specified by the user, after filling `@type` field.
 
@@ -146,6 +147,7 @@ because is too long. In addition, by accessing the workflow run cache using the 
 This is why, you can use a simplified version by using **cache access pattern feature** exposed by this tool.
 
 If we take one of the previous examples:
+
 ```json
 {
   "name": "sleep.time",
@@ -155,6 +157,7 @@ If we take one of the previous examples:
 ```
 
 we can rewrite it like this:
+
 ```json
 {
   "name": "sleep.time",
@@ -166,7 +169,7 @@ we can rewrite it like this:
 The tool will be able to recognize every string pattern inside `value` which matches the following regex pattern:
 `\$\(([a-zA-Z0-9_.]+)(:[a-zA-Z0-9_.]+)?\)`.
 The string between parenthesis is split in two parts: first part defines name of the variable that we are going to
-search into workflow run cache (this part is mandatory) and the second part (which is optional) and defines type of 
+search into workflow run cache (this part is mandatory) and the second part (which is optional) and defines type of
 the value that we are looking for.
 
 If there is no variable named `sleepTime` of type `Integer` in the workflow run cache, during workflow execution phase,
@@ -200,6 +203,86 @@ dedicated field called `_comment.*`.
 This field can be used anywhere in the workflow definition.
 
 ## Predefined type of commands
+
+### Database command
+
+Provides ability to interact with a relational database by running SQL queries.
+
+| `@type`    | Inputs                                                                                                                                                                                      | Output                         |
+|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
+| `database` | <ul><li><strong>database.url</strong>: Mandatory. Represents the connection URL.</li><li><strong>database.query</strong>: Mandatory. Represents the query which will be executed.</li></ul> | Returns `Optional<ResultSet>`. |
+
+Example of a dummy command:
+
+```json
+{
+  "name": "Run SELECT query",
+  "@type": "database",
+  "inputs": [
+    {
+      "name": "database.url",
+      "value": "jdbc:sqlite:database.db"
+    },
+    {
+      "name": "database.query",
+      "value": "SELECT * FROM test"
+    }
+  ]
+}
+```
+
+### Email command
+
+This command allows to send emails using Jakarta Mail API.
+
+| `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Output |
+|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
+| `email` | <ul><li><strong>email.from</strong>: Mandatory. Email address for the sender.</li><li><strong>email.to</strong>: Mandatory. Email address for the receiver.</li><li><strong>email.subject</strong>: Mandatory. The email subject.</li><li><strong>email.body</strong>: Mandatory. The email body.</li><li><strong>email.props</strong>: Mandatory. Email properties as map.</li><li><em>email.bodyType</em>: Optional. Defines the type of the body. Default value is set to `text/html; charset=utf-8`.</li></ul> | N/A    |
+
+Example of a dummy command:
+
+```json
+{
+  "name": "Send an email",
+  "@type": "email",
+  "inputs": [
+    {
+      "name": "email.from",
+      "value": "from@gmail.com"
+    },
+    {
+      "name": "email.to",
+      "value": "to@gmail.com"
+    },
+    {
+      "name": "email.subject",
+      "value": "Simple subject"
+    },
+    {
+      "name": "email.body",
+      "value": "Simple <strong>body</strong>"
+    },
+    {
+      "name": "email.props",
+      "value": {
+        "mail.smtp.auth": true,
+        "mail.smtp.starttls.enable": "true",
+        "mail.smtp.host": "sandbox.smtp.mailtrap.ip",
+        "mail.smtp.port": "25",
+        "mail.smtp.ssl.trust": "sandbox.smtp.mailtrap.io"
+      }
+    },
+    {
+      "name": "email.username",
+      "value": "user"
+    },
+    {
+      "name": "email.password",
+      "value": "pass"
+    }
+  ]
+}
+```
 
 ### Groovy command
 
