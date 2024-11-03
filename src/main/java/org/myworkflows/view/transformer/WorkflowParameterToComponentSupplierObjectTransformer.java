@@ -31,7 +31,6 @@ import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.util.CookieUtil.createEncryptedCookie;
 import static org.myworkflows.util.CookieUtil.findDecryptedCookieValue;
-import static org.myworkflows.view.util.PrefixUtil.setPrefixComponent;
 
 /**
  * @author Mihai Surdeanu
@@ -95,7 +94,7 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
         final var cookieIcon = VaadinIcon.CLOUD_UPLOAD.create();
         cookieIcon.addClickListener(event -> createEncryptedCookie(allCookies, workflowParameter.getName(), passwordField.getValue())
             .ifPresent(cookie -> VaadinService.getCurrentResponse().addCookie(cookie)));
-        setPrefixComponent(passwordField, cookieIcon);
+        passwordField.setPrefixComponent(cookieIcon);
         return ComponentSupplierObject.builder()
             .component(passwordField)
             .componentValueSupplier(ComponentValueSupplier.builder()

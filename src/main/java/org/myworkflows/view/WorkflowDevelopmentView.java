@@ -6,8 +6,6 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyModifier;
-import com.vaadin.flow.component.ShortcutEventListener;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
@@ -63,6 +61,7 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.serializer.JsonFactory.toPrettyString;
@@ -99,9 +98,6 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     public WorkflowDevelopmentView(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
 
-        UI.getCurrent().addShortcutListener((ShortcutEventListener) shortcutEvent -> editor.setWrap(!editor.isWrap()),
-            Key.KEY_W, KeyModifier.CONTROL, KeyModifier.ALT);
-
         editor.setMode(AceMode.json);
         editor.setSofttabs(true);
         editor.setTabSize(2);
@@ -110,6 +106,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         editor.setAutoComplete(true);
         editor.setLiveAutocompletion(true);
         EditorAutoCompleteUtil.apply(editor);
+        attachShortcutsToEditor();
         currentWorkflowStatus.addClassNames(LumoUtility.BorderRadius.LARGE, LumoUtility.Padding.SMALL, LumoUtility.FontSize.SMALL);
         currentWorkflowStatus.setVisible(false);
 
@@ -176,6 +173,15 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         onProgressRegistration.remove();
         onSubmittedRegistration.remove();
         super.onDetach(detachEvent);
+    }
+
+    private void attachShortcutsToEditor() {
+        addShortcutListener(this, () -> editor.setWrap(!editor.isWrap()),
+            Key.KEY_W, KeyModifier.CONTROL, KeyModifier.ALT).listenOn(editor);
+        addShortcutListener(this, () -> {
+            final var currentValue = editor.getValue();
+            editor.setValue(toPrettyString(currentValue, currentValue));
+        }, Key.KEY_F, KeyModifier.CONTROL, KeyModifier.ALT).listenOn(editor).resetFocusOnActiveElement();
     }
 
     private Button createShareButton() {
@@ -245,6 +251,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
                 .workflowDefinitionScript(editor.getValue())
                 .build());
         });
+        runWorkflowButton.addClickShortcut(Key.KEY_R, KeyModifier.CONTROL, KeyModifier.ALT).resetFocusOnActiveElement();
         runWorkflowButton.setWidthFull();
 
         updateWorkflowButton.setEnabled(false);
@@ -253,6 +260,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         updateWorkflowButton.addClickListener(event -> ofNullable(filterByDefinition.getValue())
             .ifPresent(workflowDefinition -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
                 .updateDefinition(workflowDefinition, editor.getValue())));
+        updateWorkflowButton.addClickShortcut(Key.KEY_U, KeyModifier.CONTROL, KeyModifier.ALT).resetFocusOnActiveElement();
 
         layout.add(currentWorkflowStatus, defDetails, new Hr(), runWorkflowButton, updateWorkflowButton);
         return layout;
