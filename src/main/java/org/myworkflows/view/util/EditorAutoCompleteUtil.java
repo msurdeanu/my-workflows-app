@@ -41,8 +41,8 @@ public final class EditorAutoCompleteUtil {
         COMMAND_INPUTS_COMPLETER.put(EmailCommand.PREFIX, List.of("from", "to", "subject", "body", "props", "bodyType", "username", "password"));
         COMMAND_INPUTS_COMPLETER.put(GroovyCommand.PREFIX, List.of("scriptLines", "methodName"));
         COMMAND_INPUTS_COMPLETER.put(HttpRequestCommand.PREFIX, List.of("url", "method", "body", "headers", "connectionTimeout", "readTimeout"));
-        COMMAND_INPUTS_COMPLETER.put(JavaCommand.PREFIX, List.of("scriptLines", "methodName", "className"));
-        COMMAND_INPUTS_COMPLETER.put(LoopCommand.PREFIX, List.of("items"));
+        COMMAND_INPUTS_COMPLETER.put(JavaCommand.PREFIX, List.of("scriptLines", "methodName", "className", "scriptFiles"));
+        COMMAND_INPUTS_COMPLETER.put(LoopCommand.PREFIX, List.of("items", "item", "backoffPeriod"));
         COMMAND_INPUTS_COMPLETER.put(PrintCommand.PREFIX, List.of("keys"));
         COMMAND_INPUTS_COMPLETER.put(SleepCommand.PREFIX, List.of("time"));
         COMMAND_INPUTS_COMPLETER.put(SshExecCommand.PREFIX, List.of("host", "username", "password", "command", "port", "timeout"));
