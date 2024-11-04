@@ -62,6 +62,42 @@ When the time comes, the workflow can be run `manually` by the user or `automati
 Behind the scene, there is a `thread pool` responsible for executing the workflow.
 Each workflow is scheduled to run inside a single thread and all his commands are run in sequential order.
 
+#### Command
+
+Each command has:
+* a `@type`
+* `inputs` - defines the customization for current run
+* an `output` - defines the output returned
+* `asserts` - to assert different things when the output is present
+* `outputs` - to process output even more and to save partial outputs in other variables
+
+The following state diagram describes how a command works:
+```mermaid
+stateDiagram-v2
+    R : RunCommand
+    A : ProcessAsserts
+    O : ProcessOutputs
+    HE : HasException
+    HO: HasOutput
+    HF : HasAssertionFailure
+    state IE <<choice>>
+    state IO <<choice>>
+    state IF <<choice>>
+    [*] --> R : inject inputs
+    R --> HE
+    HE --> IE
+    IE --> [*] : true
+    IE --> HO : false
+    HO --> IO
+    IO --> [*] : false
+    IO --> A : true
+    A --> HF
+    HF --> IF
+    IF --> [*] : assert failed
+    IF --> O : asserts passed
+    O --> [*]
+```
+
 ### Features
 
 #### Finally commands
