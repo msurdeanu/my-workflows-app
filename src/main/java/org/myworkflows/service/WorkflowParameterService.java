@@ -30,6 +30,25 @@ public final class WorkflowParameterService extends CacheableDataService<Workflo
             .forEach(this::addToCache);
     }
 
+    public void update(WorkflowParameter workflowParameter) {
+        lock.lock();
+        try {
+            applicationManager.getBeanOfType(WorkflowParameterRepository.class).save(workflowParameter);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void delete(WorkflowParameter workflowParameter) {
+        lock.lock();
+        try {
+            cache.evict(workflowParameter.getName());
+            applicationManager.getBeanOfType(WorkflowParameterRepository.class).delete(workflowParameter);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     @Override
     protected WorkflowParameterFilter createFilter() {
         return new WorkflowParameterFilter();

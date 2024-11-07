@@ -108,8 +108,9 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
         typeField.setAllowCustomValue(false);
         binder.forField(typeField)
             .bind(WorkflowParameter::getType, WorkflowParameter::setType);
-        final var typeColumn = grid.addColumn(WorkflowParameter::getType).setHeader(getTranslation("workflow-dev-param.grid.type.column"));
-        typeColumn.setEditorComponent(typeField);
+        grid.addColumn(WorkflowParameter::getType)
+            .setHeader(getTranslation("workflow-dev-param.grid.type.column"))
+            .setEditorComponent(typeField);
 
         final var valueField = new TextField();
         valueField.setWidthFull();
@@ -118,9 +119,9 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
                 .map(ValidationResult::error)
                 .orElseGet(ValidationResult::ok))
             .bind(WorkflowParameter::getValue, WorkflowParameter::setValue);
-        final var valueColumn = grid.addColumn(new ComponentRenderer<>(this::renderValue))
-            .setHeader(getTranslation("workflow-dev-param.grid.value.column"));
-        valueColumn.setEditorComponent(valueField);
+        grid.addColumn(new ComponentRenderer<>(this::renderValue))
+            .setHeader(getTranslation("workflow-dev-param.grid.value.column"))
+            .setEditorComponent(valueField);
 
         final var saveButton = new Button(VaadinIcon.CHECK.create(), event -> editor.save());
         saveButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
