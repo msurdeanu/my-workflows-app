@@ -19,7 +19,7 @@ import static java.util.Optional.empty;
 @Getter
 @RequiredArgsConstructor
 public enum WorkflowParameterType {
-    STR("str") {
+    STR("str", "String") {
         @Override
         public Object getComputedValue(String value) {
             return value;
@@ -30,7 +30,7 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
-    S_STR("s_str") {
+    S_STR("s_str", "String Select") {
         @Override
         public Object getComputedValue(String value) {
             return Arrays.asList(value.split(","));
@@ -41,7 +41,7 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
-    PASS("pass") {
+    PASS("pass", "Password") {
         @Override
         public Object getComputedValue(String value) {
             return value;
@@ -52,7 +52,7 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
-    DATE("date") {
+    DATE("date", "Date") {
         @Override
         public Object getComputedValue(String value) {
             return LocalDate.parse(value);
@@ -68,7 +68,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    TIME("time") {
+    TIME("time", "Time") {
         @Override
         public Object getComputedValue(String value) {
             return LocalTime.parse(value);
@@ -84,7 +84,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    INT("int") {
+    INT("int", "Integer") {
         @Override
         public Object getComputedValue(String value) {
             return Integer.valueOf(value);
@@ -100,7 +100,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    DOUBLE("dbl") {
+    DOUBLE("dbl", "Double") {
         @Override
         public Object getComputedValue(String value) {
             return Double.valueOf(value);
@@ -116,7 +116,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    BOOL("bool") {
+    BOOL("bool", "Boolean") {
         @Override
         public Object getComputedValue(String value) {
             return Boolean.valueOf(value);
@@ -131,6 +131,8 @@ public enum WorkflowParameterType {
 
     private final String value;
 
+    private final String label;
+
     public abstract Object getComputedValue(String value);
 
     public abstract Optional<String> validate(String value);
@@ -140,6 +142,11 @@ public enum WorkflowParameterType {
                 .filter(type -> type.getValue().equals(value))
                 .findFirst()
                 .orElse(null);
+    }
+
+    @Override
+    public String toString() {
+        return label;
     }
 
 }

@@ -118,7 +118,6 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
     private TextField createFilterByName() {
         final var filterByNameTextField = new TextField();
         filterByNameTextField.setPlaceholder(getTranslation("workflow-templates.filter.by-name.placeholder"));
-        filterByNameTextField.setHelperText(getTranslation("workflow-templates.filter.by-name.helper"));
         filterByNameTextField.setClearButtonVisible(true);
         filterByNameTextField.setValueChangeMode(ValueChangeMode.LAZY);
         filterByNameTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));

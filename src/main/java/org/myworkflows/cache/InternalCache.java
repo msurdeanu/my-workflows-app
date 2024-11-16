@@ -43,11 +43,11 @@ public final class InternalCache implements org.springframework.cache.Cache {
     private final StampedLock stampedLock = new StampedLock();
 
     public InternalCache(String name) {
-        this(name, Integer.MAX_VALUE, InternalCacheOrder.NONE);
+        this(name, Integer.MAX_VALUE, InternalCacheOrder.NO);
     }
 
     public InternalCache(String name, int maxSize) {
-        this(name, maxSize, InternalCacheOrder.NONE);
+        this(name, maxSize, InternalCacheOrder.NO);
     }
 
     public InternalCache(String name, int maxSize, InternalCacheOrder cacheOrder) {
@@ -128,13 +128,13 @@ public final class InternalCache implements org.springframework.cache.Cache {
         acceptConsumerInsideWriteBlock(key, item -> {
             final var previousValue = cacheMap.put(item, value);
             if (ofNullable(previousValue).isEmpty() && isOrderedOrHasLimitedSize()) {
-                if (cacheOrder == InternalCacheOrder.NORMAL) {
+                if (cacheOrder == InternalCacheOrder.FIFO) {
                     keys.addLast(item);
                 } else {
                     keys.addFirst(item);
                 }
                 if (cacheMap.size() > maxSize) {
-                    removeItemFromTheList();
+                    cacheMap.remove(removeItemFromTheList());
                 }
             }
         });
@@ -144,7 +144,7 @@ public final class InternalCache implements org.springframework.cache.Cache {
     public void evict(@NonNull Object key) {
         acceptConsumerInsideWriteBlock(key, item -> {
             if (isOrderedOrHasLimitedSize()) {
-                removeItemFromTheBeginning(item);
+                keys.removeFirstOccurrence(item);
             }
             cacheMap.remove(item);
         });
@@ -165,40 +165,18 @@ public final class InternalCache implements org.springframework.cache.Cache {
     }
 
     private boolean isOrderedOrHasLimitedSize() {
-        return cacheOrder != InternalCacheOrder.NONE || maxSize < Integer.MAX_VALUE;
+        return cacheOrder != InternalCacheOrder.NO || maxSize < Integer.MAX_VALUE;
     }
 
     private Optional<Object> find(Object key) {
         return ofNullable(cacheMap.get(key));
     }
 
-    private void removeItemFromTheList() {
-        if (cacheOrder == InternalCacheOrder.NORMAL) {
-            removeItemFromTheBeginning(keys.getFirst());
+    private Object removeItemFromTheList() {
+        if (cacheOrder == InternalCacheOrder.FIFO) {
+            return keys.removeFirst();
         } else {
-            removeItemFromTheEnd(keys.getLast());
-        }
-    }
-
-    private void removeItemFromTheBeginning(Object key) {
-        final var iterator = keys.iterator();
-        while (iterator.hasNext()) {
-            final var element = iterator.next();
-            if (element.equals(key)) {
-                iterator.remove();
-                break;
-            }
-        }
-    }
-
-    private void removeItemFromTheEnd(Object key) {
-        final var iterator = keys.listIterator(keys.size());
-        while (iterator.hasPrevious()) {
-            final var element = iterator.previous();
-            if (element.equals(key)) {
-                iterator.remove();
-                break;
-            }
+            return keys.removeLast();
         }
     }
 
@@ -226,7 +204,7 @@ public final class InternalCache implements org.springframework.cache.Cache {
     }
 
     public enum InternalCacheOrder {
-        NONE, NORMAL, REVERSE
+        NO, FIFO, LIFO
     }
 
 }

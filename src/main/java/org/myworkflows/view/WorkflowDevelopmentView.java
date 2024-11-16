@@ -212,7 +212,6 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         filterByTemplateSelect.setItems(applicationManager.getBeanOfType(WorkflowDefinitionService.class)
             .getAll().toList());
         filterByTemplateSelect.setPlaceholder(getTranslation("workflow-development.filter.by-template.placeholder"));
-        filterByTemplateSelect.setHelperText(getTranslation("workflow-development.filter.by-template.helper"));
         filterByTemplateSelect.setItemLabelGenerator(WorkflowDefinition::getName);
         filterByTemplateSelect.addValueChangeListener(event -> onFilteringByDefinition(event.getValue()));
         return filterByTemplateSelect;
