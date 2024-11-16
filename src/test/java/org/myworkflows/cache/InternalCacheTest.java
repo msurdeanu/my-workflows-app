@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 public final class InternalCacheTest {
 
     @Test
-    public void testNonOrderedCache() {
+    public void testNoOrderCache() {
         // given
         final var cache = new InternalCache("test", 1);
 
@@ -29,7 +29,7 @@ public final class InternalCacheTest {
         assertEquals("value", cache.get("key", String.class));
         assertEquals(1, cache.size());
         cache.put("key1", "value1");
-        assertEquals(2, cache.size());
+        assertEquals(1, cache.size());
         cache.evict("key");
         assertInstanceOf(String.class, cache.get("key1", String.class));
         assertEquals(1, cache.getAllValues().size());
@@ -38,9 +38,24 @@ public final class InternalCacheTest {
     }
 
     @Test
-    public void testReverseOrderedCache() {
+    public void testFifoCache() {
         // given
-        final var cache = new InternalCache("test", 3, InternalCache.InternalCacheOrder.REVERSE);
+        final var cache = new InternalCache("test", 3, InternalCache.InternalCacheOrder.FIFO);
+
+        // when & then
+        cache.get("key1", () -> "value1");
+        cache.get("key2", () -> "value2");
+        cache.putIfAbsent("key1", "value11");
+        cache.put("key3", "value3");
+        cache.put("key4", "value4");
+        assertEquals(3, cache.size());
+        assertNull(cache.get("key1"));
+    }
+
+    @Test
+    public void testLifoCache() {
+        // given
+        final var cache = new InternalCache("test", 3, InternalCache.InternalCacheOrder.LIFO);
 
         // when & then
         cache.get("key1", () -> "value1");

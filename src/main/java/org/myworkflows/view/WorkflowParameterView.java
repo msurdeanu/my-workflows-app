@@ -72,7 +72,6 @@ public class WorkflowParameterView extends ResponsiveLayout implements HasDynami
     private Component createFilterByName() {
         final var filterByNameTextField = new TextField();
         filterByNameTextField.setPlaceholder(getTranslation("workflow-params.filter.by-name.placeholder"));
-        filterByNameTextField.setHelperText(getTranslation("workflow-params.filter.by-name.helper"));
         filterByNameTextField.setClearButtonVisible(true);
         filterByNameTextField.setValueChangeMode(ValueChangeMode.LAZY);
         filterByNameTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));

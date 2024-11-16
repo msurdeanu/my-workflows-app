@@ -27,13 +27,13 @@ public class CacheConfig {
     @Bean
     public InternalCacheManager cacheManager() {
         final var cacheManager = new InternalCacheManager();
-        cacheManager.addCache(CacheNameEnum.WORKFLOW_RUN, workflowRunMaxSize, InternalCache.InternalCacheOrder.REVERSE);
-        cacheManager.addCache(CacheNameEnum.WORKFLOW_TEMPLATE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.REVERSE);
-        cacheManager.addCache(CacheNameEnum.WORKFLOW_DEFINITION, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.REVERSE);
-        cacheManager.addCache(CacheNameEnum.WORKFLOW_PARAMETER, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.REVERSE);
-        cacheManager.addCache(CacheNameEnum.MENU_ITEM, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NONE);
-        cacheManager.addCache(CacheNameEnum.PLACEHOLDER, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NONE);
-        cacheManager.addCache(CacheNameEnum.DOC_PAGE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NORMAL);
+        cacheManager.addCache(CacheNameEnum.WORKFLOW_RUN, workflowRunMaxSize, InternalCache.InternalCacheOrder.LIFO);
+        cacheManager.addCache(CacheNameEnum.WORKFLOW_TEMPLATE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
+        cacheManager.addCache(CacheNameEnum.WORKFLOW_DEFINITION, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
+        cacheManager.addCache(CacheNameEnum.WORKFLOW_PARAMETER, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
+        cacheManager.addCache(CacheNameEnum.MENU_ITEM, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NO);
+        cacheManager.addCache(CacheNameEnum.PLACEHOLDER, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NO);
+        cacheManager.addCache(CacheNameEnum.DOC_PAGE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.FIFO);
         return cacheManager;
     }
 

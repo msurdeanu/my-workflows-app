@@ -69,7 +69,6 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
         filterByTemplateSelect.setItems(applicationManager.getBeanOfType(WorkflowTemplateService.class)
             .getAll().toList());
         filterByTemplateSelect.setPlaceholder(getTranslation("workflow-runs.filter.by-template.placeholder"));
-        filterByTemplateSelect.setHelperText(getTranslation("workflow-runs.filter.by-template.helper"));
         filterByTemplateSelect.setItemLabelGenerator(item -> ofNullable(item).map(WorkflowTemplate::getName)
             .orElse(getTranslation("workflow-runs.filter.by-template.none")));
         filterByTemplateSelect.setEmptySelectionAllowed(true);
@@ -81,7 +80,6 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
     private Component createFilterByRunId() {
         final var filterByIdTextField = new TextField();
         filterByIdTextField.setPlaceholder(getTranslation("workflow-runs.filter.by-id.placeholder"));
-        filterByIdTextField.setHelperText(getTranslation("workflow-runs.filter.by-id.helper"));
         filterByIdTextField.setClearButtonVisible(true);
         filterByIdTextField.setValueChangeMode(ValueChangeMode.LAZY);
         filterByIdTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));

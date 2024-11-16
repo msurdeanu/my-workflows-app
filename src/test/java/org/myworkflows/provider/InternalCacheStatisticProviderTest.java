@@ -19,8 +19,8 @@ public final class InternalCacheStatisticProviderTest {
     public void whenCacheStatisticProviderIsCalledWithTwoCachesThenEverythingWorksAsExpected() {
         // given
         final var internalCacheManager = new InternalCacheManager();
-        internalCacheManager.addCache(WORKFLOW_RUN, 100, InternalCache.InternalCacheOrder.REVERSE);
-        internalCacheManager.addCache(WORKFLOW_TEMPLATE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NONE);
+        internalCacheManager.addCache(WORKFLOW_RUN, 100, InternalCache.InternalCacheOrder.LIFO);
+        internalCacheManager.addCache(WORKFLOW_TEMPLATE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NO);
 
         // when & then
         final var internalCacheStatisticProvider = new InternalCacheStatisticProvider(internalCacheManager);
@@ -29,9 +29,9 @@ public final class InternalCacheStatisticProviderTest {
         assertNotNull(statisticItemGroup);
         assertEquals(2, statisticItemGroup.getLeafs().size());
         assertEquals("statistics.internal-caches.group.workflowTemplate.name", statisticItemGroup.getLeafs().getFirst().getName());
-        assertEquals("(0, ∞, NONE)", statisticItemGroup.getLeafs().getFirst().getValue());
+        assertEquals("(0, ∞, NO)", statisticItemGroup.getLeafs().getFirst().getValue());
         assertEquals("statistics.internal-caches.group.workflowRun.name", statisticItemGroup.getLeafs().getLast().getName());
-        assertEquals("(0, 100, REVERSE)", statisticItemGroup.getLeafs().getLast().getValue());
+        assertEquals("(0, 100, LIFO)", statisticItemGroup.getLeafs().getLast().getValue());
     }
 
 }
