@@ -8,6 +8,7 @@ import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.converter.ParameterTypeToStringConverter;
 
 import java.util.Optional;
@@ -32,6 +33,10 @@ public class WorkflowParameter implements CacheableEntry {
 
     @Column(name = "value")
     private String value;
+
+    public static WorkflowParameter of(String name) {
+        return of(name, WorkflowParameterType.STR, StringUtils.EMPTY);
+    }
 
     public static WorkflowParameter of(String name, WorkflowParameterType type, String value) {
         final var workflowParameter = new WorkflowParameter();
