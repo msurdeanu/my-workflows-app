@@ -71,7 +71,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActive))
             .setAutoWidth(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderNameAndCron))
-            .setHeader(getTranslation("workflow-templates.main-grid.name.column"))
+            .setHeader(getTranslation("workflow-templates.grid.name.column"))
             .setAutoWidth(true);
         final var addButton = new Button(VaadinIcon.PLUS.create());
         addButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
@@ -80,7 +80,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
             .setHeader(addButton)
             .setAutoWidth(true);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(this::createDraggableComponent));
-        paginatedGrid.setEmptyStateText(getTranslation("workflow-templates.main-grid.no-result"));
+        paginatedGrid.setEmptyStateText(getTranslation("workflow-templates.grid.no-result"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
         paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
@@ -103,7 +103,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
                     layout.add(getOnlyName(workflowTemplate));
                     final var icon = LumoIcon.CLOCK.create();
                     Tooltip.forComponent(icon)
-                        .withText(getTranslation("workflow-templates.main-grid.cron-expression.tooltip", cron))
+                        .withText(getTranslation("workflow-templates.grid.cron-expression.tooltip", cron))
                         .withPosition(Tooltip.TooltipPosition.TOP);
                     layout.add(icon);
                     layout.setSpacing(false);
@@ -141,14 +141,14 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
 
         final var scheduleNowButton = new Button(new Icon(VaadinIcon.START_COG));
         scheduleNowButton.addThemeVariants(ButtonVariant.LUMO_ICON);
-        scheduleNowButton.setTooltipText(getTranslation("workflow-templates.main-grid.actions.button.schedule.title"));
+        scheduleNowButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.schedule.title"));
         scheduleNowButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         final var editButton = new Button(new Icon(VaadinIcon.EDIT));
-        editButton.setTooltipText(getTranslation("workflow-templates.main-grid.actions.button.edit.title"));
+        editButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.edit.title"));
         editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         final var deleteButton = new Button();
         deleteButton.setIcon(new Icon(VaadinIcon.TRASH));
-        deleteButton.setTooltipText(getTranslation("workflow-templates.main-grid.actions.button.delete.title"));
+        deleteButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.delete.title"));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
 
         if (isLogged) {

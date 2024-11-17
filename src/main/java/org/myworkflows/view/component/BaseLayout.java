@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class BaseLayout extends AppLayout {
 
-    public BaseLayout(AuthenticationContext authContext, final MenuItemRepository menuItemRepository) {
+    public BaseLayout(AuthenticationContext authContext, MenuItemRepository menuItemRepository) {
         createHeader(authContext);
 
         addDrawerContent(new MenuItemsToSideNavItemsTransformer().transform(menuItemRepository.findByOrderByPosition()));

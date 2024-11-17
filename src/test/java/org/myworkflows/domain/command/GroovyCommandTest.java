@@ -46,7 +46,7 @@ public final class GroovyCommandTest {
             "  return 1",
             "}"
         ));
-        workflowRun.getCache().put("groovy.methodName", "myRun");
+        workflowRun.getCache().put("groovy.method", "myRun");
 
         // when & then
         assertDoesNotThrow(() -> new GroovyCommand("A", Set.of(), Set.of(), Set.of(),
@@ -64,7 +64,7 @@ public final class GroovyCommandTest {
             "  return 1",
             "}"
         ));
-        workflowRun.getCache().put("groovy.methodName", "myRun");
+        workflowRun.getCache().put("groovy.method", "myRun");
 
         // when & then
         assertThrows(WorkflowRuntimeException.class,

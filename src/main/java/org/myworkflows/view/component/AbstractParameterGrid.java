@@ -87,14 +87,14 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
         paginatedGrid.setAllRowsVisible(true);
         paginatedGrid.addColumn(WorkflowParameter::getName).setHeader(getTranslation(id + ".grid.name.column"));
 
-        ComboBox<WorkflowParameterType> typeField = new ComboBox<>();
+        final var typeField = new ComboBox<WorkflowParameterType>();
         typeField.setItems(WorkflowParameterType.values());
         typeField.setWidthFull();
         typeField.setAllowCustomValue(false);
-        typeField.setRenderer(new ComponentRenderer<>(this::renderType));
+        typeField.setItemLabelGenerator(workflowParameterType -> getTranslation("workflow-parameter.type." + workflowParameterType.getValue()));
         binder.forField(typeField)
             .bind(WorkflowParameter::getType, WorkflowParameter::setType);
-        paginatedGrid.addColumn(WorkflowParameter::getType)
+        paginatedGrid.addColumn(workflowParameter -> getTranslation("workflow-parameter.type." + workflowParameter.getType().getValue()))
             .setHeader(getTranslation(id + ".grid.type.column"))
             .setEditorComponent(typeField);
 
@@ -150,10 +150,6 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
 
         layout.add(paginatedGrid);
         return layout;
-    }
-
-    private Component renderType(WorkflowParameterType workflowParameterType) {
-        return new Span(getTranslation("workflow-parameter.type." + workflowParameterType.getValue()));
     }
 
     private Component renderValue(WorkflowParameter workflowParameter) {

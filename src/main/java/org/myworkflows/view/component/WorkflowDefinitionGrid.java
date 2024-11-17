@@ -51,12 +51,12 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
         layout.setSizeFull();
         paginatedGrid.setAllRowsVisible(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderName))
-            .setHeader(getTranslation("workflow-definitions.main-grid.name.column"))
+            .setHeader(getTranslation("workflow-definitions.grid.name.column"))
             .setAutoWidth(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
-            .setHeader(getTranslation("workflow-definitions.main-grid.actions.column"))
+            .setHeader(getTranslation("workflow-definitions.grid.actions.column"))
             .setAutoWidth(true);
-        paginatedGrid.setEmptyStateText(getTranslation("workflow-definitions.main-grid.no-result"));
+        paginatedGrid.setEmptyStateText(getTranslation("workflow-definitions.grid.no-result"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
         paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
@@ -88,11 +88,11 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
         final var layout = new HorizontalLayout();
 
         final var editButton = new Button(new Icon(VaadinIcon.EDIT));
-        editButton.setTooltipText(getTranslation("workflow-definitions.main-grid.actions.button.edit.title"));
+        editButton.setTooltipText(getTranslation("workflow-definitions.grid.actions.button.edit.title"));
         editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         final var deleteButton = new Button();
         deleteButton.setIcon(new Icon(VaadinIcon.TRASH));
-        deleteButton.setTooltipText(getTranslation("workflow-definitions.main-grid.actions.button.delete.title"));
+        deleteButton.setTooltipText(getTranslation("workflow-definitions.grid.actions.button.delete.title"));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
 
         if (isLoggedAsAdmin) {

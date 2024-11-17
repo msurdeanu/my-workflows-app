@@ -37,13 +37,13 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
             }
             paginatedGrid.setDetailsVisible(prints.get(sizeOfPrints - 1), true);
         } else if (sizeOfPrints == 1) {
-            paginatedGrid.setDetailsVisible(prints.get(0), true);
+            paginatedGrid.setDetailsVisible(prints.getFirst(), true);
         }
     }
 
     @Override
     public void onSmallWidth() {
-        boolean[] visibleColumns = new boolean[]{true, false, false};
+        final var visibleColumns = new boolean[]{true, false, false};
         for (int index = 0; index < visibleColumns.length; index++) {
             paginatedGrid.getColumns().get(index).setVisible(visibleColumns[index]);
         }
@@ -51,7 +51,7 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
 
     @Override
     public void onBigWidth() {
-        boolean[] visibleColumns = new boolean[]{false, true, true};
+        final var visibleColumns = new boolean[]{false, true, true};
         for (int index = 0; index < visibleColumns.length; index++) {
             paginatedGrid.getColumns().get(index).setVisible(visibleColumns[index]);
         }

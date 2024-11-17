@@ -50,8 +50,8 @@ public final class JavaCommandTest {
             "  }",
             "}"
         ));
-        workflowRun.getCache().put("java.methodName", "myRun");
-        workflowRun.getCache().put("java.className", "MyClass");
+        workflowRun.getCache().put("java.method", "myRun");
+        workflowRun.getCache().put("java.clazz", "MyClass");
 
         // when & then
         assertDoesNotThrow(() -> new JavaCommand("A", Set.of(), Set.of(), Set.of(),
@@ -71,8 +71,8 @@ public final class JavaCommandTest {
             "  }",
             "}"
         ));
-        workflowRun.getCache().put("java.methodName", "myRun");
-        workflowRun.getCache().put("java.className", "MyClass");
+        workflowRun.getCache().put("java.method", "myRun");
+        workflowRun.getCache().put("java.clazz", "MyClass");
 
         // when & then
         assertThrows(WorkflowRuntimeException.class,
