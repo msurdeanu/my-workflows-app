@@ -8,7 +8,6 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.editor.Editor;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -23,6 +22,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import lombok.Setter;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
+import org.myworkflows.view.component.html.SpanBadge;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
@@ -39,7 +39,7 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
     private final String id;
 
     @Setter
-    private Function<WorkflowParameter, Component> renderValueFunction = workflowParameter -> new Span(workflowParameter.getValue());
+    private Function<WorkflowParameter, Component> renderValueFunction = workflowParameter -> new SpanBadge(workflowParameter.getValue());
     @Setter
     private Consumer<String> createConsumer = value -> {
     };
