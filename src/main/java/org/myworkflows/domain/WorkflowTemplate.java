@@ -1,6 +1,9 @@
 package org.myworkflows.domain;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -9,12 +12,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -69,6 +74,12 @@ public class WorkflowTemplate {
     )
     private List<WorkflowParameter> workflowParameters;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "workflow_template_renames", joinColumns = @JoinColumn(name = "workflow_template_id"))
+    @MapKeyColumn(name = "old_name")
+    @Column(name = "new_name")
+    private Map<String, String> workflowParameterRenames = new HashMap<>();
+
     @Getter
     @Setter
     @Transient
@@ -82,7 +93,8 @@ public class WorkflowTemplate {
         return ofNullable(workflowParameters)
             .orElse(List.of())
             .stream()
-            .collect(Collectors.toMap(WorkflowParameter::getName, WorkflowParameter::getComputedValue, (it1, it2) -> it2));
+            .collect(Collectors.toMap(workflowParameter -> workflowParameterRenames.getOrDefault(workflowParameter.getName(), workflowParameter.getName()),
+                WorkflowParameter::getComputedValue, (it1, it2) -> it2));
     }
 
     public List<WorkflowDefinitionScript> getWorkflowDefinitionScripts() {

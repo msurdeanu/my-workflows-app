@@ -13,6 +13,7 @@ import java.util.Set;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static org.myworkflows.util.SqlUtil.escape;
 
 /**
  * @author Mihai Surdeanu
@@ -36,7 +37,7 @@ public final class DatabaseCommand extends AbstractCommand {
                                         @ExecutionParam String query) throws SQLException {
         try (final var connection = DriverManager.getConnection(url); // format: "jdbc:sqlite:"
              final var statement = connection.createStatement()) {
-            final var resultSet = statement.executeQuery(query); // TODO: escape sql query
+            final var resultSet = statement.executeQuery(escape(query));
             if (resultSet != null && resultSet.isBeforeFirst()) {
                 return of(resultSet);
             } else {

@@ -7,9 +7,12 @@ import com.vaadin.flow.component.datepicker.DatePickerVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.select.SelectVariant;
+import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.PasswordField;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextAreaVariant;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
 import com.vaadin.flow.component.timepicker.TimePicker;
@@ -52,6 +55,8 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
             case DOUBLE -> createNumberField(workflowParameter);
             case BOOL -> createCheckboxField(workflowParameter);
             case S_STR -> createStringSelect(workflowParameter);
+            case EMAIL -> createEmailField(workflowParameter);
+            case M_STR -> createTextArea(workflowParameter);
             default -> createTextField(workflowParameter);
         };
     }
@@ -163,11 +168,41 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
             .build();
     }
 
+    private static ComponentSupplierObject createEmailField(WorkflowParameter workflowParameter) {
+        final var emailField = new EmailField();
+        emailField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
+        emailField.setValue((String) workflowParameter.getComputedValue());
+        emailField.setWidthFull();
+        return ComponentSupplierObject.builder()
+            .component(emailField)
+            .componentValueSupplier(ComponentValueSupplier.builder()
+                .valueSupplier(emailField::getValue)
+                .valueAsStringSupplier(emailField::getValue)
+                .build())
+            .build();
+    }
+
+    private static ComponentSupplierObject createTextArea(WorkflowParameter workflowParameter) {
+        final var textArea = new TextArea();
+        textArea.addThemeVariants(TextAreaVariant.LUMO_SMALL);
+        textArea.setValue((String) workflowParameter.getComputedValue());
+        textArea.setWidthFull();
+        textArea.setClearButtonVisible(true);
+        return ComponentSupplierObject.builder()
+            .component(textArea)
+            .componentValueSupplier(ComponentValueSupplier.builder()
+                .valueSupplier(textArea::getValue)
+                .valueAsStringSupplier(textArea::getValue)
+                .build())
+            .build();
+    }
+
     private static ComponentSupplierObject createTextField(WorkflowParameter workflowParameter) {
         final var textField = new TextField();
         textField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
         textField.setValue((String) workflowParameter.getComputedValue());
         textField.setWidthFull();
+        textField.setClearButtonVisible(true);
         return ComponentSupplierObject.builder()
             .component(textField)
             .componentValueSupplier(ComponentValueSupplier.builder()

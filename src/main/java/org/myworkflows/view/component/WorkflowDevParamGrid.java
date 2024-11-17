@@ -8,6 +8,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.editor.Editor;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -106,6 +107,7 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
         typeField.setItems(WorkflowParameterType.values());
         typeField.setWidthFull();
         typeField.setAllowCustomValue(false);
+        typeField.setRenderer(new ComponentRenderer<>(this::renderType));
         binder.forField(typeField)
             .bind(WorkflowParameter::getType, WorkflowParameter::setType);
         grid.addColumn(WorkflowParameter::getType)
@@ -133,13 +135,13 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
         final var nameAndAddLayout = new HorizontalLayout();
         nameAndAddLayout.setWidthFull();
         nameAndAddLayout.setSpacing(true);
-
         final var nameField = new TextField();
         nameField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
         nameField.setWidth("70%");
         nameField.setPlaceholder("[a-zA-Z0-9_.]");
         nameField.setAllowedCharPattern("[a-zA-Z0-9_.]");
         nameField.setValue("name");
+        nameField.setClearButtonVisible(true);
         nameField.setValueChangeMode(ValueChangeMode.LAZY);
         nameField.setValueChangeTimeout(50);
         addButton = new Button(VaadinIcon.PLUS.create());
@@ -152,8 +154,9 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
         nameAndAddLayout.add(nameField, addButton);
         nameAndAddLayout.setFlexGrow(1.0f, addButton);
 
-        final var actionColumn = grid.addComponentColumn(parameter -> createActionComponent(parameter, editor)).setHeader(nameAndAddLayout);
-        actionColumn.setEditorComponent(actions);
+        grid.addComponentColumn(parameter -> createActionComponent(parameter, editor))
+            .setHeader(nameAndAddLayout)
+            .setEditorComponent(actions);
 
         grid.setItems(workflowParameters);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
@@ -161,6 +164,10 @@ public final class WorkflowDevParamGrid extends Composite<VerticalLayout> {
 
         layout.add(grid);
         return layout;
+    }
+
+    private Component renderType(WorkflowParameterType workflowParameterType) {
+        return new Span(getTranslation("workflow-parameter.type." + workflowParameterType.getValue()));
     }
 
     private Component renderValue(WorkflowParameter workflowParameter) {

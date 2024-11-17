@@ -6,6 +6,8 @@ package org.myworkflows.domain;
  */
 public interface WorkflowParameterEventHandler {
 
+    void onCreate(String name);
+
     void onDelete(WorkflowParameter workflowParameter);
 
     void onUpdate(WorkflowParameter workflowParameter);

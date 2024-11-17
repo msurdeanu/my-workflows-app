@@ -12,11 +12,13 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextFieldVariant;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.Validator;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterEventHandler;
@@ -60,6 +62,7 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
         typeField.setItems(WorkflowParameterType.values());
         typeField.setWidthFull();
         typeField.setAllowCustomValue(false);
+        typeField.setRenderer(new ComponentRenderer<>(this::renderParameterType));
         binder.forField(typeField)
             .bind(WorkflowParameter::getType, WorkflowParameter::setType);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderType))
@@ -77,16 +80,40 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
             .setHeader(getTranslation("workflow-params.main-grid.value.column"))
             .setEditorComponent(valueField);
 
-        final var saveButton = new Button(VaadinIcon.CHECK.create(), event -> editor.save());
+        final var saveButton = new Button(VaadinIcon.CHECK.create(), event -> {
+            final var currentItem = editor.getItem();
+            if (editor.save()) {
+                workflowParameterEventHandler.onUpdate(currentItem);
+            }
+        });
         saveButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
         final var cancelButton = new Button(VaadinIcon.CLOSE.create(), event -> editor.cancel());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
         final var actions = new HorizontalLayout(saveButton, cancelButton);
         actions.setPadding(false);
 
-        final var actionColumn = paginatedGrid.addComponentColumn(parameter -> createActionComponent(parameter, editor))
-            .setHeader(getTranslation("workflow-params.main-grid.actions.column"));
-        actionColumn.setEditorComponent(actions);
+        final var nameAndAddLayout = new HorizontalLayout();
+        nameAndAddLayout.setWidthFull();
+        nameAndAddLayout.setSpacing(true);
+        final var nameField = new TextField();
+        nameField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
+        nameField.setWidth("70%");
+        nameField.setPlaceholder("[a-zA-Z0-9_.]");
+        nameField.setAllowedCharPattern("[a-zA-Z0-9_.]");
+        nameField.setValue("name");
+        nameField.setClearButtonVisible(true);
+        nameField.setValueChangeMode(ValueChangeMode.LAZY);
+        nameField.setValueChangeTimeout(50);
+        final var addButton = new Button(VaadinIcon.PLUS.create());
+        addButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+        addButton.addClickListener(event -> workflowParameterEventHandler.onCreate(nameField.getValue()));
+        nameAndAddLayout.add(nameField, addButton);
+        nameAndAddLayout.setFlexGrow(1.0f, addButton);
+
+        paginatedGrid.addComponentColumn(parameter -> createActionComponent(parameter, editor))
+            .setHeader(nameAndAddLayout)
+            .setEditorComponent(actions);
+
         paginatedGrid.setEmptyStateText(getTranslation("workflow-params.main-grid.no-result"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
@@ -101,11 +128,15 @@ public final class WorkflowParameterGrid extends Composite<VerticalLayout> {
     }
 
     private Component renderType(WorkflowParameter workflowParameter) {
-        return new Span(workflowParameter.getType().getValue());
+        return new Span(getTranslation("workflow-parameter.type." + workflowParameter.getType().getValue()));
     }
 
     private Component renderValue(WorkflowParameter workflowParameter) {
         return new Span(workflowParameter.getValue());
+    }
+
+    private Component renderParameterType(WorkflowParameterType workflowParameterType) {
+        return new Span(getTranslation("workflow-parameter.type." + workflowParameterType.getValue()));
     }
 
     private Component createActionComponent(WorkflowParameter workflowParameter, Editor<WorkflowParameter> editor) {

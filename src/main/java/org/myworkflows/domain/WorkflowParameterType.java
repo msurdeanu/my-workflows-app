@@ -1,5 +1,6 @@
 package org.myworkflows.domain;
 
+import com.networknt.org.apache.commons.validator.routines.EmailValidator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +20,7 @@ import static java.util.Optional.empty;
 @Getter
 @RequiredArgsConstructor
 public enum WorkflowParameterType {
-    STR("str", "String") {
+    STR("str") {
         @Override
         public Object getComputedValue(String value) {
             return value;
@@ -30,7 +31,18 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
-    S_STR("s_str", "String Select") {
+    M_STR("m_str") {
+        @Override
+        public Object getComputedValue(String value) {
+            return value;
+        }
+
+        @Override
+        public Optional<String> validate(String value) {
+            return empty();
+        }
+    },
+    S_STR("s_str") {
         @Override
         public Object getComputedValue(String value) {
             return Arrays.asList(value.split(","));
@@ -41,7 +53,18 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
-    PASS("pass", "Password") {
+    EMAIL("email") {
+        @Override
+        public Object getComputedValue(String value) {
+            return value;
+        }
+
+        @Override
+        public Optional<String> validate(String value) {
+            return EmailValidator.getInstance().isValid(value) ? empty() : Optional.of("Invalid email address");
+        }
+    },
+    PASS("pass") {
         @Override
         public Object getComputedValue(String value) {
             return value;
@@ -52,7 +75,7 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
-    DATE("date", "Date") {
+    DATE("date") {
         @Override
         public Object getComputedValue(String value) {
             return LocalDate.parse(value);
@@ -68,7 +91,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    TIME("time", "Time") {
+    TIME("time") {
         @Override
         public Object getComputedValue(String value) {
             return LocalTime.parse(value);
@@ -84,7 +107,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    INT("int", "Integer") {
+    INT("int") {
         @Override
         public Object getComputedValue(String value) {
             return Integer.valueOf(value);
@@ -100,7 +123,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    DOUBLE("dbl", "Double") {
+    DOUBLE("dbl") {
         @Override
         public Object getComputedValue(String value) {
             return Double.valueOf(value);
@@ -116,7 +139,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    BOOL("bool", "Boolean") {
+    BOOL("bool") {
         @Override
         public Object getComputedValue(String value) {
             return Boolean.valueOf(value);
@@ -131,22 +154,15 @@ public enum WorkflowParameterType {
 
     private final String value;
 
-    private final String label;
-
     public abstract Object getComputedValue(String value);
 
     public abstract Optional<String> validate(String value);
 
     public static WorkflowParameterType of(String value) {
         return stream(values())
-                .filter(type -> type.getValue().equals(value))
-                .findFirst()
-                .orElse(null);
-    }
-
-    @Override
-    public String toString() {
-        return label;
+            .filter(type -> type.getValue().equals(value))
+            .findFirst()
+            .orElse(null);
     }
 
 }
