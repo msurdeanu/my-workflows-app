@@ -33,7 +33,7 @@ vaadin-scroller[slot="drawer"] {
     flex-wrap: wrap;
 }
 
-.dev-param-grid {
+.workflow-dev-param {
     max-height: 200px;
     overflow: auto;
 }
