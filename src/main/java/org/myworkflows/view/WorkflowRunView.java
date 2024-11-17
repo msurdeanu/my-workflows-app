@@ -70,10 +70,10 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
             .getAll().toList());
         filterByTemplateSelect.setPlaceholder(getTranslation("workflow-runs.filter.by-template.placeholder"));
         filterByTemplateSelect.setItemLabelGenerator(item -> ofNullable(item).map(WorkflowTemplate::getName)
-            .orElse(getTranslation("workflow-runs.filter.by-template.none")));
+            .orElse(getTranslation("workflow-runs.filter.by-template.all")));
         filterByTemplateSelect.setEmptySelectionAllowed(true);
-        filterByTemplateSelect.setEmptySelectionCaption(getTranslation("workflow-runs.filter.by-template.none"));
-        filterByTemplateSelect.addValueChangeListener(event -> onFilteringByTemplate(event.getValue()));
+        filterByTemplateSelect.setEmptySelectionCaption(getTranslation("workflow-runs.filter.by-template.all"));
+        filterByTemplateSelect.addValueChangeListener(event -> onFilterByTemplate(event.getValue()));
         return filterByTemplateSelect;
     }
 
@@ -83,17 +83,17 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
         filterByIdTextField.setClearButtonVisible(true);
         filterByIdTextField.setValueChangeMode(ValueChangeMode.LAZY);
         filterByIdTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));
-        filterByIdTextField.addValueChangeListener(event -> onFilteringByRunId(event.getValue()));
+        filterByIdTextField.addValueChangeListener(event -> onFilterByRunId(event.getValue()));
         return filterByIdTextField;
     }
 
-    private void onFilteringByTemplate(WorkflowTemplate workflowTemplate) {
+    private void onFilterByTemplate(WorkflowTemplate workflowTemplate) {
         workflowRunFilter.setByTemplateIdCriteria(ofNullable(workflowTemplate).map(WorkflowTemplate::getId).orElse(0));
 
         workflowRunGrid.refreshPage();
     }
 
-    private void onFilteringByRunId(String value) {
+    private void onFilterByRunId(String value) {
         workflowRunFilter.setByRunIdCriteria(value);
 
         workflowRunGrid.refreshPage();

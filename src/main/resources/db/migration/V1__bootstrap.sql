@@ -38,7 +38,7 @@ CREATE TABLE workflow_definitions
 
 INSERT INTO workflow_definitions ("name", "script")
 VALUES ('Sleep command with placeholder',
-        '{"commands":[{"name":"Sleep with placeholder","@type":"sleep","inputs":[{"name":"$$(SLEEP_TIME)","value":1000}]},{"name":"Print placeholder value","@type":"print","inputs":[{"name":"print.keys","value":["$$(SLEEP_TIME)"]}]}]}');
+        '{"commands":[{"name":"Sleep with placeholder","@type":"sleep"},{"name":"Print sleep time","@type":"print","inputs":[{"name":"print.keys","value":["$$(SLEEP_TIME)"]}]}]}');
 
 CREATE TABLE workflow_templates
 (
@@ -50,6 +50,18 @@ CREATE TABLE workflow_templates
 
 INSERT INTO workflow_templates ("enabled", "name", "cron")
 VALUES ('1', '"Sleep command with placeholder" template', '0 0 * * * MON-FRI');
+
+CREATE TABLE workflow_template_renames
+(
+    workflow_template_id INTEGER,
+    old_name             TEXT,
+    new_name             TEXT,
+    PRIMARY KEY (workflow_template_id, old_name),
+    FOREIGN KEY (workflow_template_id) REFERENCES workflow_templates (id)
+);
+
+INSERT INTO workflow_template_renames ("workflow_template_id", "old_name", "new_name")
+VALUES (1, 'defaultSleepTime', 'sleep.time');
 
 CREATE TABLE workflow_templates_workflow_definitions
 (
@@ -77,7 +89,7 @@ CREATE TABLE workflow_parameters
 );
 
 INSERT INTO workflow_parameters ("name", "type", "value")
-VALUES ('sleepTime', 'str', 'sleepTime');
+VALUES ('defaultSleepTime', 'int', 1000);
 
 CREATE TABLE workflow_templates_workflow_parameters
 (
@@ -95,7 +107,7 @@ CREATE INDEX workflow_templates_workflow_parameters_workflow_parameter_name_inde
     ON workflow_templates_workflow_parameters (workflow_parameter_name);
 
 INSERT INTO workflow_templates_workflow_parameters ("workflow_template_id", "workflow_parameter_name")
-VALUES (1, 'sleepTime');
+VALUES (1, 'defaultSleepTime');
 
 CREATE TABLE workflow_runs
 (
@@ -143,7 +155,122 @@ CREATE TABLE doc_pages
 );
 
 INSERT INTO doc_pages ("name", "value")
-VALUES ('Main', '**This is bold text**');
+VALUES ('Markdown Syntax', '# h1 Heading
+## h2 Heading
+### h3 Heading
+#### h4 Heading
+##### h5 Heading
+###### h6 Heading
 
-INSERT INTO doc_pages ("name", "value")
-VALUES ('Test', '_This is italic text_');
+## Horizontal Rules
+
+---
+
+## Emphasis
+
+**This is bold text**
+
+*This is italic text*
+
+~~Strikethrough~~
+
+## Blockquotes
+
+> Blockquotes can also be nested...
+>> ...by using additional greater-than signs right next to each other...
+> > > ...or with spaces between arrows.
+
+## Lists
+
+Unordered
+
++ Create a list by starting a line with `+`, `-`, or `*`
++ Sub-lists are made by indenting 2 spaces:
+  - Marker character change forces new list start:
+    * Ac tristique libero volutpat at
+    + Facilisis in pretium nisl aliquet
+    - Nulla volutpat aliquam velit
++ Very easy!
+
+Ordered
+
+1. Lorem ipsum dolor sit amet
+2. Consectetur adipiscing elit
+3. Integer molestie lorem at massa
+
+## Code
+
+Inline `code`
+
+Block code "fences"
+
+```
+Sample text here...
+```
+
+Syntax highlighting
+
+``` js
+var foo = function (bar) {
+  return bar++;
+};
+
+console.log(foo(5));
+```
+
+## Tables
+
+| Option | Description |
+| ------ | ----------- |
+| data   | path to data files to supply the data that will be passed into templates. |
+| engine | engine to be used for processing templates. Handlebars is the default. |
+| ext    | extension to be used for dest files. |
+
+Right aligned columns
+
+| Option | Description |
+| ------:| -----------:|
+| data   | path to data files to supply the data that will be passed into templates. |
+| engine | engine to be used for processing templates. Handlebars is the default. |
+| ext    | extension to be used for dest files. |
+
+## Links
+
+[link text](http://dev.nodeca.com)
+
+[link with title](http://nodeca.github.io/pica/demo/ "title text!")
+
+Autoconverted link https://github.com/nodeca/pica (enable linkify to see)
+
+## Images
+
+![Minion](https://octodex.github.com/images/minion.png)
+![Stormtroopocat](https://octodex.github.com/images/stormtroopocat.jpg "The Stormtroopocat")
+
+## Diagrams with Mermaid
+
+```mermaid
+sequenceDiagram
+Alice->>John: Hello John, how are you?
+loop Healthcheck
+    John->>John: Fight against hypochondria
+end
+Note right of John: Rational thoughts!
+John-->>Alice: Great!
+John->>Bob: How about you?
+Bob-->>John: Jolly good!
+```
+
+### [Footnotes](https://github.com/markdown-it/markdown-it-footnote)
+
+Footnote 1 link[^first].
+
+Footnote 2 link[^second].
+
+Duplicated footnote reference[^second].
+
+[^first]: Footnote **can have markup**
+
+    and multiple paragraphs.
+
+[^second]: Footnote text.');

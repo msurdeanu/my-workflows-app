@@ -1,8 +1,10 @@
 package org.myworkflows.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
 import org.myworkflows.domain.WorkflowParameter;
+import org.myworkflows.domain.WorkflowParameterType;
 import org.myworkflows.domain.filter.WorkflowParameterFilter;
 import org.myworkflows.repository.WorkflowParameterRepository;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -28,6 +30,20 @@ public final class WorkflowParameterService extends CacheableDataService<Workflo
         applicationManager.getBeanOfType(WorkflowParameterRepository.class)
             .findAll()
             .forEach(this::addToCache);
+    }
+
+    public void create(String name) {
+        lock.lock();
+        try {
+            final var workflowParameter = new WorkflowParameter();
+            workflowParameter.setName(name);
+            workflowParameter.setType(WorkflowParameterType.STR);
+            workflowParameter.setValue(StringUtils.EMPTY);
+            cache.put(applicationManager.getBeanOfType(WorkflowParameterRepository.class).save(workflowParameter).getName(),
+                workflowParameter);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void update(WorkflowParameter workflowParameter) {

@@ -130,7 +130,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
                 .getAll(new WorkflowDefinitionFilter().setByIdCriteria(item), 0, 1)
                 .findFirst())
             .ifPresent(workflowDefinition -> {
-                onFilteringByDefinition(workflowDefinition);
+                onFilterByDefinition(workflowDefinition);
                 processReadOnlyParamIfPresent(beforeEvent.getLocation().getQueryParameters());
             });
         processRemainingQueryParams(beforeEvent.getLocation().getQueryParameters());
@@ -204,6 +204,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
                 Notification.show(getTranslation("workflow-development.clipboard.message"));
             });
         });
+        button.addClickShortcut(Key.KEY_S, KeyModifier.CONTROL, KeyModifier.ALT).resetFocusOnActiveElement();
         return button;
     }
 
@@ -213,11 +214,11 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             .getAll().toList());
         filterByTemplateSelect.setPlaceholder(getTranslation("workflow-development.filter.by-template.placeholder"));
         filterByTemplateSelect.setItemLabelGenerator(WorkflowDefinition::getName);
-        filterByTemplateSelect.addValueChangeListener(event -> onFilteringByDefinition(event.getValue()));
+        filterByTemplateSelect.addValueChangeListener(event -> onFilterByDefinition(event.getValue()));
         return filterByTemplateSelect;
     }
 
-    private void onFilteringByDefinition(WorkflowDefinition workflowDefinition) {
+    private void onFilterByDefinition(WorkflowDefinition workflowDefinition) {
         filterByDefinition.setValue(workflowDefinition);
         editor.setValue(toPrettyString(workflowDefinition.getScript(), StringUtils.EMPTY));
         updateWorkflowButton.setEnabled(true);

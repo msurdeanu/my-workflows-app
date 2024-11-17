@@ -27,7 +27,7 @@ All workflows are defined in JSON format and for playing with them, you have a n
 * Vaadin **Push** enabled. Through websockets, the server can send updates to the client.
 * Persistence layer based on **SQLite**.
 * Dedicated page for **workflow definition script development**, from where you can code your script, inject parameters,
-  run the script and see the print in real time. The editor has auto complete to make your life easier.
+  run the script and see the output. The editor has auto complete to make your life easier.
 * Dedicated web pages for **workflow definitions**, **workflow templates** and **workflow runs**.
 * Dedicated web page for writing **markdown documentation**.
 * Dedicated web page for **statistics**.
@@ -240,11 +240,12 @@ This field can be used anywhere in the workflow definition.
 
 #### Shortcuts
 
-Shortcuts are present for multiple views, and they are here to improve your end-user experience.
+Shortcuts are present for multiple views, and they are here to improve your experience.
 
 * **Workflow Development** view:
-  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> = runs the workflow immediately
-  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>U</kbd> = updates the workflow immediately
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> = runs the workflow
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>U</kbd> = updates the workflow
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd> = shares the workflow
   * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd> = reformats the code present inside the editor. Needs editor focus.
   * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>W</kbd> = wraps / unwraps the code present inside the editor. Needs editor focus.
 
