@@ -16,6 +16,7 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import org.myworkflows.config.BaseConfig;
 import org.myworkflows.repository.MenuItemRepository;
 import org.myworkflows.view.transformer.MenuItemsToSideNavItemsTransformer;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,15 +29,15 @@ import java.util.List;
  */
 public class BaseLayout extends AppLayout {
 
-    public BaseLayout(AuthenticationContext authContext, MenuItemRepository menuItemRepository) {
-        createHeader(authContext);
+    public BaseLayout(AuthenticationContext authContext, BaseConfig baseConfig, MenuItemRepository menuItemRepository) {
+        createHeader(authContext, baseConfig);
 
-        addDrawerContent(new MenuItemsToSideNavItemsTransformer().transform(menuItemRepository.findByOrderByPosition()));
+        addDrawerContent(new MenuItemsToSideNavItemsTransformer().transform(menuItemRepository.findByOrderByPosition()), baseConfig);
     }
 
-    private void createHeader(AuthenticationContext authContext) {
+    private void createHeader(AuthenticationContext authContext, BaseConfig baseConfig) {
         final var logoLayout = new HorizontalLayout();
-        final var logo = new Image(getTranslation("app.logo.src"), getTranslation("app.logo.alt"));
+        final var logo = new Image(baseConfig.getLogoSrc(), baseConfig.getLogoAlt());
         logo.setHeight("44px");
         logoLayout.add(logo);
 
@@ -58,24 +59,24 @@ public class BaseLayout extends AppLayout {
         addToNavbar(header);
     }
 
-    private void addDrawerContent(final List<SideNavItem> routerLinks) {
+    private void addDrawerContent(List<SideNavItem> routerLinks, BaseConfig baseConfig) {
         final var appName = new H1(getTranslation("app.name"));
         appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
         final var header = new Header(appName);
         final var scroller = new Scroller(createNavigation(routerLinks));
-        addToDrawer(header, scroller, createFooter());
+        addToDrawer(header, scroller, createFooter(baseConfig));
     }
 
-    private SideNav createNavigation(final List<SideNavItem> routerLinks) {
+    private SideNav createNavigation(List<SideNavItem> routerLinks) {
         final var appNav = new SideNav();
         routerLinks.forEach(appNav::addItem);
         return appNav;
     }
 
-    private Footer createFooter() {
+    private Footer createFooter(BaseConfig baseConfig) {
         final var layout = new Footer();
         layout.addClassNames("flex", "items-center", "my-s", "px-m", "py-xs");
-        layout.add(new Span("v1.0"));
+        layout.add(new Span("v" + baseConfig.getVersion()));
         return layout;
     }
 

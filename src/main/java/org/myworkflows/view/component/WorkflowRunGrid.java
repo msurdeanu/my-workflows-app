@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.service.WorkflowRunService;
 import org.myworkflows.view.WorkflowTemplateView;
+import org.myworkflows.view.component.html.SpanBadge;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import static java.lang.String.valueOf;
@@ -84,17 +85,12 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
             final var routerLink = new RouterLink(template.getName(), WorkflowTemplateView.class, template.getId());
             routerLink.getElement().getThemeList().add("badge small");
             return (Component) routerLink;
-        }).orElseGet(() -> {
-            final var span = new Span(getTranslation("workflow-runs.grid.template.manual"));
-            span.getElement().getThemeList().add("badge contrast small");
-            return span;
-        });
+        }).orElseGet(() -> new SpanBadge(getTranslation("workflow-runs.grid.template.manual"), "contrast small"));
     }
 
     private Component renderStatus(WorkflowRun workflowRun) {
         return ofNullable(workflowRun.getFailureMessage()).map(item -> {
-            final var errorSpan = new Span(getTranslation("workflow-runs.grid.status.error", workflowRun.getHumanReadableDuration()));
-            errorSpan.getElement().getThemeList().add("badge error small");
+            final var errorSpan = new SpanBadge(getTranslation("workflow-runs.grid.status.error", workflowRun.getHumanReadableDuration()), "error small");
             final var popover = new Popover();
             popover.setTarget(errorSpan);
             popover.setWidth("300px");
@@ -104,13 +100,9 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
             return errorSpan;
         }).orElseGet(() -> {
             if (workflowRun.getDuration() >= 0) {
-                final var successSpan = new Span(getTranslation("workflow-runs.grid.status.success", workflowRun.getHumanReadableDuration()));
-                successSpan.getElement().getThemeList().add("badge success small");
-                return successSpan;
+                return new SpanBadge(getTranslation("workflow-runs.grid.status.success", workflowRun.getHumanReadableDuration()), "success small");
             } else {
-                final var pendingSpan = new Span(getTranslation("workflow-runs.grid.status.pending", workflowRun.getHumanReadableDuration()));
-                pendingSpan.getElement().getThemeList().add("badge contrast small");
-                return pendingSpan;
+                return new SpanBadge(getTranslation("workflow-runs.grid.status.pending", workflowRun.getHumanReadableDuration()), "contrast small");
             }
         });
     }

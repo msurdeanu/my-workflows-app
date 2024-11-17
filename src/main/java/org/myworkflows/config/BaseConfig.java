@@ -5,18 +5,18 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
-
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
 @Setter
 @Getter
-@Configuration("loaderConfig")
-@ConfigurationProperties(prefix = "my-workflows.config.loader")
-public class LoaderConfig {
+@Configuration("baseConfig")
+@ConfigurationProperties(prefix = "my-workflows.config.base")
+public class BaseConfig {
 
-    private List<String> jars = List.of();
+    private String logoSrc = "logo.png";
+    private String logoAlt = "My Workflows";
+    private String version = "1.0";
 
 }

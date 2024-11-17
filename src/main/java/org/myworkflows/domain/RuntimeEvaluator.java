@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.codehaus.janino.ExpressionEvaluator;
 import org.myworkflows.exception.WorkflowRuntimeException;
+import org.myworkflows.holder.ParentClassLoaderHolder;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
@@ -38,8 +39,7 @@ public enum RuntimeEvaluator {
                 "cache.get(\"%s\")", "cache.get(\"%s\", %s)");
             final var binding = new Binding();
             variables.forEach(binding::setProperty);
-            final var groovyShell = new GroovyShell(binding);
-            return groovyShell.evaluate(newExpression);
+            return new GroovyShell(binding).evaluate(newExpression);
         }
     },
 
@@ -50,6 +50,7 @@ public enum RuntimeEvaluator {
                 final var newExpression = resolveCacheAccessPatterns(expression, cacheAccessPattern,
                     "cache.get(\"%s\")", "cache.get(\"%s\", %s)");
                 final var expressionEvaluator = new ExpressionEvaluator();
+                expressionEvaluator.setParentClassLoader(ParentClassLoaderHolder.INSTANCE.getClassLoader());
                 final var parameterNames = new String[variables.size()];
                 final var parameterTypes = new Class<?>[variables.size()];
                 final var parameterObjects = new Object[variables.size()];

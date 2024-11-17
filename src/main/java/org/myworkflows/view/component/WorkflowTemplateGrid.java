@@ -7,9 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -27,6 +25,7 @@ import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
 import org.myworkflows.view.WorkflowDevelopmentView;
+import org.myworkflows.view.component.html.SpanBadge;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
@@ -131,23 +130,19 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
     }
 
     private Component getOnlyName(WorkflowTemplate workflowTemplate) {
-        final var nativeLabel = new NativeLabel(workflowTemplate.getName());
-        nativeLabel.getElement().getThemeList().add("badge" + (workflowTemplate.isEnabled() ? "" : " contrast"));
-        return nativeLabel;
+        return new SpanBadge(workflowTemplate.getName(), workflowTemplate.isEnabled() ? StringUtils.EMPTY : "contrast");
     }
 
     private Component renderActions(WorkflowTemplate workflowTemplate) {
         final var layout = new HorizontalLayout();
 
-        final var scheduleNowButton = new Button(new Icon(VaadinIcon.START_COG));
-        scheduleNowButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+        final var scheduleNowButton = new Button(VaadinIcon.START_COG.create());
         scheduleNowButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.schedule.title"));
         scheduleNowButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-        final var editButton = new Button(new Icon(VaadinIcon.EDIT));
+        final var editButton = new Button(VaadinIcon.EDIT.create());
         editButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.edit.title"));
         editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-        final var deleteButton = new Button();
-        deleteButton.setIcon(new Icon(VaadinIcon.TRASH));
+        final var deleteButton = new Button(VaadinIcon.TRASH.create());
         deleteButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.delete.title"));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
 

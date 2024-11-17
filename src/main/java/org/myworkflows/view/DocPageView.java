@@ -172,7 +172,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
     private Component createSwitchModeButton() {
         final var switchModeButton = new Button(VaadinIcon.EXCHANGE.create());
         switchModeButton.addClickListener(event -> {
-            Map<String, List<String>> queryParams = getUI()
+            final var queryParams = getUI()
                 .map(ui -> new HashMap<>(ui.getInternals().getActiveViewLocation().getQueryParameters().getParameters()))
                 .orElse(new HashMap<>());
             if (queryParams.containsKey(EDIT_MODE)) {
