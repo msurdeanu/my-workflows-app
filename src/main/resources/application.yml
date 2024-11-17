@@ -48,6 +48,10 @@ logging:
 
 my-workflows:
   config:
+    base:
+      logo-src: logo.png
+      logo-alt: "My Workflows"
+      version: "1.1"
     encryption:
       # Algorithm used to encrypt cookies for storing sensitive data
       algorithm: "AES"
