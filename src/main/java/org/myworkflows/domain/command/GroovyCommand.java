@@ -34,14 +34,14 @@ public final class GroovyCommand extends AbstractCommand {
     @ExecutionMethod(prefix = PREFIX)
     public Object groovy(@ExecutionParam WorkflowRun workflowRun,
                          @ExecutionParam List<String> scriptLines,
-                         @ExecutionParam(required = false, defaultValue = "run") String methodName) {
+                         @ExecutionParam(required = false, defaultValue = "run") String method) {
         if (scriptLines.isEmpty()) {
             return null;
         }
 
         final var script = new GroovyShell(ParentClassLoaderHolder.INSTANCE.getClassLoader())
             .parse(scriptLines.stream().collect(joining(lineSeparator())));
-        return script.invokeMethod(methodName, workflowRun.getCache());
+        return script.invokeMethod(method, workflowRun.getCache());
     }
 
 }

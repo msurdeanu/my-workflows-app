@@ -52,21 +52,21 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         layout.setSizeFull();
         paginatedGrid.setAllRowsVisible(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderId))
-            .setHeader(getTranslation("workflow-runs.main-grid.id.column"))
+            .setHeader(getTranslation("workflow-runs.grid.id.column"))
             .setAutoWidth(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderTemplateId))
-            .setHeader(getTranslation("workflow-runs.main-grid.template.column"))
+            .setHeader(getTranslation("workflow-runs.grid.template.column"))
             .setAutoWidth(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderStatus))
-            .setHeader(getTranslation("workflow-runs.main-grid.status.column"))
+            .setHeader(getTranslation("workflow-runs.grid.status.column"))
             .setAutoWidth(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderDetails))
-            .setHeader(getTranslation("workflow-runs.main-grid.details.column"))
+            .setHeader(getTranslation("workflow-runs.grid.details.column"))
             .setAutoWidth(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
-            .setHeader(getTranslation("workflow-runs.main-grid.actions.column"))
+            .setHeader(getTranslation("workflow-runs.grid.actions.column"))
             .setAutoWidth(true);
-        paginatedGrid.setEmptyStateText(getTranslation("workflow-runs.main-grid.no-result"));
+        paginatedGrid.setEmptyStateText(getTranslation("workflow-runs.grid.no-result"));
         paginatedGrid.setPageSize(10);
         paginatedGrid.setPaginatorSize(5);
         paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
@@ -85,7 +85,7 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
             routerLink.getElement().getThemeList().add("badge small");
             return (Component) routerLink;
         }).orElseGet(() -> {
-            final var span = new Span(getTranslation("workflow-runs.main-grid.template.manual"));
+            final var span = new Span(getTranslation("workflow-runs.grid.template.manual"));
             span.getElement().getThemeList().add("badge contrast small");
             return span;
         });
@@ -93,7 +93,7 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
 
     private Component renderStatus(WorkflowRun workflowRun) {
         return ofNullable(workflowRun.getFailureMessage()).map(item -> {
-            final var errorSpan = new Span(getTranslation("workflow-runs.main-grid.status.error", workflowRun.getHumanReadableDuration()));
+            final var errorSpan = new Span(getTranslation("workflow-runs.grid.status.error", workflowRun.getHumanReadableDuration()));
             errorSpan.getElement().getThemeList().add("badge error small");
             final var popover = new Popover();
             popover.setTarget(errorSpan);
@@ -104,11 +104,11 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
             return errorSpan;
         }).orElseGet(() -> {
             if (workflowRun.getDuration() >= 0) {
-                final var successSpan = new Span(getTranslation("workflow-runs.main-grid.status.success", workflowRun.getHumanReadableDuration()));
+                final var successSpan = new Span(getTranslation("workflow-runs.grid.status.success", workflowRun.getHumanReadableDuration()));
                 successSpan.getElement().getThemeList().add("badge success small");
                 return successSpan;
             } else {
-                final var pendingSpan = new Span(getTranslation("workflow-runs.main-grid.status.pending", workflowRun.getHumanReadableDuration()));
+                final var pendingSpan = new Span(getTranslation("workflow-runs.grid.status.pending", workflowRun.getHumanReadableDuration()));
                 pendingSpan.getElement().getThemeList().add("badge contrast small");
                 return pendingSpan;
             }
@@ -141,7 +141,7 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
 
     private void cancelRun(WorkflowRun workflowRun) {
         if (workflowRun.cancelAndInterruptIfRunning()) {
-            Notification.show(getTranslation("workflow-runs.main-grid.run.cancelled"));
+            Notification.show(getTranslation("workflow-runs.grid.run.cancelled"));
             paginatedGrid.getDataProvider().refreshItem(workflowRun);
         }
     }

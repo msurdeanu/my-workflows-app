@@ -39,15 +39,15 @@ public final class EditorAutoCompleteUtil {
             SshExecCommand.PREFIX, SshShellCommand.PREFIX, WaitUntilSubPassesCommand.PREFIX));
         COMMAND_INPUTS_COMPLETER.put(DatabaseCommand.PREFIX, List.of("url", "query"));
         COMMAND_INPUTS_COMPLETER.put(EmailCommand.PREFIX, List.of("from", "to", "subject", "body", "props", "bodyType", "username", "password"));
-        COMMAND_INPUTS_COMPLETER.put(GroovyCommand.PREFIX, List.of("scriptLines", "methodName"));
-        COMMAND_INPUTS_COMPLETER.put(HttpRequestCommand.PREFIX, List.of("url", "method", "body", "headers", "connectionTimeout", "readTimeout"));
-        COMMAND_INPUTS_COMPLETER.put(JavaCommand.PREFIX, List.of("scriptLines", "methodName", "className", "scriptFiles"));
+        COMMAND_INPUTS_COMPLETER.put(GroovyCommand.PREFIX, List.of("scriptLines", "method"));
+        COMMAND_INPUTS_COMPLETER.put(HttpRequestCommand.PREFIX, List.of("url", "method", "body", "headers", "timeout"));
+        COMMAND_INPUTS_COMPLETER.put(JavaCommand.PREFIX, List.of("scriptLines", "method", "clazz", "files"));
         COMMAND_INPUTS_COMPLETER.put(LoopCommand.PREFIX, List.of("items", "item", "backoffPeriod"));
         COMMAND_INPUTS_COMPLETER.put(PrintCommand.PREFIX, List.of("keys"));
         COMMAND_INPUTS_COMPLETER.put(SleepCommand.PREFIX, List.of("time"));
         COMMAND_INPUTS_COMPLETER.put(SshExecCommand.PREFIX, List.of("host", "username", "password", "command", "port", "timeout"));
         COMMAND_INPUTS_COMPLETER.put(SshShellCommand.PREFIX, List.of("host", "username", "password", "commands", "port", "timeout"));
-        COMMAND_INPUTS_COMPLETER.put(WaitUntilSubPassesCommand.PREFIX, List.of("iterations", "backoffPeriod"));
+        COMMAND_INPUTS_COMPLETER.put(WaitUntilSubPassesCommand.PREFIX, List.of("rounds", "backoffPeriod"));
     }
 
     @SuppressWarnings("deprecation")

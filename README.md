@@ -65,6 +65,7 @@ Each workflow is scheduled to run inside a single thread and all his commands ar
 #### Command
 
 Each command has:
+
 * a `@type`
 * `inputs` - defines the customization for current run
 * an `output` - defines the output returned
@@ -72,6 +73,7 @@ Each command has:
 * `outputs` - to process output even more and to save partial outputs in other variables
 
 The following state diagram describes how a command works:
+
 ```mermaid
 stateDiagram-v2
     R : RunCommand
@@ -243,11 +245,13 @@ This field can be used anywhere in the workflow definition.
 Shortcuts are present for multiple views, and they are here to improve your experience.
 
 * **Workflow Development** view:
-  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> = runs the workflow
-  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>U</kbd> = updates the workflow
-  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd> = shares the workflow
-  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd> = reformats the code present inside the editor. Needs editor focus.
-  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>W</kbd> = wraps / unwraps the code present inside the editor. Needs editor focus.
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> = runs the workflow
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>U</kbd> = updates the workflow
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd> = shares the workflow
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd> = reformats the code present inside the editor. Needs editor
+      focus.
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>W</kbd> = wraps / unwraps the code present inside the editor. Needs editor
+      focus.
 
 ## Predefined type of commands
 
@@ -282,9 +286,9 @@ Example of a dummy command:
 
 This command allows to send emails using Jakarta Mail API.
 
-| `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Output |
-|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
-| `email` | <ul><li><strong>email.from</strong>: Mandatory. Email address for the sender.</li><li><strong>email.to</strong>: Mandatory. Email address for the receiver.</li><li><strong>email.subject</strong>: Mandatory. The email subject.</li><li><strong>email.body</strong>: Mandatory. The email body.</li><li><strong>email.props</strong>: Mandatory. Email properties as map.</li><li><em>email.bodyType</em>: Optional. Defines the type of the body. Default value is set to `text/html; charset=utf-8`.</li></ul> | N/A    |
+| `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Output |
+|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
+| `email` | <ul><li><strong>email.from</strong>: Mandatory. Email address for the sender.</li><li><strong>email.to</strong>: Mandatory. Email address for the receiver.</li><li><strong>email.subject</strong>: Mandatory. The email subject.</li><li><strong>email.body</strong>: Mandatory. The email body.</li><li><strong>email.props</strong>: Mandatory. Email properties as map.</li><li><em>email.bodyType</em>: Optional. Defines the type of the body. Default value is set to `text/html; charset=utf-8`.</li><li><em>email.username</em>: Optional. The username for authentication.</li><li><em>email.password</em>: Optional. The password for authentication.</li></ul> | N/A    |
 
 Example of a dummy command:
 
@@ -336,9 +340,9 @@ Example of a dummy command:
 Provides ability to run Groovy code at runtime.
 As you probably already imagine, this command is very powerful.
 
-| `@type`  | Inputs                                                                                                                                                                                                                                                                          | Output                             |
-|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| `groovy` | <ul><li><strong>java.scriptLines</strong>: Mandatory. Represents source code which contains definition of a `java.methodName` (or `run`) method to be executed.</li><li><em>java.methodName</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
+| `@type`  | Inputs                                                                                                                                                                                                                                                                        | Output                             |
+|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| `groovy` | <ul><li><strong>groovy.scriptLines</strong>: Mandatory. Represents source code which contains definition of a `groovy.method` (or `run`) method to be executed.</li><li><em>groovy.method</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
 
 Example of a dummy command:
 
@@ -348,15 +352,38 @@ Example of a dummy command:
   "@type": "groovy",
   "inputs": [
     {
-      "name": "java.scriptLines",
+      "name": "groovy.scriptLines",
       "value": [
         "def run(workflowRunCache) {",
         "}"
       ]
     },
     {
-      "name": "java.methodName",
+      "name": "groovy.method",
       "value": "run"
+    }
+  ]
+}
+```
+
+### HttpRequest command
+
+This command provides a programmatic way to do HTTP requests.
+
+| `@type`       | Inputs                                                                                                                                                                                                                                                                                       | Output                   |
+|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| `httpRequest` | <ul><li><strong>httpRequest.url</strong>: Mandatory. Represents request URL.</li><li><em>httpRequest.method</em>: Optional. Represents request method type. Default value: `GET`.</li><li><em>httpRequest.body</em>: Optional. Represents request body. No body is set by default.</li></ul> | `ResponseEntity<String>` |
+
+Example of a dummy command:
+
+```json
+{
+  "name": "Simple GET HTTP request",
+  "@type": "httpRequest",
+  "inputs": [
+    {
+      "name": "httpRequest.url",
+      "value": "https://mihaisurdeanu.ro"
     }
   ]
 }
@@ -367,9 +394,9 @@ Example of a dummy command:
 Provides ability to run Java code at runtime.
 Like for Groovy command, this command is also very powerful.
 
-| `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                          | Output                             |
-|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| `java`  | <ul><li><strong>java.scriptLines</strong>: Mandatory. Represents source code which contains definition of a `java.methodName` (or `run`) method inside a class `java.className` (or `DynamicClass`) which will be executed.</li><li><em>java.methodName</em>: Optional. Represents the method name invoked when code is executed.</li><li><em>java.className</em>: Optional. Represents the class name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
+| `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Output                             |
+|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| `java`  | <ul><li><strong>java.scriptLines</strong>: Mandatory. Represents source code which contains definition of a `java.method` (or `run`) method inside a class `java.clazz` (or `DynamicClass`) which will be executed.</li><li><em>java.method</em>: Optional. Represents the method name invoked when code is executed.</li><li><em>java.clazz</em>: Optional. Represents the class name invoked when code is executed.</li><li><em>java.fileNames</em>: Optional. Before running the script, you can load some Java files from disk by providing their full path.</li></ul> | Return of invoked method or `void` |
 
 Example of a dummy command:
 
@@ -390,11 +417,11 @@ Example of a dummy command:
       ]
     },
     {
-      "name": "java.methodName",
+      "name": "java.method",
       "value": "run"
     },
     {
-      "name": "java.className",
+      "name": "java.clazz",
       "value": "DynamicClass"
     }
   ]

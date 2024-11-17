@@ -41,9 +41,9 @@ public final class JavaCommand extends AbstractCommand {
     @ExecutionMethod(prefix = PREFIX)
     public Object java(@ExecutionParam WorkflowRun workflowRun,
                        @ExecutionParam List<String> scriptLines,
-                       @ExecutionParam(required = false, defaultValue = "run") String methodName,
-                       @ExecutionParam(required = false, defaultValue = "DynamicClass") String className,
-                       @ExecutionParam(required = false) List<String> fileNames) {
+                       @ExecutionParam(required = false, defaultValue = "run") String method,
+                       @ExecutionParam(required = false, defaultValue = "DynamicClass") String clazz,
+                       @ExecutionParam(required = false) List<String> files) {
         if (scriptLines.isEmpty()) {
             return null;
         }
@@ -52,13 +52,13 @@ public final class JavaCommand extends AbstractCommand {
         try {
             final var compiler = new SimpleCompiler();
             compiler.setParentClassLoader(ParentClassLoaderHolder.INSTANCE.getClassLoader());
-            processFileNames(compiler, fileNames);
+            processFiles(compiler, files);
             compiler.cook(resolvedScriptLines);
 
-            final var dynamicClass = compiler.getClassLoader().loadClass(className);
+            final var dynamicClass = compiler.getClassLoader().loadClass(clazz);
             final var instance = dynamicClass.getConstructor().newInstance();
 
-            final var runMethod = dynamicClass.getMethod(methodName, WorkflowRunCache.class);
+            final var runMethod = dynamicClass.getMethod(method, WorkflowRunCache.class);
             return runMethod.invoke(instance, workflowRun.getCache());
         } catch (Exception exception) {
             log.debug("Command '{}' thrown an exception.", getName(), exception);
@@ -66,10 +66,10 @@ public final class JavaCommand extends AbstractCommand {
         }
     }
 
-    private void processFileNames(SimpleCompiler compiler, List<String> fileNames) throws CompileException, IOException {
-        for (String fileName: fileNames) {
-            if (!StringUtils.EMPTY.equals(fileName)) {
-                compiler.cookFile(fileName);
+    private void processFiles(SimpleCompiler compiler, List<String> files) throws CompileException, IOException {
+        for (String file: files) {
+            if (!StringUtils.EMPTY.equals(file)) {
+                compiler.cookFile(file);
             }
         }
     }
