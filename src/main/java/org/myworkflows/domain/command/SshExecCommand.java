@@ -30,9 +30,9 @@ public final class SshExecCommand extends AbstractCommand {
 
     @ExecutionMethod(prefix = PREFIX)
     public SshCommandOutput sshExec(@ExecutionParam String host,
+                                    @ExecutionParam String command,
                                     @ExecutionParam String username,
                                     @ExecutionParam String password,
-                                    @ExecutionParam String command,
                                     @ExecutionParam(required = false, defaultValue = "22") Number port,
                                     @ExecutionParam(required = false, defaultValue = "60000") Number timeout) throws IOException, SshException {
         try (SshClient sshclient = SshClient.SshClientBuilder.create()

@@ -366,13 +366,13 @@ Example of a dummy command:
 }
 ```
 
-### HttpRequest command
+### HTTP Request command
 
 This command provides a programmatic way to do HTTP requests.
 
-| `@type`       | Inputs                                                                                                                                                                                                                                                                                       | Output                   |
-|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
-| `httpRequest` | <ul><li><strong>httpRequest.url</strong>: Mandatory. Represents request URL.</li><li><em>httpRequest.method</em>: Optional. Represents request method type. Default value: `GET`.</li><li><em>httpRequest.body</em>: Optional. Represents request body. No body is set by default.</li></ul> | `ResponseEntity<String>` |
+| `@type`       | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Output                   |
+|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| `httpRequest` | <ul><li><strong>httpRequest.url</strong>: Mandatory. Represents request URL.</li><li><em>httpRequest.method</em>: Optional. Represents request method type. Default value: `GET`.</li><li><em>httpRequest.body</em>: Optional. Represents request body. No body is set by default.</li><li><em>httpRequest.headers</em>: Optional. Map with request headers.</li><li><em>httpRequest.timeout</em>: Optional. Defines connection and read timeout. Default value is 1 minute.</li><li><em>httpRequest.skipSsl</em>: Optional. Flag to signal if SSL validation should be skipped or not. Default value is false.</li></ul> | `ResponseEntity<String>` |
 
 Example of a dummy command:
 
@@ -499,6 +499,95 @@ Example of a dummy command:
     {
       "name": "sleep.time",
       "value": 1000
+    }
+  ]
+}
+```
+
+### Single SSH command
+
+This command can be used to execute a single SSH instruction, in a single SSH session.
+Equivalent SSH command: `ssh user@localhost ls -l`
+
+| `@type`   | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Output                                                                     |
+|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| `sshExec` | <ul><li><strong>sshExec.host</strong>: Mandatory. Represents the host.</li><li><strong>sshExec.command</strong>: Mandatory. Represents the command.</li><li><strong>sshExec.username</strong>: Mandatory. Represents the user name.</li><li><strong>sshExec.password</strong>: Mandatory. Represents the host.</li><li><em>sshExec.port</em>: Optional. The SSH port. Default value is 22.</li><li><em>sshExec.timeout</em>: Optional. Defines timeout in millis for the operation to complete. Default value is 1 minute.</li></ul> | `SshCommandOutput` - contains `exitCode` as integer and `output` as string |
+
+Example of a dummy command:
+
+```json
+{
+  "name": "Run 'ls -l' command",
+  "@type": "sshExec",
+  "inputs": [
+    {
+      "name": "sshExec.host",
+      "value": "localhost"
+    },
+    {
+      "name": "sshExec.command",
+      "value": "ls -l"
+    },
+    {
+      "name": "sshExec.username",
+      "value": "user"
+    },
+    {
+      "name": "sshExec.password",
+      "value": "pass"
+    }
+  ],
+  "asserts": [
+    {
+      "name": "Command is successful",
+      "value": "#output.getExitCode() == 0",
+      "@type": "spel"
+    }
+  ]
+}
+```
+
+### Multiple SSH commands
+
+This command can be used to execute multiple SSH commands, in a single SSH session.
+The command will open a shell and will run all given commands in that shell.
+
+| `@type`    | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Output                                                                     |
+|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| `sshShell` | <ul><li><strong>sshExec.host</strong>: Mandatory. Represents the host.</li><li><strong>sshExec.commands</strong>: Mandatory. Represents the list of commands.</li><li><strong>sshExec.username</strong>: Mandatory. Represents the user name.</li><li><strong>sshExec.password</strong>: Mandatory. Represents the host.</li><li><em>sshShell.port</em>: Optional. The SSH port. Default value is 22.</li><li><em>sshShell.timeout</em>: Optional. Defines timeout in millis for the operation to complete. Default value is 1 minute.</li></ul> | `SshCommandOutput` - contains `exitCode` as integer and `output` as string |
+
+Example of a dummy command:
+
+```json
+{
+  "name": "Run 'ls -l' command",
+  "@type": "sshShell",
+  "inputs": [
+    {
+      "name": "sshShell.host",
+      "value": "localhost"
+    },
+    {
+      "name": "sshShell.commands",
+      "value": [
+        "ls -l",
+        "df -h"
+      ]
+    },
+    {
+      "name": "sshShell.username",
+      "value": "user"
+    },
+    {
+      "name": "sshShell.password",
+      "value": "pass"
+    }
+  ],
+  "asserts": [
+    {
+      "name": "Command is successful",
+      "value": "#output.getExitCode() == 0",
+      "@type": "spel"
     }
   ]
 }

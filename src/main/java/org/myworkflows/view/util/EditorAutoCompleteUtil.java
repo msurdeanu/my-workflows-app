@@ -40,7 +40,7 @@ public final class EditorAutoCompleteUtil {
         COMMAND_INPUTS_COMPLETER.put(DatabaseCommand.PREFIX, List.of("url", "query"));
         COMMAND_INPUTS_COMPLETER.put(EmailCommand.PREFIX, List.of("from", "to", "subject", "body", "props", "bodyType", "username", "password"));
         COMMAND_INPUTS_COMPLETER.put(GroovyCommand.PREFIX, List.of("scriptLines", "method"));
-        COMMAND_INPUTS_COMPLETER.put(HttpRequestCommand.PREFIX, List.of("url", "method", "body", "headers", "timeout"));
+        COMMAND_INPUTS_COMPLETER.put(HttpRequestCommand.PREFIX, List.of("url", "method", "body", "headers", "timeout", "skipSsl"));
         COMMAND_INPUTS_COMPLETER.put(JavaCommand.PREFIX, List.of("scriptLines", "method", "clazz", "files"));
         COMMAND_INPUTS_COMPLETER.put(LoopCommand.PREFIX, List.of("items", "item", "backoffPeriod"));
         COMMAND_INPUTS_COMPLETER.put(PrintCommand.PREFIX, List.of("keys"));

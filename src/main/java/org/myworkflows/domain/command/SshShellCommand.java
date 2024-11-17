@@ -34,9 +34,9 @@ public final class SshShellCommand extends AbstractCommand {
 
     @ExecutionMethod(prefix = PREFIX)
     public SshCommandOutput sshShell(@ExecutionParam String host,
+                                     @ExecutionParam List<String> commands,
                                      @ExecutionParam String username,
                                      @ExecutionParam String password,
-                                     @ExecutionParam List<String> commands,
                                      @ExecutionParam(required = false, defaultValue = "22") Number port,
                                      @ExecutionParam(required = false, defaultValue = "60000") Number timeout) throws IOException, SshException {
         final var outputBuilder = new StringBuilder();
