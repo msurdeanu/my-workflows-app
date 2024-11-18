@@ -32,9 +32,18 @@ public final class EventBroadcaster {
     }
 
     public synchronized void broadcast(Event event) {
+        broadcast(event, 0);
+    }
+
+    public synchronized void broadcast(Event event, long millisDelay) {
         ofNullable(consumersMap.get(event.getClass()))
             .orElse(List.of())
-            .forEach(consumer -> threadPoolExecutor.execute(() -> consumer.accept(event)));
+            .forEach(consumer -> threadPoolExecutor.execute(() -> {
+                if (millisDelay > 0) {
+                    safeSleep(millisDelay);
+                }
+                consumer.accept(event);
+            }));
     }
 
     public synchronized Registration register(Consumer<Event> consumer, Class<? extends Event> acceptedEvent) {
@@ -54,6 +63,14 @@ public final class EventBroadcaster {
                 });
             }
         };
+    }
+
+    private void safeSleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
 }

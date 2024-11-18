@@ -297,7 +297,12 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
 
     private void updateWorkflowProgress(WorkflowRun workflowRun) {
         currentWorkflowStatus.removeAll();
-        if (workflowRun.getDuration() > 0) {
+        if (workflowRun.isRunning()) {
+            currentWorkflowStatus.removeClassNames(LumoUtility.Background.ERROR_10, LumoUtility.Background.SUCCESS_10);
+            currentWorkflowStatus.addClassName(LumoUtility.Background.WARNING_10);
+            currentWorkflowStatus.add(new Span(getTranslation("workflow-development.in-progress.message",
+                valueOf(workflowRun.getId()))));
+        } else {
             ofNullable(workflowRun.getFailureMessage()).ifPresentOrElse(error -> {
                 currentWorkflowStatus.removeClassNames(LumoUtility.Background.SUCCESS_10, LumoUtility.Background.WARNING_10);
                 currentWorkflowStatus.addClassName(LumoUtility.Background.ERROR_10);
@@ -310,11 +315,6 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
                 currentWorkflowStatus.add(new Span(getTranslation("workflow-development.success.message",
                     valueOf(workflowRun.getId()), workflowRun.getHumanReadableDuration())));
             });
-        } else {
-            currentWorkflowStatus.removeClassNames(LumoUtility.Background.ERROR_10, LumoUtility.Background.SUCCESS_10);
-            currentWorkflowStatus.addClassName(LumoUtility.Background.WARNING_10);
-            currentWorkflowStatus.add(new Span(getTranslation("workflow-development.in-progress.message",
-                valueOf(workflowRun.getId()))));
         }
 
         currentWorkflowStatus.setVisible(true);

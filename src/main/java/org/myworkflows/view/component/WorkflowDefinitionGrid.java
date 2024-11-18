@@ -5,7 +5,6 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -19,8 +18,8 @@ import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionEventHandler;
 import org.myworkflows.view.WorkflowDevelopmentView;
+import org.myworkflows.view.component.html.StandardPaginatedGrid;
 import org.myworkflows.view.component.html.TextFieldWithEnterShortcut;
-import org.vaadin.klaudeta.PaginatedGrid;
 
 import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 
@@ -31,7 +30,7 @@ import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 @RequiredArgsConstructor
 public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
 
-    private final PaginatedGrid<WorkflowDefinition, ?> paginatedGrid = new PaginatedGrid<>();
+    private final StandardPaginatedGrid<WorkflowDefinition, ?> paginatedGrid = new StandardPaginatedGrid<>();
 
     private final WorkflowDefinitionEventHandler workflowDefinitionEventHandler;
 
@@ -48,21 +47,16 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
     @Override
     protected VerticalLayout initContent() {
         final var layout = super.initContent();
-
         layout.setSizeFull();
-        paginatedGrid.setAllRowsVisible(true);
+
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderName))
             .setHeader(getTranslation("workflow-definitions.grid.name.column"))
             .setAutoWidth(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
             .setHeader(new TextFieldWithEnterShortcut(workflowDefinitionEventHandler::onCreate).small())
             .setAutoWidth(true);
-        paginatedGrid.setEmptyStateText(getTranslation("workflow-definitions.grid.no-result"));
-        paginatedGrid.setPageSize(10);
-        paginatedGrid.setPaginatorSize(5);
-        paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
-        layout.add(paginatedGrid);
 
+        layout.add(paginatedGrid);
         return layout;
     }
 

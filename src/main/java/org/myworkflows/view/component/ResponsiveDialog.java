@@ -14,7 +14,7 @@ public abstract class ResponsiveDialog extends Dialog {
 
     private static final String PIXELS = "px";
 
-    public ResponsiveDialog(final String id) {
+    public ResponsiveDialog(String id) {
         setId(id);
 
         makeDialogResizableAndDraggable();
