@@ -27,6 +27,17 @@ public class WorkflowDefinitionScript {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<AbstractCommand> finallyCommands = List.of();
 
+    public static WorkflowDefinitionScript empty() {
+        return of(List.of(), List.of());
+    }
+
+    public static WorkflowDefinitionScript of(List<AbstractCommand> commands, List<AbstractCommand> finallyCommands) {
+        final var workflowDefinitionScript = new WorkflowDefinitionScript();
+        workflowDefinitionScript.setCommands(commands);
+        workflowDefinitionScript.setFinallyCommands(finallyCommands);
+        return workflowDefinitionScript;
+    }
+
     public static WorkflowDefinitionScript of(List<WorkflowDefinitionScript> workflowDefinitionScripts) {
         final var workflowDefinitionScript = new WorkflowDefinitionScript();
         workflowDefinitionScript.setCommands(workflowDefinitionScripts.stream()

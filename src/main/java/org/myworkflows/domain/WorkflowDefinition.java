@@ -39,6 +39,17 @@ public class WorkflowDefinition implements CacheableEntry {
     @Transient
     private boolean editable = false;
 
+    public static WorkflowDefinition of(String name) {
+        return of(name, WorkflowDefinitionScript.empty());
+    }
+
+    public static WorkflowDefinition of(String name, WorkflowDefinitionScript script) {
+        final var workflowDefinition = new WorkflowDefinition();
+        workflowDefinition.name = name;
+        workflowDefinition.script = script;
+        return workflowDefinition;
+    }
+
     @Override
     public Object getCacheableKey() {
         return id;

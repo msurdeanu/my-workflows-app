@@ -19,6 +19,7 @@ import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionEventHandler;
 import org.myworkflows.view.WorkflowDevelopmentView;
+import org.myworkflows.view.component.html.TextFieldWithEnterShortcut;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
@@ -54,7 +55,7 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
             .setHeader(getTranslation("workflow-definitions.grid.name.column"))
             .setAutoWidth(true);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
-            .setHeader(getTranslation("workflow-definitions.grid.actions.column"))
+            .setHeader(new TextFieldWithEnterShortcut(workflowDefinitionEventHandler::onCreate).small())
             .setAutoWidth(true);
         paginatedGrid.setEmptyStateText(getTranslation("workflow-definitions.grid.no-result"));
         paginatedGrid.setPageSize(10);
@@ -76,7 +77,7 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
         nameTextField.setSuffixComponent(VaadinIcon.ENTER.create());
         nameTextField.setValue(workflowDefinition.getName());
         addShortcutListener(nameTextField, () -> {
-            workflowDefinitionEventHandler.onNameUpdated(workflowDefinition, nameTextField.getValue());
+            workflowDefinitionEventHandler.onUpdate(workflowDefinition, nameTextField.getValue());
             onUpdated(workflowDefinition);
         }, Key.ENTER);
         addShortcutListener(nameTextField, () -> onUpdated(workflowDefinition), Key.ESCAPE);

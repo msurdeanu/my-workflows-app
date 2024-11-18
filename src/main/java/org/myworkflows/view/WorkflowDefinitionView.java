@@ -69,6 +69,12 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
     }
 
     @Override
+    public void onCreate(String name) {
+        workflowDefinitionService.create(name);
+        workflowDefinitionGrid.refreshPage();
+    }
+
+    @Override
     public void onDelete(WorkflowDefinition workflowDefinition) {
         if (workflowDefinitionService.delete(workflowDefinition) > 0) {
             workflowDefinitionGrid.refreshPage();
@@ -76,7 +82,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
     }
 
     @Override
-    public void onNameUpdated(WorkflowDefinition workflowDefinition, String newName) {
+    public void onUpdate(WorkflowDefinition workflowDefinition, String newName) {
         workflowDefinitionService.updateName(workflowDefinition, newName);
     }
 

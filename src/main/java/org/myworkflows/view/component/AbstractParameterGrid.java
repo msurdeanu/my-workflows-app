@@ -12,17 +12,16 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.textfield.TextFieldVariant;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.Validator;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.value.ValueChangeMode;
 import lombok.Setter;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
 import org.myworkflows.view.component.html.SpanBadge;
+import org.myworkflows.view.component.html.TextFieldWithEnterShortcut;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
@@ -121,26 +120,8 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
         final var actions = new HorizontalLayout(saveButton, cancelButton);
         actions.setPadding(false);
 
-        final var nameAndAddLayout = new HorizontalLayout();
-        nameAndAddLayout.setWidthFull();
-        nameAndAddLayout.setSpacing(true);
-        final var nameField = new TextField();
-        nameField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
-        nameField.setWidth("70%");
-        nameField.setPlaceholder("[a-zA-Z0-9_.]");
-        nameField.setAllowedCharPattern("[a-zA-Z0-9_.]");
-        nameField.setValue("name");
-        nameField.setClearButtonVisible(true);
-        nameField.setValueChangeMode(ValueChangeMode.LAZY);
-        nameField.setValueChangeTimeout(50);
-        final var addButton = new Button(VaadinIcon.PLUS.create());
-        addButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-        addButton.addClickListener(event -> createConsumer.accept(nameField.getValue()));
-        nameAndAddLayout.add(nameField, addButton);
-        nameAndAddLayout.setFlexGrow(1.0f, addButton);
-
         actionColumn = paginatedGrid.addComponentColumn(parameter -> createActionComponent(parameter, editor))
-            .setHeader(nameAndAddLayout)
+            .setHeader(new TextFieldWithEnterShortcut(createConsumer).allowedCharPattern("[a-zA-Z0-9_.]").placeholder("[a-zA-Z0-9_.]").small())
             .setEditorComponent(actions);
 
         paginatedGrid.setEmptyStateText(getTranslation(id + ".grid.no-result"));
