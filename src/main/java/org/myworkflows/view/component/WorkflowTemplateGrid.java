@@ -26,6 +26,7 @@ import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.WorkflowTemplateEventHandler;
 import org.myworkflows.view.WorkflowDevelopmentView;
 import org.myworkflows.view.component.html.SpanBadge;
+import org.myworkflows.view.component.html.TextFieldWithEnterShortcut;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
@@ -72,11 +73,8 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderNameAndCron))
             .setHeader(getTranslation("workflow-templates.grid.name.column"))
             .setAutoWidth(true);
-        final var addButton = new Button(VaadinIcon.PLUS.create());
-        addButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-        addButton.addClickListener(event -> workflowTemplateEventHandler.onCreate("name"));
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
-            .setHeader(addButton)
+            .setHeader(new TextFieldWithEnterShortcut(workflowTemplateEventHandler::onCreate).small())
             .setAutoWidth(true);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(this::createDraggableComponent));
         paginatedGrid.setEmptyStateText(getTranslation("workflow-templates.grid.no-result"));

@@ -6,8 +6,10 @@ package org.myworkflows.domain;
  */
 public interface WorkflowDefinitionEventHandler {
 
+    void onCreate(String name);
+
     void onDelete(WorkflowDefinition workflowDefinition);
 
-    void onNameUpdated(WorkflowDefinition workflowDefinition, String newName);
+    void onUpdate(WorkflowDefinition workflowDefinition, String newName);
 
 }

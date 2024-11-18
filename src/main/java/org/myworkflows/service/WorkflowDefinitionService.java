@@ -34,6 +34,17 @@ public class WorkflowDefinitionService extends CacheableDataService<WorkflowDefi
             .forEach(this::addToCache);
     }
 
+    public void create(String name) {
+        lock.lock();
+        try {
+            final var workflowDefinition = WorkflowDefinition.of(name);
+            cache.put(applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).save(workflowDefinition).getName(),
+                workflowDefinition);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     @Transactional
     public int delete(WorkflowDefinition workflowDefinition) {
         lock.lock();
