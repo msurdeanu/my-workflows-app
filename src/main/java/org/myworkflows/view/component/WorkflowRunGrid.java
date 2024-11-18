@@ -4,7 +4,6 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -22,7 +21,7 @@ import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.service.WorkflowRunService;
 import org.myworkflows.view.WorkflowTemplateView;
 import org.myworkflows.view.component.html.SpanBadge;
-import org.vaadin.klaudeta.PaginatedGrid;
+import org.myworkflows.view.component.html.StandardPaginatedGrid;
 
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
@@ -34,7 +33,7 @@ import static java.util.Optional.ofNullable;
 @RequiredArgsConstructor
 public final class WorkflowRunGrid extends Composite<VerticalLayout> {
 
-    private final PaginatedGrid<WorkflowRun, ?> paginatedGrid = new PaginatedGrid<>();
+    private final StandardPaginatedGrid<WorkflowRun, ?> paginatedGrid = new StandardPaginatedGrid<>();
 
     private final WorkflowRunService workflowRunService;
 
@@ -49,9 +48,8 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
     @Override
     protected VerticalLayout initContent() {
         final var layout = super.initContent();
-
         layout.setSizeFull();
-        paginatedGrid.setAllRowsVisible(true);
+
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderId))
             .setHeader(getTranslation("workflow-runs.grid.id.column"))
             .setAutoWidth(true);
@@ -67,12 +65,8 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
             .setHeader(getTranslation("workflow-runs.grid.actions.column"))
             .setAutoWidth(true);
-        paginatedGrid.setEmptyStateText(getTranslation("workflow-runs.grid.no-result"));
-        paginatedGrid.setPageSize(10);
-        paginatedGrid.setPaginatorSize(5);
-        paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
-        layout.add(paginatedGrid);
 
+        layout.add(paginatedGrid);
         return layout;
     }
 
@@ -89,22 +83,22 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
     }
 
     private Component renderStatus(WorkflowRun workflowRun) {
-        return ofNullable(workflowRun.getFailureMessage()).map(item -> {
-            final var errorSpan = new SpanBadge(getTranslation("workflow-runs.grid.status.error", workflowRun.getHumanReadableDuration()), "error small");
-            final var popover = new Popover();
-            popover.setTarget(errorSpan);
-            popover.setWidth("300px");
-            popover.addThemeVariants(PopoverVariant.ARROW);
-            popover.setPosition(PopoverPosition.BOTTOM);
-            popover.add(createExceptionBlock(workflowRun));
-            return errorSpan;
-        }).orElseGet(() -> {
-            if (workflowRun.getDuration() >= 0) {
-                return new SpanBadge(getTranslation("workflow-runs.grid.status.success", workflowRun.getHumanReadableDuration()), "success small");
-            } else {
-                return new SpanBadge(getTranslation("workflow-runs.grid.status.pending", workflowRun.getHumanReadableDuration()), "contrast small");
-            }
-        });
+        if (workflowRun.isRunning()) {
+            return new SpanBadge(getTranslation("workflow-runs.grid.status.pending", workflowRun.getHumanReadableDuration()), "contrast small");
+        }
+
+        return ofNullable(workflowRun.getFailureMessage())
+            .map(item -> {
+                final var errorSpan = new SpanBadge(getTranslation("workflow-runs.grid.status.error", workflowRun.getHumanReadableDuration()), "error small");
+                final var popover = new Popover();
+                popover.setTarget(errorSpan);
+                popover.setWidth("300px");
+                popover.addThemeVariants(PopoverVariant.ARROW);
+                popover.setPosition(PopoverPosition.BOTTOM);
+                popover.add(createExceptionBlock(workflowRun));
+                return errorSpan;
+            })
+            .orElseGet(() -> new SpanBadge(getTranslation("workflow-runs.grid.status.success", workflowRun.getHumanReadableDuration()), "success small"));
     }
 
     private Component renderDetails(WorkflowRun workflowRun) {

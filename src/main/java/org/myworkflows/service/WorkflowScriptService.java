@@ -122,7 +122,7 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
             }
             workflowRun.markAsCompleted(System.currentTimeMillis() - startTime);
             applicationManager.getBeanOfType(EventBroadcaster.class)
-                .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, true));
+                .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, true), 10);
         }
     }
 

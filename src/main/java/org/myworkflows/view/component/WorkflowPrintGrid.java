@@ -9,7 +9,7 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import lombok.NoArgsConstructor;
 import org.myworkflows.domain.WorkflowRunPrint;
 import org.myworkflows.view.component.html.SpanBadge;
-import org.vaadin.klaudeta.PaginatedGrid;
+import org.myworkflows.view.component.html.StandardPaginatedGrid;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ import static com.vaadin.flow.component.UI.getCurrent;
 @NoArgsConstructor
 public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> {
 
-    private final PaginatedGrid<WorkflowRunPrint, ?> paginatedGrid = new PaginatedGrid<>();
+    private final StandardPaginatedGrid<WorkflowRunPrint, ?> paginatedGrid = new StandardPaginatedGrid<>(GridVariant.LUMO_COMPACT);
 
     public WorkflowPrintGrid(List<WorkflowRunPrint> prints) {
         setItems(prints);
@@ -60,20 +60,17 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
     @Override
     protected VerticalLayout initContent() {
         final var layout = super.initContent();
-
         layout.setSizeFull();
+
         paginatedGrid.addComponentColumn(item -> new Html(getTranslation("workflow-print.grid.summarized.column", item.name(), item.abbrValue())))
             .setHeader(getTranslation("workflow-print.grid.name-value.column")).setVisible(false);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderName))
             .setHeader(getTranslation("workflow-print.grid.name.column"));
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderValueAndType))
             .setHeader(getTranslation("workflow-print.grid.value.column"));
-        paginatedGrid.setEmptyStateText(getTranslation("workflow-print.grid.empty-state.text"));
-        paginatedGrid.setPageSize(10);
-        paginatedGrid.setPaginatorSize(5);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(WorkflowPrintDetailsFormLayout::new,
             WorkflowPrintDetailsFormLayout::setExecutionPrint));
-        paginatedGrid.addThemeVariants(GridVariant.LUMO_COMPACT);
+
         layout.add(paginatedGrid);
 
         final var contextMenu = paginatedGrid.addContextMenu();

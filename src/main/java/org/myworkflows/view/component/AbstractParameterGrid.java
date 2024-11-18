@@ -6,7 +6,6 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -21,8 +20,8 @@ import lombok.Setter;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
 import org.myworkflows.view.component.html.SpanBadge;
+import org.myworkflows.view.component.html.StandardPaginatedGrid;
 import org.myworkflows.view.component.html.TextFieldWithEnterShortcut;
-import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -34,7 +33,7 @@ import java.util.function.Function;
  */
 public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
 
-    private final PaginatedGrid<WorkflowParameter, ?> paginatedGrid = new PaginatedGrid<>();
+    private final StandardPaginatedGrid<WorkflowParameter, ?> paginatedGrid = new StandardPaginatedGrid<>();
     private final String id;
 
     @Setter
@@ -83,7 +82,6 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
         editor.setBinder(binder);
         editor.setBuffered(true);
 
-        paginatedGrid.setAllRowsVisible(true);
         paginatedGrid.addColumn(WorkflowParameter::getName).setHeader(getTranslation(id + ".grid.name.column"));
 
         final var typeField = new ComboBox<WorkflowParameterType>();
@@ -123,11 +121,6 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
         actionColumn = paginatedGrid.addComponentColumn(parameter -> createActionComponent(parameter, editor))
             .setHeader(new TextFieldWithEnterShortcut(createConsumer).allowedCharPattern("[a-zA-Z0-9_.]").placeholder("[a-zA-Z0-9_.]").small())
             .setEditorComponent(actions);
-
-        paginatedGrid.setEmptyStateText(getTranslation(id + ".grid.no-result"));
-        paginatedGrid.setPageSize(10);
-        paginatedGrid.setPaginatorSize(5);
-        paginatedGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
 
         layout.add(paginatedGrid);
         return layout;
