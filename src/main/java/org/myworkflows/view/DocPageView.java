@@ -28,6 +28,7 @@ import org.myworkflows.domain.UserRole;
 import org.myworkflows.service.DocPageService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;
+import org.myworkflows.view.component.html.TextFieldWithEnterShortcut;
 
 import java.util.HashMap;
 import java.util.List;
@@ -73,9 +74,15 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
         tabs.addSelectedChangeListener(event -> setTabContent(event.getSelectedTab()));
         setTabContent(tabs.getSelectedTab());
 
-        add(createHeader(getTranslation("doc-pages.page.title"), createSwitchModeButton()),
-            createContent(tabs, tabContent),
-            createFooter());
+        Component header;
+        if (isLoggedAsAdmin) {
+            header = createHeader(getTranslation("doc-pages.page.title"), createSwitchModeButton(),
+                new TextFieldWithEnterShortcut(docPageService::create).width("100px"));
+        } else {
+            header = createHeader(getTranslation("doc-pages.page.title"), createSwitchModeButton());
+        }
+
+        add(header, createContent(tabs, tabContent), createFooter());
     }
 
     @Override
@@ -99,7 +106,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
 
     @Override
     public void onValueUpdated(DocPage docPage, String newValue) {
-        docPageService.updateValue(docPage, newValue);
+        docPageService.update(docPage, newValue);
     }
 
     private void processEditModeIfPresent(QueryParameters queryParameters) {

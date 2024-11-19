@@ -27,11 +27,11 @@ public final class DocPageService implements LoaderService {
     private final ReentrantLock lock = new ReentrantLock();
 
     private final ApplicationManager applicationManager;
-    private final InternalCache docPageCache;
+    private final InternalCache cache;
 
     public DocPageService(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
-        docPageCache = (InternalCache) applicationManager.getBeanOfType(InternalCacheManager.class)
+        cache = (InternalCache) applicationManager.getBeanOfType(InternalCacheManager.class)
             .getCache(InternalCacheManager.CacheNameEnum.DOC_PAGE.getName());
     }
 
@@ -45,28 +45,38 @@ public final class DocPageService implements LoaderService {
     }
 
     public void addToCache(CacheableEntry entry) {
-        docPageCache.put(entry.getCacheableKey(), entry);
+        cache.put(entry.getCacheableKey(), entry);
     }
 
     public Optional<DocPage> findByName(String name) {
-        return ofNullable(docPageCache.get(name, DocPage.class));
+        return ofNullable(cache.get(name, DocPage.class));
     }
 
     public Set<String> getAllNames() {
-        return docPageCache.getAllKeys(String.class);
+        return cache.getAllKeys(String.class);
+    }
+
+    public void create(String name) {
+        lock.lock();
+        try {
+            final var docPage = DocPage.of(name);
+            cache.put(applicationManager.getBeanOfType(DocPageRepository.class).save(docPage).getName(), docPage);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void delete(DocPage docPage) {
         lock.lock();
         try {
-            docPageCache.evict(docPage.getName());
+            cache.evict(docPage.getName());
             applicationManager.getBeanOfType(DocPageRepository.class).delete(docPage);
         } finally {
             lock.unlock();
         }
     }
 
-    public void updateValue(DocPage docPage, String newValue) {
+    public void update(DocPage docPage, String newValue) {
         lock.lock();
         try {
             docPage.setValue(newValue);
