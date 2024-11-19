@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Mihai Surdeanu
@@ -25,6 +26,13 @@ public class DocPage implements CacheableEntry {
 
     @Column(name = "value")
     private String value;
+
+    public static DocPage of(String name) {
+        final var docPage = new DocPage();
+        docPage.setName(name);
+        docPage.setValue(StringUtils.EMPTY);
+        return docPage;
+    }
 
     @Override
     public Object getCacheableKey() {
