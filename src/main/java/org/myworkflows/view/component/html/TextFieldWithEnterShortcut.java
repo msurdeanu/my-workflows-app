@@ -23,7 +23,7 @@ public final class TextFieldWithEnterShortcut extends TextField {
         setValueChangeMode(ValueChangeMode.EAGER);
         addValueChangeListener(event -> {
             ofNullable(event.getValue())
-                .filter(item -> !item.trim().isEmpty())
+                .filter(item -> item.trim().isEmpty())
                 .ifPresentOrElse(item -> {
                     setInvalid(true);
                     setErrorMessage(getTranslation("field.empty.error"));
