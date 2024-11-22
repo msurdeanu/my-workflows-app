@@ -12,6 +12,7 @@ import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.holder.ParentClassLoaderHolder;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.StandardTypeLocator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +40,7 @@ public enum RuntimeEvaluator {
                 "cache.get(\"%s\")", "cache.get(\"%s\", %s)");
             final var binding = new Binding();
             variables.forEach(binding::setProperty);
-            return new GroovyShell(binding).evaluate(newExpression);
+            return new GroovyShell(ParentClassLoaderHolder.INSTANCE.getClassLoader(), binding).evaluate(newExpression);
         }
     },
 
@@ -84,6 +85,7 @@ public enum RuntimeEvaluator {
                 "#cache.get(\"%s\")", "#cache.get(\"%s\", T(%s))");
             final var parsedExpression = new SpelExpressionParser().parseExpression(newExpression);
             final var context = new StandardEvaluationContext();
+            context.setTypeLocator(new StandardTypeLocator(ParentClassLoaderHolder.INSTANCE.getClassLoader()));
             context.setVariables(variables);
             return parsedExpression.getValue(context);
         }
