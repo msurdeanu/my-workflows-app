@@ -144,8 +144,12 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
 
     private Object resolvePlaceholders(Object value) {
         if (value instanceof String valueAsString) {
-            return PlaceholderUtil.resolvePlaceholders(valueAsString,
+            final var resolvedValueAsString = PlaceholderUtil.resolvePlaceholders(valueAsString,
                 applicationManager.getBeanOfType(PlaceholderRepository.class).getAllAsMap());
+            if (log.isDebugEnabled()) {
+                log.debug("After resolving placeholders, '{}' was converted to '{}'.", valueAsString, resolvedValueAsString);
+            }
+            return resolvedValueAsString;
         } else if (value instanceof List<?> valueAsList) {
             return valueAsList.stream()
                 .map(this::resolvePlaceholders)
