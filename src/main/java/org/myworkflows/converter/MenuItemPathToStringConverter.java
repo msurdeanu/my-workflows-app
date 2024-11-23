@@ -19,39 +19,23 @@ public final class MenuItemPathToStringConverter implements AttributeConverter<M
 
     @Override
     public String convertToDatabaseColumn(MenuItemPath<?> attribute) {
-        if (attribute == null) {
-            return null;
-        }
-
-        final var value = attribute.value();
-        if (value instanceof String attributePath) {
-            return attributePath;
-        }
-
-        return ofNullable(value)
-            .map(item -> CLASS_PREFIX + item.getClass().getName())
+        return ofNullable(attribute)
+            .map(MenuItemPath::value)
+            .map(value -> value instanceof String attributePath ? attributePath : CLASS_PREFIX + value.getClass().getName())
             .orElse(null);
     }
 
     @Override
     public MenuItemPath<?> convertToEntityAttribute(String path) {
-        if (path == null) {
-            return null;
-        }
-
-        if (path.startsWith(CLASS_PREFIX)) {
-            return findMenuItemViewPath(path.replace(CLASS_PREFIX, StringUtils.EMPTY));
-        }
-
-        return new MenuItemPath<>(path);
+        return ofNullable(path)
+            .map(item -> item.startsWith(CLASS_PREFIX) ? findMenuItemViewPath(item.replace(CLASS_PREFIX, StringUtils.EMPTY)) : new MenuItemPath<>(item))
+            .orElse(null);
     }
 
     private MenuItemPath<Class<? extends Component>> findMenuItemViewPath(String path) {
         try {
             final var targetClass = Class.forName(path);
-            return Component.class.isAssignableFrom(targetClass)
-                ? new MenuItemPath<>((Class<? extends Component>) targetClass)
-                : null;
+            return Component.class.isAssignableFrom(targetClass) ? new MenuItemPath<>((Class<? extends Component>) targetClass) : null;
         } catch (ClassNotFoundException notUsed) {
             // if class is not found, the target component will be null and will not appear in the final menu
         }

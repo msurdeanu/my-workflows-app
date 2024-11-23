@@ -108,23 +108,23 @@ public abstract class AbstractCommand {
     }
 
     private void runMethodWithAssertsAndOutputs(Method method, WorkflowRun workflowRun, Object innerObject) {
-        final var executionMethod = method.getDeclaredAnnotation(ExecutionMethod.class);
-        runMethod(method, executionMethod, workflowRun).ifPresent(output -> {
+        runMethod(method, workflowRun).ifPresent(output -> {
             runAsserts(output, workflowRun.getCache());
             runOutputs(output, workflowRun.getCache(), innerObject);
         });
     }
 
-    private Optional<Object> runMethod(Method method, ExecutionMethod executionMethod, WorkflowRun workflowRun) {
+    private Optional<Object> runMethod(Method method, WorkflowRun workflowRun) {
         try {
-            return ofNullable(method.invoke(this, resolveParameters(method, executionMethod, workflowRun)));
+            return ofNullable(method.invoke(this, resolveParameters(method, workflowRun)));
         } catch (IllegalAccessException | InvocationTargetException exception) {
             throw new WorkflowRuntimeException(exception);
         }
     }
 
-    private Object[] resolveParameters(Method method, ExecutionMethod executionMethod, WorkflowRun workflowRun) {
+    private Object[] resolveParameters(Method method, WorkflowRun workflowRun) {
         final var parameters = method.getParameters();
+        final var executionMethod = method.getDeclaredAnnotation(ExecutionMethod.class);
         final var resolvedParameters = new Object[parameters.length];
         range(0, parameters.length).forEach(index -> resolvedParameters[index] = resolveParameter(parameters[index], executionMethod, workflowRun));
         return resolvedParameters;

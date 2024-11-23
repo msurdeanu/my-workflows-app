@@ -87,17 +87,15 @@ public final class WorkflowRunCache implements Serializable {
     }
 
     @SuppressWarnings("unchecked")
-    public Map<Object, Object> putAsMap(String key, Object innerKey, Object value) {
+    public void putAsMap(String key, Object innerKey, Object value) {
         final var object = cachedObjectMap.get(key);
         if (object instanceof Map<?, ?>) {
             final var objectMap = (Map<Object, Object>) object;
             objectMap.put(innerKey, value);
-            return objectMap;
         } else {
             final var objectMap = new HashMap<>();
             objectMap.put(innerKey, value);
             cachedObjectMap.put(key, objectMap);
-            return objectMap;
         }
     }
 

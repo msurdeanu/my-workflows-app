@@ -25,8 +25,7 @@ public final class WorkflowDefinitionScriptRunnable implements Runnable {
         applicationManager.getBeanOfType(EventBroadcaster.class)
             .broadcast(WorkflowDefinitionOnSubmitEvent.builder()
                 .token(UUID.randomUUID())
-                .workflowTemplateId(workflowTemplate.getId())
-                .workflowParameters(workflowTemplate.getWorkflowDefinitionParameters())
+                .workflowRun(new WorkflowRun(workflowTemplate.getId(), workflowTemplate.getWorkflowDefinitionParameters()))
                 .workflowDefinitionScript(of(workflowTemplate.getWorkflowDefinitionScripts()))
                 .build());
     }

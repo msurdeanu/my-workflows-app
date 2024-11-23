@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Future;
@@ -72,7 +73,16 @@ public class WorkflowRun implements CacheableEntry {
     private Future<?> future;
 
     public WorkflowRun(Integer workflowTemplateId) {
+        this(workflowTemplateId, null);
+    }
+
+    public WorkflowRun(Map<String, Object> parameters) {
+        this(null, parameters);
+    }
+
+    public WorkflowRun(Integer workflowTemplateId, Map<String, Object> parameters) {
         this.workflowTemplateId = workflowTemplateId;
+        ofNullable(parameters).orElse(Map.of()).forEach(cache::put);
     }
 
     @Override
@@ -124,6 +134,10 @@ public class WorkflowRun implements CacheableEntry {
 
     public boolean cancelAndInterruptIfRunning() {
         return isRunning() && future.cancel(true);
+    }
+
+    public boolean isEligibleForReplay() {
+        return failureMessage != null && cache.isCacheObjectMapComplete();
     }
 
 }

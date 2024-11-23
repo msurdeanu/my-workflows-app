@@ -26,7 +26,6 @@ import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
-import static java.util.Optional.ofNullable;
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 
 /**
@@ -82,16 +81,10 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
 
     private WorkflowRun submit(WorkflowDefinitionScript workflowDefinitionScript,
                                WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
-        final var workflowRun = new WorkflowRun(onSubmitEvent.getWorkflowTemplateId());
-        injectParametersIntoRun(onSubmitEvent.getWorkflowParameters(), workflowRun);
+        final var workflowRun = onSubmitEvent.getWorkflowRun();
         final var future = threadPoolExecutor.submit(() -> runSynchronously(workflowDefinitionScript, workflowRun, onSubmitEvent.getToken()));
         workflowRun.setFuture(future);
         return workflowRun;
-    }
-
-    private void injectParametersIntoRun(Map<String, Object> workflowParameters, WorkflowRun workflowRun) {
-        final var workflowRunCache = workflowRun.getCache();
-        ofNullable(workflowParameters).orElse(Map.of()).forEach(workflowRunCache::put);
     }
 
     private void runSynchronously(WorkflowDefinitionScript workflowDefinitionScript,
@@ -146,9 +139,7 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
         if (value instanceof String valueAsString) {
             final var resolvedValueAsString = PlaceholderUtil.resolvePlaceholders(valueAsString,
                 applicationManager.getBeanOfType(PlaceholderRepository.class).getAllAsMap());
-            if (log.isDebugEnabled()) {
-                log.debug("After resolving placeholders, '{}' was converted to '{}'.", valueAsString, resolvedValueAsString);
-            }
+            log.debug("After resolving placeholders, '{}' was converted to '{}'.", valueAsString, resolvedValueAsString);
             return resolvedValueAsString;
         } else if (value instanceof List<?> valueAsList) {
             return valueAsList.stream()

@@ -23,7 +23,7 @@ import com.vaadin.flow.router.RouterLink;
 import jakarta.annotation.security.PermitAll;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.DocPage;
-import org.myworkflows.domain.DocPageEventHandler;
+import org.myworkflows.domain.handler.DocPageEventHandler;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.service.DocPageService;
 import org.myworkflows.view.component.BaseLayout;
@@ -77,7 +77,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
         Component header;
         if (isLoggedAsAdmin) {
             header = createHeader(getTranslation("doc-pages.page.title"), createSwitchModeButton(),
-                new TextFieldWithEnterShortcut(docPageService::create).width("100px"));
+                new TextFieldWithEnterShortcut(this::onCreate).width("200px"));
         } else {
             header = createHeader(getTranslation("doc-pages.page.title"), createSwitchModeButton());
         }
@@ -100,12 +100,17 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
     }
 
     @Override
+    public void onCreate(String name) {
+        docPageService.create(name);
+    }
+
+    @Override
     public void onDelete(DocPage docPage) {
         docPageService.delete(docPage);
     }
 
     @Override
-    public void onValueUpdated(DocPage docPage, String newValue) {
+    public void onUpdate(DocPage docPage, String newValue) {
         docPageService.update(docPage, newValue);
     }
 
@@ -147,7 +152,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
             final var updateDocPageButton = new Button(getTranslation("doc-pages.update.button"), VaadinIcon.EDIT.create());
             updateDocPageButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
             updateDocPageButton.getStyle().set("flex", "1 1 50%");
-            updateDocPageButton.addClickListener(event -> onValueUpdated(docPage, markdownEditor.getContent()));
+            updateDocPageButton.addClickListener(event -> onUpdate(docPage, markdownEditor.getContent()));
             // TODO: use confirmation dialog for deletes
             final var deleteDocPageButton = new Button(getTranslation("doc-pages.delete.button"), VaadinIcon.TRASH.create());
             deleteDocPageButton.addThemeVariants(ButtonVariant.LUMO_SMALL);

@@ -29,9 +29,7 @@ public final class ApplicationReadyManager {
 
     private void registerListener(String key, org.myworkflows.domain.event.EventListener<Event> value) {
         applicationManager.getBeanOfType(EventBroadcaster.class).register(value::onEventReceived, value.getEventType());
-        if (log.isDebugEnabled()) {
-            log.debug("New event listener registered '{}' for event '{}'.", key, value.getEventType().getSimpleName());
-        }
+        log.debug("New event listener registered '{}' for event '{}'.", key, value.getEventType().getSimpleName());
     }
 
 }

@@ -10,7 +10,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.domain.WorkflowParameter;
-import org.myworkflows.domain.WorkflowParameterEventHandler;
+import org.myworkflows.domain.handler.WorkflowParameterEventHandler;
 import org.myworkflows.domain.filter.WorkflowParameterFilter;
 import org.myworkflows.service.WorkflowParameterService;
 import org.myworkflows.view.component.BaseLayout;

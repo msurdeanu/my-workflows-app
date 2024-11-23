@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowTemplate;
-import org.myworkflows.domain.WorkflowTemplateEventHandler;
+import org.myworkflows.domain.handler.WorkflowTemplateEventHandler;
 import org.myworkflows.domain.filter.WorkflowTemplateFilter;
 import org.myworkflows.repository.WorkflowParameterRepository;
 import org.myworkflows.service.WorkflowDefinitionService;
