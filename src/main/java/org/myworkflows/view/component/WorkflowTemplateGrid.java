@@ -22,7 +22,7 @@ import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowTemplate;
-import org.myworkflows.domain.WorkflowTemplateEventHandler;
+import org.myworkflows.domain.handler.WorkflowTemplateEventHandler;
 import org.myworkflows.view.WorkflowDevelopmentView;
 import org.myworkflows.view.component.html.SpanBadge;
 import org.myworkflows.view.component.html.StandardPaginatedGrid;

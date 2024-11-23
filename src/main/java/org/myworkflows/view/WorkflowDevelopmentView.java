@@ -247,7 +247,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             lastSubmittedUuid = UUID.randomUUID();
             applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
                 .token(lastSubmittedUuid)
-                .workflowParameters(workflowDevParamGrid.getParametersAsMap())
+                .workflowRun(new WorkflowRun(workflowDevParamGrid.getParametersAsMap()))
                 .workflowDefinitionScript(editor.getValue())
                 .build());
         });

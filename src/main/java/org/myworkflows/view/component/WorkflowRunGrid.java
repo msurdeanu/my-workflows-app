@@ -121,6 +121,12 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
             deleteRunButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
             deleteRunButton.addClickListener(event -> deleteRun(workflowRun));
             layout.add(deleteRunButton);
+            if (workflowRun.isEligibleForReplay()) {
+                final var replayButton = new Button(VaadinIcon.RECYCLE.create());
+                replayButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+                replayButton.addClickListener(event -> replayRun(workflowRun));
+                layout.add(replayButton);
+            }
         }
         return layout;
     }
@@ -135,6 +141,11 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
     private void deleteRun(WorkflowRun workflowRun) {
         workflowRunService.delete(workflowRun);
         refreshPage();
+    }
+
+
+    private void replayRun(WorkflowRun workflowRun) {
+        workflowRunService.replay(workflowRun);
     }
 
     private Component createExceptionBlock(WorkflowRun workflowRun) {

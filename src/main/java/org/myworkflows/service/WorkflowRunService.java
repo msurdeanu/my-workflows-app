@@ -96,6 +96,10 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
         }
     }
 
+    public void replay(WorkflowRun workflowRun) {
+        // TODO: Provide ability to replay a run from where it failed
+    }
+
     @Override
     protected WorkflowRunFilter createFilter() {
         return new WorkflowRunFilter();
@@ -105,9 +109,7 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
         final var start = System.currentTimeMillis();
         final var workflowRunRepository = applicationManager.getBeanOfType(WorkflowRunRepository.class);
         final var entries = workflowRunRepository.deleteOldEntries(cacheConfig.getWorkflowRunMaxSize());
-        if (log.isDebugEnabled()) {
-            log.debug("{} workflow run(s) deleted from database in {} ms.", entries, System.currentTimeMillis() - start);
-        }
+        log.debug("{} workflow run(s) deleted from database in {} ms.", entries, System.currentTimeMillis() - start);
     }
 
 }

@@ -16,7 +16,7 @@ import com.vaadin.flow.router.RouterLink;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
-import org.myworkflows.domain.WorkflowDefinitionEventHandler;
+import org.myworkflows.domain.handler.WorkflowDefinitionEventHandler;
 import org.myworkflows.view.WorkflowDevelopmentView;
 import org.myworkflows.view.component.html.StandardPaginatedGrid;
 import org.myworkflows.view.component.html.TextFieldWithEnterShortcut;

@@ -1,4 +1,6 @@
-package org.myworkflows.domain;
+package org.myworkflows.domain.handler;
+
+import org.myworkflows.domain.WorkflowParameter;
 
 /**
  * @author Mihai Surdeanu

@@ -1,6 +1,6 @@
 package org.myworkflows.view.component;
 
-import org.myworkflows.domain.WorkflowParameterEventHandler;
+import org.myworkflows.domain.handler.WorkflowParameterEventHandler;
 
 /**
  * @author Mihai Surdeanu

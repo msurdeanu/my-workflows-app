@@ -5,7 +5,6 @@ import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.domain.WorkflowRunCache;
 import org.myworkflows.exception.WorkflowRuntimeException;
-import org.myworkflows.util.ByteArrayCompressUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -15,6 +14,7 @@ import java.io.ObjectOutputStream;
 import java.util.zip.DataFormatException;
 
 import static org.myworkflows.util.ByteArrayCompressUtil.compress;
+import static org.myworkflows.util.ByteArrayCompressUtil.decompress;
 import static org.myworkflows.util.ByteArrayUtil.toObject;
 import static org.myworkflows.util.ByteArrayUtil.toPrimitive;
 
@@ -39,7 +39,7 @@ public final class WorkflowRunCacheToByteArrayConverter implements AttributeConv
 
     @Override
     public WorkflowRunCache convertToEntityAttribute(Byte[] data) {
-        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(ByteArrayCompressUtil.decompress(toPrimitive(data)));
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decompress(toPrimitive(data)));
              ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
             return (WorkflowRunCache) objectInputStream.readObject();
         } catch (IOException | ClassNotFoundException | DataFormatException exception) {

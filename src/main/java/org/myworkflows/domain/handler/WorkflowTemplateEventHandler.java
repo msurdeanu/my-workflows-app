@@ -1,4 +1,8 @@
-package org.myworkflows.domain;
+package org.myworkflows.domain.handler;
+
+import org.myworkflows.domain.WorkflowDefinition;
+import org.myworkflows.domain.WorkflowParameter;
+import org.myworkflows.domain.WorkflowTemplate;
 
 import java.util.stream.Stream;
 

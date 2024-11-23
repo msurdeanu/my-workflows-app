@@ -113,9 +113,7 @@ public enum RuntimeEvaluator {
                 .map(item -> format(formatWithType, name, item.substring(1)))
                 .orElseGet(() -> format(formatWithoutType, name));
         });
-        if (log.isDebugEnabled()) {
-            log.debug("After resolving cache access patterns, expression '{}' translates into '{}'.", expression, newExpression);
-        }
+        log.debug("After resolving cache access patterns, expression '{}' translates into '{}'.", expression, newExpression);
         return newExpression;
     }
 
