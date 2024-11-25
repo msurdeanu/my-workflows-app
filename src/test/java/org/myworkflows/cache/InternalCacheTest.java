@@ -30,6 +30,7 @@ public final class InternalCacheTest {
         assertEquals(1, cache.size());
         cache.put("key1", "value1");
         assertEquals(1, cache.size());
+        assertEquals(1, cache.getAllKeys(String.class).size());
         cache.evict("key");
         assertInstanceOf(String.class, cache.get("key1", String.class));
         assertEquals(1, cache.getAllValues().size());
