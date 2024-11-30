@@ -12,7 +12,8 @@ public final class WorkflowParameterGrid extends AbstractParameterGrid {
         super("workflow-params");
         setCreateConsumer(workflowParameterEventHandler::onCreate);
         setUpdateConsumer(workflowParameterEventHandler::onUpdate);
-        setDeleteConsumer(workflowParameterEventHandler::onDelete);
+        setDeleteConsumer(workflowParameter -> new DeleteConfirmDialog(workflowParameter.getName(),
+            item -> workflowParameterEventHandler.onDelete(workflowParameter)).open());
     }
 
 }

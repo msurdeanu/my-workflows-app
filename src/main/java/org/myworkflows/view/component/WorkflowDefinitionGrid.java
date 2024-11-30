@@ -92,7 +92,8 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
 
         if (isLoggedAsAdmin) {
             editButton.addClickListener(event -> onEdit(workflowDefinition));
-            deleteButton.addClickListener(event -> workflowDefinitionEventHandler.onDelete(workflowDefinition));
+            deleteButton.addClickListener(event -> new DeleteConfirmDialog(workflowDefinition.getName(),
+                item -> workflowDefinitionEventHandler.onDelete(workflowDefinition)).open());
         } else {
             editButton.setEnabled(false);
             deleteButton.setEnabled(false);

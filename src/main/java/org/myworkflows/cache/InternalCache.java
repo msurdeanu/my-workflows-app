@@ -126,8 +126,7 @@ public final class InternalCache implements org.springframework.cache.Cache {
     @Override
     public void put(@NonNull Object key, Object value) {
         acceptConsumerInsideWriteBlock(key, item -> {
-            final var previousValue = cacheMap.put(item, value);
-            if (ofNullable(previousValue).isEmpty() && isOrderedOrHasLimitedSize()) {
+            if (ofNullable(cacheMap.put(item, value)).isEmpty() && isOrderedOrHasLimitedSize()) {
                 if (cacheOrder == InternalCacheOrder.FIFO) {
                     keys.addLast(item);
                 } else {
