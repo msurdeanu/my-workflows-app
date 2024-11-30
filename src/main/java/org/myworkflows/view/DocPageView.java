@@ -23,10 +23,11 @@ import com.vaadin.flow.router.RouterLink;
 import jakarta.annotation.security.PermitAll;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.DocPage;
-import org.myworkflows.domain.handler.DocPageEventHandler;
 import org.myworkflows.domain.UserRole;
+import org.myworkflows.domain.handler.DocPageEventHandler;
 import org.myworkflows.service.DocPageService;
 import org.myworkflows.view.component.BaseLayout;
+import org.myworkflows.view.component.DeleteConfirmDialog;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.html.TextFieldWithEnterShortcut;
 
@@ -153,11 +154,10 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
             updateDocPageButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
             updateDocPageButton.getStyle().set("flex", "1 1 50%");
             updateDocPageButton.addClickListener(event -> onUpdate(docPage, markdownEditor.getContent()));
-            // TODO: use confirmation dialog for deletes
             final var deleteDocPageButton = new Button(getTranslation("doc-pages.delete.button"), VaadinIcon.TRASH.create());
             deleteDocPageButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
             deleteDocPageButton.getStyle().set("flex", "1 1 50%");
-            deleteDocPageButton.addClickListener(event -> onDelete(docPage));
+            deleteDocPageButton.addClickListener(event -> new DeleteConfirmDialog(docPage.getName(), item -> onDelete(docPage)).open());
 
             horizontalLayout.add(updateDocPageButton, deleteDocPageButton);
             layout.add(horizontalLayout);

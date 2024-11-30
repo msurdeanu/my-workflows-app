@@ -146,7 +146,8 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         if (isLoggedAsAdmin) {
             editButton.addClickListener(event -> onEdit(workflowTemplate));
             if (!workflowTemplate.isEnabled()) {
-                deleteButton.addClickListener(event -> workflowTemplateEventHandler.onDelete(workflowTemplate));
+                deleteButton.addClickListener(event -> new DeleteConfirmDialog(workflowTemplate.getName(),
+                    item -> workflowTemplateEventHandler.onDelete(workflowTemplate)).open());
             } else {
                 deleteButton.setEnabled(false);
             }

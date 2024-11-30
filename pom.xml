@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.5</version>
+        <version>3.4.0</version>
     </parent>
 
     <properties>
@@ -23,8 +23,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <vaadin.version>24.5.5</vaadin.version>
-        <flyway-core.version>10.21.0</flyway-core.version>
+        <vaadin.version>24.5.6</vaadin.version>
+        <flyway-core.version>11.0.0</flyway-core.version>
         <markdown-editor-addon.version>1.1.0</markdown-editor-addon.version>
         <grid-pagination.version>4.0.0</grid-pagination.version>
         <ace.version>3.4.2</ace.version>
@@ -34,7 +34,7 @@
         <janino.version>3.1.12</janino.version>
         <maverick-synergy-client.version>3.1.2</maverick-synergy-client.version>
         <jakarta.mail-api.version>2.1.3</jakarta.mail-api.version>
-        <json-schema-validator.version>1.5.3</json-schema-validator.version>
+        <json-schema-validator.version>1.5.4</json-schema-validator.version>
         <junit-jupiter.version>5.11.3</junit-jupiter.version>
     </properties>
 
