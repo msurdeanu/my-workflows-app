@@ -2,9 +2,9 @@ name: Build, Test and Release
 
 on:
   push:
-    branches: [ "integration" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "integration" ]
+    branches: [ "main" ]
 
 jobs:
   build:
