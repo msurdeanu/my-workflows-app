@@ -25,8 +25,4 @@ public final class LangUtilTest {
         assertEquals("10 words", pluralized.get());
     }
 
-    private void expectToBePresent() {
-        assertTrue(pluralize(null, 10, false).isEmpty());
-    }
-
 }

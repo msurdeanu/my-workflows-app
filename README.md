@@ -125,11 +125,11 @@ You are allowed to use global `placeholders` to avoid data duplication in your w
 Please note that all placeholders are resolved immediately before workflow running process.
 All placeholders are persisted in a database - a table called `placeholders`.
 
-Inside workflow definition, you can recognize a placeholder by having this format: `$$(PLACEHOLDER_NAME)`.
+Inside workflow definition, you can recognize a placeholder by having this format: `$$([A-Z0-9_.]+)`.
 You are allowed to use placeholders inside any `input`, `assert` and `output` (`name` and `value` fields).
 
 > [!TIP]
-> The name of the placeholder should match pattern `[a-zA-Z0-9_]+` for being accepted as a valid placeholder.
+> The name of the placeholder should match pattern `[A-Z0-9_.]+` for being accepted as a valid placeholder.
 
 > [!TIP]
 > If the placeholder that you are looking for is not found, you are going to receive a runtime exception.

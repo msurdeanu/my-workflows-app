@@ -119,7 +119,7 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
         actions.setPadding(false);
 
         actionColumn = paginatedGrid.addComponentColumn(parameter -> createActionComponent(parameter, editor))
-            .setHeader(new TextFieldWithEnterShortcut(createConsumer).allowedCharPattern("[a-zA-Z0-9_.]").placeholder("[a-zA-Z0-9_.]").small())
+            .setHeader(new TextFieldWithEnterShortcut(createConsumer).allowedCharPatternAndPlaceholder("[a-zA-Z0-9_.]").small())
             .setEditorComponent(actions);
 
         layout.add(paginatedGrid);

@@ -20,12 +20,15 @@ INSERT INTO menu_items ("label", "icon", "path", "role", "position")
 VALUES ('menu.main.workflow-params', 'options', 'class://org.myworkflows.view.WorkflowParameterView', 'ROLE_ADMIN',
         '4');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-development', 'code', 'class://org.myworkflows.view.WorkflowDevelopmentView', 'ROLE_ADMIN',
+VALUES ('menu.main.workflow-placeholders', 'archives', 'class://org.myworkflows.view.WorkflowPlaceholderView', 'ROLE_ADMIN',
         '5');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.doc-pages', 'book', 'class://org.myworkflows.view.DocPageView', 'ROLE_GUEST', '6');
+VALUES ('menu.main.workflow-development', 'code', 'class://org.myworkflows.view.WorkflowDevelopmentView', 'ROLE_ADMIN',
+        '6');
 INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', '7');
+VALUES ('menu.main.doc-pages', 'book', 'class://org.myworkflows.view.DocPageView', 'ROLE_GUEST', '7');
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', '8');
 
 CREATE TABLE workflow_definitions
 (
@@ -121,6 +124,15 @@ CREATE TABLE workflow_runs
 
 CREATE INDEX workflow_runs_created_index ON workflow_runs (created DESC);
 
+CREATE TABLE workflow_placeholders
+(
+    name  TEXT PRIMARY KEY NOT NULL,
+    value TEXT             NOT NULL
+);
+
+INSERT INTO workflow_placeholders ("name", "value")
+VALUES ('SLEEP_TIME', 'sleep.time');
+
 CREATE TABLE users
 (
     id       INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -136,15 +148,6 @@ INSERT INTO users ("username", "password", "role")
 VALUES ('admin', '$2a$10$omNibHqZ1p6kx4/bLMNWJ.82c30oAdg0asgGWr9jB9o2zwhim3G7O', 'ROLE_ADMIN');
 
 CREATE UNIQUE INDEX users_username_index ON users (username);
-
-CREATE TABLE placeholders
-(
-    name  TEXT PRIMARY KEY NOT NULL,
-    value TEXT             NOT NULL
-);
-
-INSERT INTO placeholders ("name", "value")
-VALUES ('SLEEP_TIME', 'sleep.time');
 
 CREATE TABLE doc_pages
 (

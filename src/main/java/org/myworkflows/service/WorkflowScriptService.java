@@ -13,7 +13,6 @@ import org.myworkflows.domain.event.EventListener;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
-import org.myworkflows.repository.PlaceholderRepository;
 import org.myworkflows.util.PlaceholderUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -138,7 +137,7 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
     private Object resolvePlaceholders(Object value) {
         if (value instanceof String valueAsString) {
             final var resolvedValueAsString = PlaceholderUtil.resolvePlaceholders(valueAsString,
-                applicationManager.getBeanOfType(PlaceholderRepository.class).getAllAsMap());
+                applicationManager.getBeanOfType(WorkflowPlaceholderService.class).getAllAsMap());
             log.debug("After resolving placeholders, '{}' was converted to '{}'.", valueAsString, resolvedValueAsString);
             return resolvedValueAsString;
         } else if (value instanceof List<?> valueAsList) {

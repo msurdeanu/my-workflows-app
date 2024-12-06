@@ -37,13 +37,9 @@ public final class TextFieldWithEnterShortcut extends TextField {
         }, Key.ENTER);
     }
 
-    public TextFieldWithEnterShortcut allowedCharPattern(String allowedCharPattern) {
-        setAllowedCharPattern(allowedCharPattern);
-        return this;
-    }
-
-    public TextFieldWithEnterShortcut placeholder(String placeholder) {
-        setPlaceholder(placeholder);
+    public TextFieldWithEnterShortcut allowedCharPatternAndPlaceholder(String regexPattern) {
+        setAllowedCharPattern(regexPattern);
+        setPlaceholder(regexPattern);
         return this;
     }
 

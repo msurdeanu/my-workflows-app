@@ -35,12 +35,12 @@ public final class InternalCacheManager implements CacheManager {
     @Getter
     @RequiredArgsConstructor
     public enum CacheNameEnum {
+        WORKFLOW_PLACEHOLDER("workflowPlaceholder"),
         WORKFLOW_PARAMETER("workflowParameter"),
         WORKFLOW_DEFINITION("workflowDefinition"),
         WORKFLOW_TEMPLATE("workflowTemplate"),
         WORKFLOW_RUN("workflowRun"),
         MENU_ITEM("menuItem"),
-        PLACEHOLDER("placeholder"),
         DOC_PAGE("docPage"),
         DEFAULT("default");
 

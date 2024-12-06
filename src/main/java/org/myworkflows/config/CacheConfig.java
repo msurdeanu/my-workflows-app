@@ -22,7 +22,7 @@ import static org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
 @EnableCaching
 public class CacheConfig {
 
-    private int workflowRunMaxSize = 100;
+    private int workflowRunMaxSize = 250;
 
     @Bean
     public InternalCacheManager cacheManager() {
@@ -31,8 +31,8 @@ public class CacheConfig {
         cacheManager.addCache(CacheNameEnum.WORKFLOW_TEMPLATE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
         cacheManager.addCache(CacheNameEnum.WORKFLOW_DEFINITION, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
         cacheManager.addCache(CacheNameEnum.WORKFLOW_PARAMETER, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
+        cacheManager.addCache(CacheNameEnum.WORKFLOW_PLACEHOLDER, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
         cacheManager.addCache(CacheNameEnum.MENU_ITEM, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NO);
-        cacheManager.addCache(CacheNameEnum.PLACEHOLDER, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NO);
         cacheManager.addCache(CacheNameEnum.DOC_PAGE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.FIFO);
         return cacheManager;
     }
