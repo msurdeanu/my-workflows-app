@@ -4,10 +4,13 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import lombok.RequiredArgsConstructor;
@@ -43,16 +46,38 @@ public final class WorkflowPlaceholderGrid extends Composite<VerticalLayout> {
         final var layout = super.initContent();
         layout.setSizeFull();
 
+        final var editor = paginatedGrid.getEditor();
+        final var binder = new Binder<>(WorkflowPlaceholder.class);
+        editor.setBinder(binder);
+        editor.setBuffered(true);
+
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderName))
-            .setHeader(getTranslation("workflow-placeholders.grid.name.column"))
-            .setAutoWidth(true);
+            .setHeader(getTranslation("workflow-placeholders.grid.name.column"));
+
+        final var valueField = new TextField();
+        valueField.setWidthFull();
+        binder.forField(valueField)
+            .bind(WorkflowPlaceholder::getValue, WorkflowPlaceholder::setValue);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderValue))
             .setHeader(getTranslation("workflow-placeholders.grid.value.column"))
-            .setAutoWidth(true);
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
-            .setHeader(new TextFieldWithEnterShortcut(workflowPlaceholderEventHandler::onCreate)
+            .setEditorComponent(valueField);
+
+        final var saveButton = new Button(VaadinIcon.CHECK.create(), event -> {
+            final var currentItem = editor.getItem();
+            if (editor.save()) {
+                workflowPlaceholderEventHandler.onUpdate(currentItem);
+            }
+        });
+        saveButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
+        final var cancelButton = new Button(VaadinIcon.CLOSE.create(), event -> editor.cancel());
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+        final var actions = new HorizontalLayout(saveButton, cancelButton);
+        actions.setPadding(false);
+
+        paginatedGrid.addComponentColumn(placeholder -> createActionComponent(placeholder, editor))
+            .setHeader(new TextFieldWithEnterShortcut(item -> paginatedGrid.getEditor().editItem(workflowPlaceholderEventHandler.onCreate(item)))
                 .allowedCharPatternAndPlaceholder(PlaceholderUtil.PLACEHOLDER_NAME_PATTERN).small())
-            .setAutoWidth(true);
+            .setEditorComponent(actions);
 
         layout.add(paginatedGrid);
         return layout;
@@ -66,17 +91,21 @@ public final class WorkflowPlaceholderGrid extends Composite<VerticalLayout> {
         return new Span(valueOf(workflowPlaceholder.getValue()));
     }
 
-    private Component renderActions(WorkflowPlaceholder workflowPlaceholder) {
+    private Component createActionComponent(WorkflowPlaceholder workflowPlaceholder, Editor<WorkflowPlaceholder> editor) {
         final var layout = new HorizontalLayout();
-
+        final var editButton = new Button(VaadinIcon.EDIT.create());
+        editButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
+        editButton.addClickListener(event -> {
+            if (editor.isOpen()) {
+                editor.cancel();
+            }
+            paginatedGrid.getEditor().editItem(workflowPlaceholder);
+        });
         final var deleteButton = new Button(VaadinIcon.TRASH.create());
-        deleteButton.setTooltipText(getTranslation("workflow-placeholders.grid.actions.button.delete.title"));
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
-
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
         deleteButton.addClickListener(event -> new DeleteConfirmDialog(workflowPlaceholder.getName(),
             item -> workflowPlaceholderEventHandler.onDelete(workflowPlaceholder)).open());
-
-        layout.add(deleteButton);
+        layout.add(editButton, deleteButton);
         return layout;
     }
 

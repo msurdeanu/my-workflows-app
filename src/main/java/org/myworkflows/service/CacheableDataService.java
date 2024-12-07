@@ -2,9 +2,9 @@ package org.myworkflows.service;
 
 import com.vaadin.flow.data.provider.Query;
 import org.myworkflows.ApplicationManager;
+import org.myworkflows.cache.CacheNameEnum;
 import org.myworkflows.cache.InternalCache;
 import org.myworkflows.cache.InternalCacheManager;
-import org.myworkflows.domain.CacheableEntry;
 import org.myworkflows.domain.filter.Filter;
 
 import java.util.concurrent.locks.Lock;
@@ -23,7 +23,7 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
 
     protected final InternalCache cache;
 
-    public CacheableDataService(ApplicationManager applicationManager, InternalCacheManager.CacheNameEnum cacheName) {
+    public CacheableDataService(ApplicationManager applicationManager, CacheNameEnum cacheName) {
         this.applicationManager = applicationManager;
         cache = (InternalCache) applicationManager.getBeanOfType(InternalCacheManager.class)
             .getCache(cacheName.getName());
@@ -65,10 +65,6 @@ public abstract class CacheableDataService<T, F extends Filter<T>> {
     @SuppressWarnings("unchecked")
     public Stream<T> getAllItems() {
         return cache.getAllValues().stream().map(item -> (T) item);
-    }
-
-    public void addToCache(CacheableEntry entry) {
-        cache.put(entry.getCacheableKey(), entry);
     }
 
     protected abstract F createFilter();

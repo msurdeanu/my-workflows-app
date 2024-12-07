@@ -8,7 +8,7 @@ import org.myworkflows.domain.WorkflowPlaceholder;
  */
 public interface WorkflowPlaceholderEventHandler {
 
-    void onCreate(String name);
+    WorkflowPlaceholder onCreate(String name);
 
     void onDelete(WorkflowPlaceholder workflowPlaceholder);
 

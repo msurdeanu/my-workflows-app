@@ -2,18 +2,16 @@ package org.myworkflows.service;
 
 import lombok.NonNull;
 import org.myworkflows.ApplicationManager;
-import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
+import org.myworkflows.cache.CacheNameEnum;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.filter.WorkflowTemplateFilter;
 import org.myworkflows.repository.WorkflowTemplateRepository;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,38 +22,38 @@ import static java.util.Optional.ofNullable;
  * @since 1.0.0
  */
 @Service
-public final class WorkflowTemplateService extends CacheableDataService<WorkflowTemplate, WorkflowTemplateFilter> implements LoaderService {
+public class WorkflowTemplateService extends CacheableDataService<WorkflowTemplate, WorkflowTemplateFilter> implements ServiceCreator<WorkflowTemplate> {
 
     public WorkflowTemplateService(ApplicationManager applicationManager) {
         super(applicationManager, CacheNameEnum.WORKFLOW_TEMPLATE);
     }
 
-    @Order(50)
-    @EventListener(ApplicationReadyEvent.class)
-    @Override
-    public void load() {
-        applicationManager.getBeanOfType(WorkflowTemplateRepository.class)
-            .findAll()
-            .forEach(this::loadAndSchedule);
-    }
-
-    public void create(String name) {
+    @CachePut(cacheNames = "workflowTemplate", key = "#result.id")
+    public WorkflowTemplate create(WorkflowTemplate workflowTemplate, boolean requiresPersistence) {
         lock.lock();
         try {
-            final var workflowTemplate = new WorkflowTemplate();
-            workflowTemplate.setName(name);
-            workflowTemplate.setWorkflowDefinitions(List.of());
-            cache.put(applicationManager.getBeanOfType(WorkflowTemplateRepository.class).save(workflowTemplate).getId(),
-                workflowTemplate);
+            ofNullable(cache.get(workflowTemplate.getId(), WorkflowTemplate.class))
+                .filter(WorkflowTemplate::isEnabledForScheduling)
+                .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
+                    .unschedule(workflowTemplate));
+            if (requiresPersistence) {
+                applicationManager.getBeanOfType(WorkflowTemplateRepository.class).save(workflowTemplate);
+            }
+            if (workflowTemplate.isEnabled()) {
+                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
+                    .schedule(workflowTemplate);
+            }
         } finally {
             lock.unlock();
         }
+
+        return workflowTemplate;
     }
 
-    public void delete(@NonNull WorkflowTemplate workflowTemplate) {
+    @CacheEvict(cacheNames = "workflowTemplate", key = "#workflowTemplate.id")
+    public void delete(WorkflowTemplate workflowTemplate) {
         lock.lock();
         try {
-            cache.evict(workflowTemplate.getId());
             if (workflowTemplate.isEnabled()) {
                 applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class).unschedule(workflowTemplate);
             }
@@ -130,23 +128,6 @@ public final class WorkflowTemplateService extends CacheableDataService<Workflow
     @Override
     protected WorkflowTemplateFilter createFilter() {
         return new WorkflowTemplateFilter();
-    }
-
-    private void loadAndSchedule(@NonNull WorkflowTemplate workflowTemplate) {
-        lock.lock();
-        try {
-            ofNullable(cache.get(workflowTemplate.getId(), WorkflowTemplate.class))
-                .filter(WorkflowTemplate::isEnabledForScheduling)
-                .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
-                    .unschedule(workflowTemplate));
-            cache.put(workflowTemplate.getId(), workflowTemplate);
-            if (workflowTemplate.isEnabled()) {
-                applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
-                    .schedule(workflowTemplate);
-            }
-        } finally {
-            lock.unlock();
-        }
     }
 
 }

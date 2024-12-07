@@ -85,7 +85,7 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
 
     @Override
     public void onCreate(String name) {
-        workflowTemplateService.create(name);
+        workflowTemplateService.create(WorkflowTemplate.of(name), true);
         workflowDefinitionGrid.refreshPage();
     }
 

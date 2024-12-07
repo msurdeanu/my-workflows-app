@@ -2,14 +2,12 @@ package org.myworkflows.service;
 
 import jakarta.transaction.Transactional;
 import org.myworkflows.ApplicationManager;
-import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
+import org.myworkflows.cache.CacheNameEnum;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionScript;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.repository.WorkflowDefinitionRepository;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
@@ -19,30 +17,26 @@ import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
  * @since 1.0.0
  */
 @Service
-public class WorkflowDefinitionService extends CacheableDataService<WorkflowDefinition, WorkflowDefinitionFilter> implements LoaderService {
+public class WorkflowDefinitionService extends CacheableDataService<WorkflowDefinition, WorkflowDefinitionFilter>
+    implements ServiceCreator<WorkflowDefinition> {
 
     public WorkflowDefinitionService(ApplicationManager applicationManager) {
         super(applicationManager, CacheNameEnum.WORKFLOW_DEFINITION);
     }
 
-    @Order(25)
-    @EventListener(ApplicationReadyEvent.class)
     @Override
-    public void load() {
-        applicationManager.getBeanOfType(WorkflowDefinitionRepository.class)
-            .findAll()
-            .forEach(this::addToCache);
-    }
-
-    public void create(String name) {
-        lock.lock();
-        try {
-            final var workflowDefinition = WorkflowDefinition.of(name);
-            cache.put(applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).save(workflowDefinition).getName(),
-                workflowDefinition);
-        } finally {
-            lock.unlock();
+    @CachePut(cacheNames = "workflowDefinition", key = "#result.id")
+    public WorkflowDefinition create(WorkflowDefinition workflowDefinition, boolean requiresPersistence) {
+        if (requiresPersistence) {
+            lock.lock();
+            try {
+                applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).save(workflowDefinition);
+            } finally {
+                lock.unlock();
+            }
         }
+
+        return workflowDefinition;
     }
 
     @Transactional

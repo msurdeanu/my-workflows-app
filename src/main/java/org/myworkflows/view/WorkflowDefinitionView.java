@@ -70,7 +70,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
 
     @Override
     public void onCreate(String name) {
-        workflowDefinitionService.create(name);
+        workflowDefinitionService.create(WorkflowDefinition.of(name), true);
         workflowDefinitionGrid.refreshPage();
     }
 

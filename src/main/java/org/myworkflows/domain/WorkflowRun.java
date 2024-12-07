@@ -38,7 +38,7 @@ import static org.myworkflows.util.LangUtil.pluralize;
 @Table(name = "workflow_runs")
 @AllArgsConstructor
 @NoArgsConstructor
-public class WorkflowRun implements CacheableEntry {
+public class WorkflowRun {
 
     @Id
     @Getter
@@ -83,11 +83,6 @@ public class WorkflowRun implements CacheableEntry {
     public WorkflowRun(Integer workflowTemplateId, Map<String, Object> parameters) {
         this.workflowTemplateId = workflowTemplateId;
         ofNullable(parameters).orElse(Map.of()).forEach(cache::put);
-    }
-
-    @Override
-    public Object getCacheableKey() {
-        return id;
     }
 
     public List<WorkflowRunPrint> getAllPrints() {

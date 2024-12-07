@@ -18,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 @Setter
 @Table(name = "doc_pages")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class DocPage implements CacheableEntry {
+public class DocPage {
 
     @Id
     @EqualsAndHashCode.Include
@@ -32,11 +32,6 @@ public class DocPage implements CacheableEntry {
         docPage.setName(name);
         docPage.setValue(StringUtils.EMPTY);
         return docPage;
-    }
-
-    @Override
-    public Object getCacheableKey() {
-        return name;
     }
 
 }

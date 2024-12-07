@@ -1,4 +1,4 @@
-package org.myworkflows.service;
+package org.myworkflows.service.loader;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ import static java.util.Optional.ofNullable;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public final class JarLoaderService implements LoaderService {
+public final class JarServiceLoader implements ServiceLoader {
 
     private final LoaderConfig loaderConfig;
 

@@ -6,8 +6,8 @@ import org.myworkflows.cache.InternalCacheManager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.myworkflows.cache.InternalCacheManager.CacheNameEnum.WORKFLOW_RUN;
-import static org.myworkflows.cache.InternalCacheManager.CacheNameEnum.WORKFLOW_TEMPLATE;
+import static org.myworkflows.cache.CacheNameEnum.WORKFLOW_RUN;
+import static org.myworkflows.cache.CacheNameEnum.WORKFLOW_TEMPLATE;
 
 /**
  * @author Mihai Surdeanu

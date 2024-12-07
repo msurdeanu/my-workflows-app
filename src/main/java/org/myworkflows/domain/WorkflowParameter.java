@@ -22,7 +22,7 @@ import java.util.Optional;
 @Setter
 @Table(name = "workflow_parameters")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class WorkflowParameter implements CacheableEntry {
+public class WorkflowParameter {
 
     @Id
     @EqualsAndHashCode.Include
@@ -48,11 +48,6 @@ public class WorkflowParameter implements CacheableEntry {
 
     public static Optional<String> validateTypeAndValue(WorkflowParameterType type, String value) {
         return type.validate(value);
-    }
-
-    @Override
-    public Object getCacheableKey() {
-        return name;
     }
 
     public Object getComputedValue() {

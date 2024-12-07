@@ -2,14 +2,13 @@ package org.myworkflows.config;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.myworkflows.cache.CacheNameEnum;
 import org.myworkflows.cache.InternalCache;
 import org.myworkflows.cache.InternalCacheManager;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import static org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
 
 /**
  * @author Mihai Surdeanu

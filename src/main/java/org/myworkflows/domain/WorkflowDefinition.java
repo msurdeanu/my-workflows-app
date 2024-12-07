@@ -20,7 +20,7 @@ import org.myworkflows.converter.WorkflowDefinitionScriptToStringConverter;
 @Entity
 @Table(name = "workflow_definitions")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class WorkflowDefinition implements CacheableEntry {
+public class WorkflowDefinition {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,11 +48,6 @@ public class WorkflowDefinition implements CacheableEntry {
         workflowDefinition.name = name;
         workflowDefinition.script = script;
         return workflowDefinition;
-    }
-
-    @Override
-    public Object getCacheableKey() {
-        return id;
     }
 
     public void toggleOnEditing() {

@@ -145,7 +145,7 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
 
 
     private void replayRun(WorkflowRun workflowRun) {
-        workflowRunService.replay(workflowRun);
+        // TODO: This feature is not supported yet!
     }
 
     private Component createExceptionBlock(WorkflowRun workflowRun) {

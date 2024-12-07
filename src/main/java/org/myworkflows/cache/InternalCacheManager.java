@@ -1,11 +1,8 @@
 package org.myworkflows.cache;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
@@ -30,27 +27,6 @@ public final class InternalCacheManager implements CacheManager {
 
     public void addCache(CacheNameEnum cacheNameEnum, int maxSize, InternalCache.InternalCacheOrder cacheOrder) {
         caches.put(cacheNameEnum, new InternalCache(cacheNameEnum.getName(), maxSize, cacheOrder));
-    }
-
-    @Getter
-    @RequiredArgsConstructor
-    public enum CacheNameEnum {
-        WORKFLOW_PLACEHOLDER("workflowPlaceholder"),
-        WORKFLOW_PARAMETER("workflowParameter"),
-        WORKFLOW_DEFINITION("workflowDefinition"),
-        WORKFLOW_TEMPLATE("workflowTemplate"),
-        WORKFLOW_RUN("workflowRun"),
-        MENU_ITEM("menuItem"),
-        DOC_PAGE("docPage"),
-        DEFAULT("default");
-
-        private final String name;
-
-        public static CacheNameEnum of(String name) {
-            return Arrays.stream(CacheNameEnum.values())
-                .filter(cacheName -> cacheName.name.equals(name))
-                .findFirst().orElse(DEFAULT);
-        }
     }
 
 }

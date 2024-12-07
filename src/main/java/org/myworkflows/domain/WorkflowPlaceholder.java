@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -13,11 +14,12 @@ import org.apache.commons.lang3.StringUtils;
 @Entity
 @Getter
 @Table(name = "workflow_placeholders")
-public class WorkflowPlaceholder implements CacheableEntry {
+public class WorkflowPlaceholder {
 
     @Id
     private String name;
 
+    @Setter
     private String value;
 
     public static WorkflowPlaceholder of(String name) {
@@ -29,11 +31,6 @@ public class WorkflowPlaceholder implements CacheableEntry {
         workflowPlaceholder.name = name;
         workflowPlaceholder.value = value;
         return workflowPlaceholder;
-    }
-
-    @Override
-    public Object getCacheableKey() {
-        return name;
     }
 
 }

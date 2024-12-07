@@ -59,9 +59,10 @@ public class WorkflowPlaceholderView extends ResponsiveLayout implements HasDyna
     }
 
     @Override
-    public void onCreate(String name) {
-        workflowPlaceholderService.create(name);
+    public WorkflowPlaceholder onCreate(String name) {
+        final var workflowPlaceholder = workflowPlaceholderService.create(WorkflowPlaceholder.of(name), true);
         workflowPlaceholderGrid.refreshPage();
+        return workflowPlaceholder;
     }
 
     @Override

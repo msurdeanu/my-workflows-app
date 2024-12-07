@@ -102,7 +102,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
 
     @Override
     public void onCreate(String name) {
-        docPageService.create(name);
+        docPageService.create(DocPage.of(name), true);
     }
 
     @Override

@@ -1,13 +1,12 @@
 package org.myworkflows.service;
 
 import org.myworkflows.ApplicationManager;
-import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
+import org.myworkflows.cache.CacheNameEnum;
 import org.myworkflows.domain.WorkflowPlaceholder;
 import org.myworkflows.domain.filter.WorkflowPlaceholderFilter;
 import org.myworkflows.repository.WorkflowPlaceholderRepository;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -18,19 +17,11 @@ import java.util.stream.Collectors;
  * @since 1.0.0
  */
 @Service
-public final class WorkflowPlaceholderService extends CacheableDataService<WorkflowPlaceholder, WorkflowPlaceholderFilter> implements LoaderService {
+public class WorkflowPlaceholderService extends CacheableDataService<WorkflowPlaceholder, WorkflowPlaceholderFilter>
+    implements ServiceCreator<WorkflowPlaceholder> {
 
     public WorkflowPlaceholderService(ApplicationManager applicationManager) {
         super(applicationManager, CacheNameEnum.WORKFLOW_PLACEHOLDER);
-    }
-
-    @Order(8)
-    @EventListener(ApplicationReadyEvent.class)
-    @Override
-    public void load() {
-        applicationManager.getBeanOfType(WorkflowPlaceholderRepository.class)
-            .findAll()
-            .forEach(this::addToCache);
     }
 
     public Map<String, String> getAllAsMap() {
@@ -40,15 +31,19 @@ public final class WorkflowPlaceholderService extends CacheableDataService<Workf
             .collect(Collectors.toMap(WorkflowPlaceholder::getName, WorkflowPlaceholder::getValue));
     }
 
-    public void create(String name) {
-        lock.lock();
-        try {
-            final var workflowPlaceholder = WorkflowPlaceholder.of(name);
-            cache.put(applicationManager.getBeanOfType(WorkflowPlaceholderRepository.class).save(workflowPlaceholder).getName(),
-                workflowPlaceholder);
-        } finally {
-            lock.unlock();
+    @Override
+    @CachePut(cacheNames = "workflowPlaceholder", key = "#result.name")
+    public WorkflowPlaceholder create(WorkflowPlaceholder workflowPlaceholder, boolean requiresPersistence) {
+        if (requiresPersistence) {
+            lock.lock();
+            try {
+                applicationManager.getBeanOfType(WorkflowPlaceholderRepository.class).save(workflowPlaceholder);
+            } finally {
+                lock.unlock();
+            }
         }
+
+        return workflowPlaceholder;
     }
 
     public void update(WorkflowPlaceholder workflowPlaceholder) {
@@ -60,10 +55,10 @@ public final class WorkflowPlaceholderService extends CacheableDataService<Workf
         }
     }
 
+    @CacheEvict(cacheNames = "workflowPlaceholder", key = "#workflowPlaceholder.name")
     public void delete(WorkflowPlaceholder workflowPlaceholder) {
         lock.lock();
         try {
-            cache.evict(workflowPlaceholder.getName());
             applicationManager.getBeanOfType(WorkflowPlaceholderRepository.class).delete(workflowPlaceholder);
         } finally {
             lock.unlock();

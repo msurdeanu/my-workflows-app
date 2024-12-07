@@ -1,26 +1,23 @@
 package org.myworkflows.service;
 
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.cache.InternalCache;
 import org.myworkflows.cache.InternalCacheManager;
-import org.myworkflows.cache.InternalCacheManager.CacheNameEnum;
+import org.myworkflows.cache.CacheNameEnum;
 import org.myworkflows.config.CacheConfig;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowTemplate;
-import org.myworkflows.domain.event.EventListener;
-import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.filter.WorkflowRunFilter;
 import org.myworkflows.repository.WorkflowRunRepository;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.core.annotation.Order;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
+import static org.myworkflows.cache.CacheNameEnum.WORKFLOW_RUN_NAME;
 
 /**
  * @author Mihai Surdeanu
@@ -28,8 +25,7 @@ import static java.util.Optional.ofNullable;
  */
 @Slf4j
 @Service
-public class WorkflowRunService extends CacheableDataService<WorkflowRun, WorkflowRunFilter>
-    implements EventListener<WorkflowDefinitionOnProgressEvent>, LoaderService {
+public class WorkflowRunService extends CacheableDataService<WorkflowRun, WorkflowRunFilter> implements ServiceCreator<WorkflowRun> {
 
     private final CacheConfig cacheConfig;
     private final InternalCache templateCache;
@@ -41,75 +37,49 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
             .getCache(CacheNameEnum.WORKFLOW_TEMPLATE.getName());
     }
 
-    @Transactional
-    @Override
-    public void onEventReceived(WorkflowDefinitionOnProgressEvent event) {
-        final var workflowRun = event.getWorkflowRun();
-
-        lock.lock();
-        try {
-            addToCache(workflowRun);
-            if (event.isPersisted()) {
-                applicationManager.getBeanOfType(WorkflowRunRepository.class).save(workflowRun);
-                if (cache.size() >= cacheConfig.getWorkflowRunMaxSize()) {
-                    deleteOldEntries();
-                }
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @Override
-    public Class<WorkflowDefinitionOnProgressEvent> getEventType() {
-        return WorkflowDefinitionOnProgressEvent.class;
-    }
-
-    @Order(100)
-    @Transactional
-    @org.springframework.context.event.EventListener(ApplicationReadyEvent.class)
-    @Override
-    public void load() {
-        deleteOldEntries();
-        applicationManager.getBeanOfType(WorkflowRunRepository.class)
-            .findByOrderByCreatedDesc(PageRequest.of(0, cacheConfig.getWorkflowRunMaxSize()))
-            .reversed()
-            .forEach(this::addToCache);
-    }
-
     public Optional<WorkflowTemplate> findWorkflowTemplate(WorkflowRun workflowRun) {
         return ofNullable(workflowRun.getWorkflowTemplateId())
             .map(id -> templateCache.get(id, WorkflowTemplate.class));
     }
 
-    public void delete(WorkflowRun workflowRun) {
-        if (workflowRun.getId() == null) {
-            return;
+    @Override
+    @CachePut(cacheNames = WORKFLOW_RUN_NAME, key = "#result.id")
+    public WorkflowRun create(WorkflowRun workflowRun, boolean requiresPersistence) {
+        if (requiresPersistence) {
+            lock.lock();
+            try {
+                applicationManager.getBeanOfType(WorkflowRunRepository.class).save(workflowRun);
+            } finally {
+                lock.unlock();
+            }
         }
 
+        return workflowRun;
+    }
+
+    @CacheEvict(cacheNames = WORKFLOW_RUN_NAME, key = "#workflowRun.id")
+    public void delete(WorkflowRun workflowRun) {
         lock.lock();
         try {
-            cache.evict(workflowRun.getId());
             applicationManager.getBeanOfType(WorkflowRunRepository.class).delete(workflowRun);
         } finally {
             lock.unlock();
         }
     }
 
-    public void replay(WorkflowRun workflowRun) {
-        // TODO: Provide ability to replay a run from where it failed
+    public void deleteOldEntriesIfNeeded(boolean force) {
+        if (!force && cache.size() < cacheConfig.getWorkflowRunMaxSize()) {
+            return;
+        }
+        final var start = System.currentTimeMillis();
+        final var workflowRunRepository = applicationManager.getBeanOfType(WorkflowRunRepository.class);
+        final var entries = workflowRunRepository.deleteOldEntries(cacheConfig.getWorkflowRunMaxSize());
+        log.debug("{} workflow run(s) deleted from database in {} ms.", entries, System.currentTimeMillis() - start);
     }
 
     @Override
     protected WorkflowRunFilter createFilter() {
         return new WorkflowRunFilter();
-    }
-
-    private void deleteOldEntries() {
-        final var start = System.currentTimeMillis();
-        final var workflowRunRepository = applicationManager.getBeanOfType(WorkflowRunRepository.class);
-        final var entries = workflowRunRepository.deleteOldEntries(cacheConfig.getWorkflowRunMaxSize());
-        log.debug("{} workflow run(s) deleted from database in {} ms.", entries, System.currentTimeMillis() - start);
     }
 
 }
