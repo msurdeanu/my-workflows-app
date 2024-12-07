@@ -24,7 +24,7 @@ public final class WorkflowPlaceholderService extends CacheableDataService<Workf
         super(applicationManager, CacheNameEnum.WORKFLOW_PLACEHOLDER);
     }
 
-    @Order(10)
+    @Order(8)
     @EventListener(ApplicationReadyEvent.class)
     @Override
     public void load() {

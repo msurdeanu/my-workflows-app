@@ -609,15 +609,15 @@ During application bootstrap phase, multiple local caches are filled with inform
 The data is loaded in the following order:
 
 1. Once the **application is ready**, the app will load any kind of **external JAR** provided by the user.
-2. After all **external JARs** are loaded, the app will proceed with the **placeholders**. All of them are loaded from
+2. After all **external JARs** are loaded, the app will proceed with loading all **workflow placeholders** from
    database.
-3. Once all **placeholders** are loaded, the app will continue with **workflow definitions**. Again, all of them are
-   loaded from database.
-4. When all **workflow definitions** are available, the app will load all **workflow templates** found in database. They
+3. Once all **placeholders** are loaded, the app will continue with **workflow parameters**.
+4. Once all **parameters** are loaded, the app will continue with **workflow definitions**.
+5. When all **definitions** are available, the app will load all **workflow templates** found in database. They
    are also scheduled.
-5. Next step is to load all **workflow runs**. In fact, is not all of them. The app will load only the
+6. Next step is to load all **workflow runs**. In fact, is not all of them. The app will load only the
    accepted capacity for workflow runs defined in application config.
-6. Last but not least, the app will load all documentation pages available in the local database.
+7. Last but not least, the app will load all documentation pages available in the local database.
 
 ### Structure
 
