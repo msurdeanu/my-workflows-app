@@ -59,9 +59,10 @@ public class WorkflowParameterView extends ResponsiveLayout implements HasDynami
     }
 
     @Override
-    public void onCreate(String name) {
-        workflowParameterService.create(WorkflowParameter.of(name), true);
+    public WorkflowParameter onCreate(String name) {
+        final var workflowParameter = workflowParameterService.create(WorkflowParameter.of(name), true);
         workflowParameterGrid.refreshPage();
+        return workflowParameter;
     }
 
     @Override

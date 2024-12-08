@@ -4,9 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.stream.Stream;
-
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
@@ -19,18 +16,6 @@ public final class ApplicationManager {
 
     public <T> T getBeanOfType(Class<T> clazz) {
         return applicationContext.getBean(clazz);
-    }
-
-    public <T> T getBeanOfTypeAndName(Class<T> clazz, String name) {
-        return applicationContext.getBean(name, clazz);
-    }
-
-    public <T> Collection<T> getBeansOfType(Class<T> clazz) {
-        return applicationContext.getBeansOfType(clazz).values();
-    }
-
-    public <T> Stream<T> getBeansOfTypeAsStream(Class<T> clazz) {
-        return getBeansOfType(clazz).stream();
     }
 
 }

@@ -10,6 +10,7 @@ import org.myworkflows.repository.WorkflowDefinitionRepository;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
+import static org.myworkflows.cache.CacheNameEnum.WORKFLOW_DEFINITION_NAME;
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 
 /**
@@ -25,7 +26,7 @@ public class WorkflowDefinitionService extends CacheableDataService<WorkflowDefi
     }
 
     @Override
-    @CachePut(cacheNames = "workflowDefinition", key = "#result.id")
+    @CachePut(cacheNames = WORKFLOW_DEFINITION_NAME, key = "#result.id")
     public WorkflowDefinition create(WorkflowDefinition workflowDefinition, boolean requiresPersistence) {
         if (requiresPersistence) {
             lock.lock();

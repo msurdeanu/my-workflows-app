@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
+import static org.myworkflows.cache.CacheNameEnum.WORKFLOW_TEMPLATE_NAME;
 
 /**
  * @author Mihai Surdeanu
@@ -28,7 +29,7 @@ public class WorkflowTemplateService extends CacheableDataService<WorkflowTempla
         super(applicationManager, CacheNameEnum.WORKFLOW_TEMPLATE);
     }
 
-    @CachePut(cacheNames = "workflowTemplate", key = "#result.id")
+    @CachePut(cacheNames = WORKFLOW_TEMPLATE_NAME, key = "#result.id")
     public WorkflowTemplate create(WorkflowTemplate workflowTemplate, boolean requiresPersistence) {
         lock.lock();
         try {
@@ -50,7 +51,7 @@ public class WorkflowTemplateService extends CacheableDataService<WorkflowTempla
         return workflowTemplate;
     }
 
-    @CacheEvict(cacheNames = "workflowTemplate", key = "#workflowTemplate.id")
+    @CacheEvict(cacheNames = WORKFLOW_TEMPLATE_NAME, key = "#workflowTemplate.id")
     public void delete(WorkflowTemplate workflowTemplate) {
         lock.lock();
         try {

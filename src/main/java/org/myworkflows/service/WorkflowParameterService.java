@@ -9,6 +9,8 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
+import static org.myworkflows.cache.CacheNameEnum.WORKFLOW_PARAMETER_NAME;
+
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
@@ -22,7 +24,7 @@ public class WorkflowParameterService extends CacheableDataService<WorkflowParam
     }
 
     @Override
-    @CachePut(cacheNames = "workflowParameter", key = "#result.name")
+    @CachePut(cacheNames = WORKFLOW_PARAMETER_NAME, key = "#result.name")
     public WorkflowParameter create(WorkflowParameter workflowParameter, boolean requiresPersistence) {
         if (requiresPersistence) {
             lock.lock();
@@ -45,7 +47,7 @@ public class WorkflowParameterService extends CacheableDataService<WorkflowParam
         }
     }
 
-    @CacheEvict(cacheNames = "workflowParameter", key = "#workflowParameter.name")
+    @CacheEvict(cacheNames = WORKFLOW_PARAMETER_NAME, key = "#workflowParameter.name")
     public void delete(WorkflowParameter workflowParameter) {
         lock.lock();
         try {

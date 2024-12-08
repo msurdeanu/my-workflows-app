@@ -21,6 +21,10 @@ public enum CacheNameEnum {
     DOC_PAGE("docPage"),
     DEFAULT("default");
 
+    public static final String WORKFLOW_PLACEHOLDER_NAME = "workflowPlaceholder";
+    public static final String WORKFLOW_PARAMETER_NAME = "workflowParameter";
+    public static final String WORKFLOW_DEFINITION_NAME = "workflowDefinition";
+    public static final String WORKFLOW_TEMPLATE_NAME = "workflowTemplate";
     public static final String WORKFLOW_RUN_NAME = "workflowRun";
     public static final String DOC_PAGE_NAME = "docPage";
 

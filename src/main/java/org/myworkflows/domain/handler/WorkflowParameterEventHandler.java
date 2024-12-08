@@ -8,7 +8,7 @@ import org.myworkflows.domain.WorkflowParameter;
  */
 public interface WorkflowParameterEventHandler {
 
-    void onCreate(String name);
+    WorkflowParameter onCreate(String name);
 
     void onDelete(WorkflowParameter workflowParameter);
 

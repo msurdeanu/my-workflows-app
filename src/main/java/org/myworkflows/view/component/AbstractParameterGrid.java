@@ -39,8 +39,7 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
     @Setter
     private Function<WorkflowParameter, Component> renderValueFunction = workflowParameter -> new SpanBadge(workflowParameter.getValue());
     @Setter
-    private Consumer<String> createConsumer = value -> {
-    };
+    private Function<String, WorkflowParameter> createFunction = value -> null;
     @Setter
     private Consumer<WorkflowParameter> updateConsumer = workflowParameter -> {
     };
@@ -119,7 +118,8 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
         actions.setPadding(false);
 
         actionColumn = paginatedGrid.addComponentColumn(parameter -> createActionComponent(parameter, editor))
-            .setHeader(new TextFieldWithEnterShortcut(createConsumer).allowedCharPatternAndPlaceholder("[a-zA-Z0-9_.]").small())
+            .setHeader(new TextFieldWithEnterShortcut(item -> paginatedGrid.getEditor().editItem(createFunction.apply(item)))
+                .allowedCharPatternAndPlaceholder("[a-zA-Z0-9_.]+").small())
             .setEditorComponent(actions);
 
         layout.add(paginatedGrid);

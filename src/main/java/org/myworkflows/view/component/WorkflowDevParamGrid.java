@@ -32,7 +32,11 @@ public final class WorkflowDevParamGrid extends AbstractParameterGrid {
             workflowParameterFields.put(workflowParameter.getName(), componentSupplierObject.getComponentValueSupplier());
             return componentSupplierObject.getComponent();
         });
-        setCreateConsumer(value -> addParameters(List.of(WorkflowParameter.of(value))));
+        setCreateFunction(value -> {
+            final var workflowParameter = WorkflowParameter.of(value);
+            addParameters(List.of(workflowParameter));
+            return workflowParameter;
+        });
         setDeleteConsumer(workflowParameter -> {
             workflowParameters.remove(workflowParameter);
             refreshPage();

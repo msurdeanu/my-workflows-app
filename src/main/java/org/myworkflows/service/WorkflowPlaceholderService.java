@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.myworkflows.cache.CacheNameEnum.WORKFLOW_PLACEHOLDER_NAME;
+
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
@@ -32,7 +34,7 @@ public class WorkflowPlaceholderService extends CacheableDataService<WorkflowPla
     }
 
     @Override
-    @CachePut(cacheNames = "workflowPlaceholder", key = "#result.name")
+    @CachePut(cacheNames = WORKFLOW_PLACEHOLDER_NAME, key = "#result.name")
     public WorkflowPlaceholder create(WorkflowPlaceholder workflowPlaceholder, boolean requiresPersistence) {
         if (requiresPersistence) {
             lock.lock();
@@ -55,7 +57,7 @@ public class WorkflowPlaceholderService extends CacheableDataService<WorkflowPla
         }
     }
 
-    @CacheEvict(cacheNames = "workflowPlaceholder", key = "#workflowPlaceholder.name")
+    @CacheEvict(cacheNames = WORKFLOW_PLACEHOLDER_NAME, key = "#workflowPlaceholder.name")
     public void delete(WorkflowPlaceholder workflowPlaceholder) {
         lock.lock();
         try {
