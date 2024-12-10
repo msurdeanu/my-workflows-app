@@ -14,19 +14,23 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.config.BaseConfig;
 import org.myworkflows.repository.MenuItemRepository;
 import org.myworkflows.view.transformer.MenuItemsToSideNavItemsTransformer;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.FileInputStream;
 import java.util.List;
 
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@Slf4j
 public class BaseLayout extends AppLayout {
 
     public BaseLayout(AuthenticationContext authContext, BaseConfig baseConfig, MenuItemRepository menuItemRepository) {
@@ -37,7 +41,7 @@ public class BaseLayout extends AppLayout {
 
     private void createHeader(AuthenticationContext authContext, BaseConfig baseConfig) {
         final var logoLayout = new HorizontalLayout();
-        final var logo = new Image(baseConfig.getLogoSrc(), baseConfig.getLogoAlt());
+        final var logo = loadLogoImage(baseConfig);
         logo.setHeight("44px");
         logoLayout.add(logo);
 
@@ -78,6 +82,20 @@ public class BaseLayout extends AppLayout {
         layout.addClassNames("flex", "items-center", "my-s", "px-m", "py-xs");
         layout.add(new Span("v" + baseConfig.getVersion()));
         return layout;
+    }
+
+    private Image loadLogoImage(BaseConfig baseConfig) {
+        final var logoSrc = baseConfig.getLogoSrc();
+        final var resource = new StreamResource("logo.png", () -> {
+            try {
+                log.debug("The app is trying to load logo image from file.");
+                return new FileInputStream(logoSrc);
+            } catch (Exception notUsed) {
+                log.debug("The app didn't succeed to load logo image from file, as fallback, it will load it from classpath.");
+                return getClass().getResourceAsStream(logoSrc);
+            }
+        });
+        return new Image(resource, baseConfig.getLogoAlt());
     }
 
 }

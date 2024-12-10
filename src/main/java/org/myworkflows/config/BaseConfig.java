@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "my-workflows.config.base")
 public class BaseConfig {
 
-    private String logoSrc = "logo.png";
+    private String logoSrc = "src/main/resources/META-INF/resources/logo.png";
     private String logoAlt = "My Workflows";
     private String version = "1.0";
 

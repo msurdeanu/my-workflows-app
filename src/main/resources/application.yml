@@ -49,7 +49,7 @@ logging:
 my-workflows:
   config:
     base:
-      logo-src: logo.png
+      logo-src: "src/main/resources/META-INF/resources/logo.png"
       logo-alt: "My Workflows"
       version: "1.0"
     encryption:
