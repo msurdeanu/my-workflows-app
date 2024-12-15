@@ -1,12 +1,12 @@
 # MyWorkflows
 
-[MyWorkflows](https://myworkflows.org) is a simple tool for helping you to automate manual tasks.
-You can encapsulate manual tasks as workflows, you can schedule them and see their output.
+[MyWorkflows](https://myworkflows.org) is a simple tool designed to help you automate manual tasks.
+It allows you to encapsulate manual tasks as workflows, schedule them, and view their outputs.
 
-Uses Java as programming language and Vaadin as UI framework.
+The tool uses Java as its programming language and Vaadin as its UI framework.
 
-This tool is perfect for small teams which are flooded by manual tasks day by day.
-All workflows are defined in JSON format and for playing with them, you have a nice UI.
+MyWorkflows is ideal for small teams overwhelmed by daily manual tasks.
+All workflows are defined in JSON format, and the tool provides an intuitive UI for interacting with them.
 
 ## Technology stack
 
@@ -22,15 +22,18 @@ All workflows are defined in JSON format and for playing with them, you have a n
 
 ## Features
 
-* **Modern** and **responsive** UI.
-* **Authentication** and **authorization** enabled by default.
-* Vaadin **Push** enabled. Through websockets, the server can send updates to the client.
-* Persistence layer based on **SQLite**.
-* Dedicated page for **workflow definition script development**, from where you can code your script, inject parameters,
-  run the script and see the output. The editor has auto complete to make your life easier.
-* Dedicated web pages for **workflow definitions**, **workflow templates** and **workflow runs**.
-* Dedicated web page for writing **markdown documentation**.
-* Dedicated web page for **statistics**.
+* **Modern and responsive UI** for an enhanced user experience.
+* **Authentication** and **authorization** enabled by default for secure access.
+* **Vaadin Push** enabled—using WebSockets, the server can send real-time updates to the client.
+* **Persistence layer** powered by **SQLite** for reliable data storage.
+* Dedicated page for **workflow definition script development**, allowing you to:
+  * Code your script.
+  * Inject parameters.
+  * Run the script and view its output.
+  * Benefit from an editor with auto-complete functionality to simplify your workflow scripting.
+* Dedicated web pages for managing **workflow placeholders**, **workflow definitions**, **workflow templates**, and **workflow runs**.
+* A dedicated web page for writing **markdown documentation** with ease.
+* A dedicated web page for viewing and analyzing **statistics**.
 
 ## TODOs
 
