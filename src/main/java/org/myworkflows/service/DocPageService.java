@@ -8,13 +8,13 @@ import org.myworkflows.domain.DocPage;
 import org.myworkflows.repository.DocPageRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static java.util.Optional.ofNullable;
 import static org.myworkflows.cache.CacheNameEnum.DOC_PAGE_NAME;
 
 /**
@@ -35,8 +35,9 @@ public class DocPageService implements ServiceCreator<DocPage> {
             .getCache(CacheNameEnum.DOC_PAGE.getName());
     }
 
+    @Cacheable(cacheNames = DOC_PAGE_NAME, key = "#name")
     public Optional<DocPage> findByName(String name) {
-        return ofNullable(cache.get(name, DocPage.class));
+        throw new UnsupportedOperationException("We should never get here!");
     }
 
     public Set<String> getAllNames() {
