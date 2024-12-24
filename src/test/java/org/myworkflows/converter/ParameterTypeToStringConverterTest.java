@@ -17,7 +17,7 @@ public final class ParameterTypeToStringConverterTest {
         final var parameterTypeToStringConverter = new ParameterTypeToStringConverter();
 
         assertNull(parameterTypeToStringConverter.convertToDatabaseColumn(null));
-        assertEquals("str", parameterTypeToStringConverter.convertToDatabaseColumn(WorkflowParameterType.STR));
+        assertEquals("s", parameterTypeToStringConverter.convertToDatabaseColumn(WorkflowParameterType.STR));
     }
 
     @Test
@@ -25,7 +25,7 @@ public final class ParameterTypeToStringConverterTest {
         final var parameterTypeToStringConverter = new ParameterTypeToStringConverter();
 
         assertNull(parameterTypeToStringConverter.convertToEntityAttribute(null));
-        assertEquals(WorkflowParameterType.INT, parameterTypeToStringConverter.convertToEntityAttribute("int"));
+        assertEquals(WorkflowParameterType.INT, parameterTypeToStringConverter.convertToEntityAttribute("i"));
     }
 
 }
