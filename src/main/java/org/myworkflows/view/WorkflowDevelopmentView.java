@@ -325,10 +325,13 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         if (parameters.isEmpty()) {
             return;
         }
-        boolean readOnly = ofNullable(parameters.get(READ_ONLY)).isPresent();
+        final var readOnly = ofNullable(parameters.get(READ_ONLY)).isPresent();
         editor.setReadOnly(readOnly);
         updateWorkflowButton.setVisible(!readOnly);
         workflowDevParamGrid.setReadOnly(readOnly);
+        if (readOnly) {
+            splitLayout.setSplitterPosition(30);
+        }
     }
 
     private void processRemainingQueryParams(QueryParameters queryParameters) {

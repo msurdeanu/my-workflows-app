@@ -87,6 +87,7 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
         typeField.setItems(WorkflowParameterType.values());
         typeField.setWidthFull();
         typeField.setAllowCustomValue(false);
+        typeField.setClearButtonVisible(true);
         typeField.setItemLabelGenerator(workflowParameterType -> getTranslation("workflow-parameter.type." + workflowParameterType.getValue()));
         binder.forField(typeField)
             .bind(WorkflowParameter::getType, WorkflowParameter::setType);
@@ -112,6 +113,8 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
             }
         });
         saveButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
+        clickSaveButtonOnEnterShortcut(typeField, saveButton);
+        clickSaveButtonOnEnterShortcut(valueField, saveButton);
         final var cancelButton = new Button(VaadinIcon.CLOSE.create(), event -> editor.cancel());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
         final var actions = new HorizontalLayout(saveButton, cancelButton);
@@ -145,6 +148,14 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
         deleteButton.addClickListener(event -> deleteConsumer.accept(workflowParameter));
         layout.add(editButton, deleteButton);
         return layout;
+    }
+
+    private void clickSaveButtonOnEnterShortcut(Component component, Button saveButton) {
+        component.getElement().addEventListener("keydown", event -> {
+            if ("Enter".equals(event.getEventData().getString("event.key"))) {
+                saveButton.click();
+            }
+        }).addEventData("event.key");
     }
 
 }

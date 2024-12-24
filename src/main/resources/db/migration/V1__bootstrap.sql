@@ -90,7 +90,7 @@ CREATE TABLE workflow_parameters
 );
 
 INSERT INTO workflow_parameters ("name", "type", "value")
-VALUES ('defaultSleepTime', 'int', 1000);
+VALUES ('defaultSleepTime', 'i', 1000);
 
 CREATE TABLE workflow_templates_workflow_parameters
 (

@@ -20,7 +20,7 @@ import static java.util.Optional.empty;
 @Getter
 @RequiredArgsConstructor
 public enum WorkflowParameterType {
-    STR("str") {
+    STR("s") {
         @Override
         public Object getComputedValue(String value) {
             return value;
@@ -31,7 +31,7 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
-    M_STR("m_str") {
+    M_STR("ms") {
         @Override
         public Object getComputedValue(String value) {
             return value;
@@ -42,7 +42,7 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
-    S_STR("s_str") {
+    S_STR("ss") {
         @Override
         public Object getComputedValue(String value) {
             return Arrays.asList(value.split(","));
@@ -53,7 +53,7 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
-    EMAIL("email") {
+    EMAIL("e") {
         @Override
         public Object getComputedValue(String value) {
             return value;
@@ -64,7 +64,7 @@ public enum WorkflowParameterType {
             return EmailValidator.getInstance().isValid(value) ? empty() : Optional.of("Invalid email address");
         }
     },
-    PASS("pass") {
+    PASS("p") {
         @Override
         public Object getComputedValue(String value) {
             return value;
@@ -75,7 +75,7 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
-    DATE("date") {
+    DATE("d") {
         @Override
         public Object getComputedValue(String value) {
             return LocalDate.parse(value);
@@ -91,7 +91,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    TIME("time") {
+    TIME("t") {
         @Override
         public Object getComputedValue(String value) {
             return LocalTime.parse(value);
@@ -107,7 +107,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    INT("int") {
+    INT("i") {
         @Override
         public Object getComputedValue(String value) {
             return Integer.valueOf(value);
@@ -123,7 +123,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    DOUBLE("dbl") {
+    DOUBLE("f") {
         @Override
         public Object getComputedValue(String value) {
             return Double.valueOf(value);
@@ -139,7 +139,7 @@ public enum WorkflowParameterType {
             }
         }
     },
-    BOOL("bool") {
+    BOOL("b") {
         @Override
         public Object getComputedValue(String value) {
             return Boolean.valueOf(value);
