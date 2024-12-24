@@ -1,6 +1,5 @@
 package org.myworkflows.view.component.html;
 
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
@@ -8,7 +7,6 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 
 import java.util.function.Consumer;
 
-import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -29,12 +27,14 @@ public final class TextFieldWithEnterShortcut extends TextField {
                     setErrorMessage(getTranslation("field.empty.error"));
                 }, () -> setInvalid(false));
         });
-        addShortcutListener(this, () -> {
-            final var value = getValue().trim();
-            if (!value.isEmpty()) {
-                valueConsumer.accept(value);
+        getElement().addEventListener("keydown", event -> {
+            if ("Enter".equals(event.getEventData().getString("event.key"))) {
+                final var value = getValue().trim();
+                if (!value.isEmpty()) {
+                    valueConsumer.accept(value);
+                }
             }
-        }, Key.ENTER);
+        }).addEventData("event.key");
     }
 
     public TextFieldWithEnterShortcut allowedCharPatternAndPlaceholder(String regexPattern) {
