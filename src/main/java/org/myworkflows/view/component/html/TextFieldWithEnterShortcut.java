@@ -8,6 +8,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import java.util.function.Consumer;
 
 import static java.util.Optional.ofNullable;
+import static org.myworkflows.view.util.KeyboardUtil.addKeydownEventListener;
 
 /**
  * @author Mihai Surdeanu
@@ -19,22 +20,18 @@ public final class TextFieldWithEnterShortcut extends TextField {
         setWidthFull();
         setSuffixComponent(VaadinIcon.ENTER.create());
         setValueChangeMode(ValueChangeMode.EAGER);
-        addValueChangeListener(event -> {
-            ofNullable(event.getValue())
-                .filter(item -> item.trim().isEmpty())
-                .ifPresentOrElse(item -> {
-                    setInvalid(true);
-                    setErrorMessage(getTranslation("field.empty.error"));
-                }, () -> setInvalid(false));
-        });
-        getElement().addEventListener("keydown", event -> {
-            if ("Enter".equals(event.getEventData().getString("event.key"))) {
-                final var value = getValue().trim();
-                if (!value.isEmpty()) {
-                    valueConsumer.accept(value);
-                }
+        addValueChangeListener(event -> ofNullable(event.getValue())
+            .filter(item -> item.trim().isEmpty())
+            .ifPresentOrElse(item -> {
+                setInvalid(true);
+                setErrorMessage(getTranslation("field.empty.error"));
+            }, () -> setInvalid(false)));
+        addKeydownEventListener(getElement(), event -> {
+            final var value = getValue().trim();
+            if (!value.isEmpty()) {
+                valueConsumer.accept(value);
             }
-        }).addEventData("event.key");
+        }, "Enter");
     }
 
     public TextFieldWithEnterShortcut allowedCharPatternAndPlaceholder(String regexPattern) {

@@ -2,6 +2,8 @@ package org.myworkflows.serializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -27,11 +29,15 @@ public final class JsonFactory {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    private static final DefaultPrettyPrinter PRETTY_PRINTER = new DefaultPrettyPrinter();
+
     static {
         MAPPER.registerModule(new JavaTimeModule());
 
         MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+        PRETTY_PRINTER.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
     }
 
     public static <T> T fromJsonToObject(String content, Class<T> clazz) {
@@ -60,7 +66,7 @@ public final class JsonFactory {
             if (object instanceof String objectAsString) {
                 newObject = MAPPER.readTree(objectAsString);
             }
-            return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(newObject);
+            return MAPPER.writer(PRETTY_PRINTER).writeValueAsString(newObject);
         } catch (IOException exception) {
             return defaultValue;
         }
