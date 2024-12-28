@@ -11,6 +11,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
+import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.filter.WorkflowRunFilter;
@@ -56,7 +57,7 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
 
         add(createHeader(getTranslation("workflow-runs.page.title"), createFilterByTemplate(), createFilterByRunId()));
         add(createContent(workflowRunGrid));
-        add(createFooter());
+        add(createFooter(applicationManager.getBeanOfType(BaseConfig.class)));
     }
 
     @Override

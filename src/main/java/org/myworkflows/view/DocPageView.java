@@ -22,6 +22,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
 import jakarta.annotation.security.PermitAll;
 import org.apache.commons.lang3.StringUtils;
+import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.DocPage;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.handler.DocPageEventHandler;
@@ -59,7 +60,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
 
     private boolean editable;
 
-    public DocPageView(DocPageService docPageService) {
+    public DocPageView(BaseConfig baseConfig, DocPageService docPageService) {
         this.docPageService = docPageService;
 
         docPageService.getAllNames().forEach(name -> {
@@ -83,7 +84,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
             header = createHeader(getTranslation("doc-pages.page.title"), createSwitchModeButton());
         }
 
-        add(header, createContent(tabs, tabContent), createFooter());
+        add(header, createContent(tabs, tabContent), createFooter(baseConfig));
     }
 
     @Override

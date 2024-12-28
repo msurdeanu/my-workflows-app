@@ -9,6 +9,7 @@ import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
+import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.handler.WorkflowParameterEventHandler;
 import org.myworkflows.domain.filter.WorkflowParameterFilter;
@@ -36,7 +37,7 @@ public class WorkflowParameterView extends ResponsiveLayout implements HasDynami
 
     private final WorkflowParameterService workflowParameterService;
 
-    public WorkflowParameterView(WorkflowParameterService workflowParameterService) {
+    public WorkflowParameterView(BaseConfig baseConfig, WorkflowParameterService workflowParameterService) {
         super();
         this.workflowParameterService = workflowParameterService;
 
@@ -50,7 +51,7 @@ public class WorkflowParameterView extends ResponsiveLayout implements HasDynami
 
         add(createHeader(getTranslation("workflow-params.page.title"), createFilterByName()));
         add(createContent(workflowParameterGrid));
-        add(createFooter());
+        add(createFooter(baseConfig));
     }
 
     @Override

@@ -9,6 +9,7 @@ import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
+import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.WorkflowPlaceholder;
 import org.myworkflows.domain.filter.WorkflowPlaceholderFilter;
 import org.myworkflows.domain.handler.WorkflowPlaceholderEventHandler;
@@ -36,7 +37,7 @@ public class WorkflowPlaceholderView extends ResponsiveLayout implements HasDyna
 
     private final WorkflowPlaceholderService workflowPlaceholderService;
 
-    public WorkflowPlaceholderView(WorkflowPlaceholderService workflowPlaceholderService) {
+    public WorkflowPlaceholderView(BaseConfig baseConfig, WorkflowPlaceholderService workflowPlaceholderService) {
         super();
         this.workflowPlaceholderService = workflowPlaceholderService;
 
@@ -50,7 +51,7 @@ public class WorkflowPlaceholderView extends ResponsiveLayout implements HasDyna
 
         add(createHeader(getTranslation("workflow-placeholders.page.title"), createFilterByName()));
         add(createContent(workflowPlaceholderGrid));
-        add(createFooter());
+        add(createFooter(baseConfig));
     }
 
     @Override

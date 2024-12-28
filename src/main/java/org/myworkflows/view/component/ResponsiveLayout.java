@@ -9,6 +9,7 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.shared.Registration;
+import org.myworkflows.config.BaseConfig;
 
 /**
  * @author Mihai Surdeanu
@@ -67,10 +68,10 @@ public abstract class ResponsiveLayout extends FlexLayout implements HasResizeab
         return contentDiv;
     }
 
-    protected Component createFooter() {
+    protected Component createFooter(BaseConfig baseConfig) {
         final var footerDiv = new Div();
         footerDiv.addClassName("footer");
-        footerDiv.add(new Html(getTranslation("footer.copyright")));
+        footerDiv.add(new Html(getTranslation("footer.copyright", baseConfig.getUrl(), baseConfig.getName())));
         return footerDiv;
     }
 

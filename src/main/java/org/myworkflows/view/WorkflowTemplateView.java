@@ -12,6 +12,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowTemplate;
@@ -47,7 +48,8 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
 
     private final WorkflowTemplateGrid workflowDefinitionGrid;
 
-    public WorkflowTemplateView(WorkflowTemplateService workflowTemplateService,
+    public WorkflowTemplateView(BaseConfig baseConfig,
+                                WorkflowTemplateService workflowTemplateService,
                                 WorkflowDefinitionService workflowDefinitionService,
                                 WorkflowParameterRepository workflowParameterRepository) {
         super();
@@ -64,7 +66,7 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
 
         add(createHeader(getTranslation("workflow-templates.page.title"), createFilterByName()));
         add(createContent(workflowDefinitionGrid));
-        add(createFooter());
+        add(createFooter(baseConfig));
     }
 
     @Override

@@ -3,6 +3,7 @@ package org.myworkflows.view;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import org.myworkflows.config.BaseConfig;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.provider.StatisticProvider;
@@ -20,10 +21,10 @@ public class StatisticView extends ResponsiveLayout implements HasDynamicTitle {
 
     public static final String ROUTE = "statistics";
 
-    public StatisticView(List<StatisticProvider> statisticProviders) {
+    public StatisticView(BaseConfig baseConfig, List<StatisticProvider> statisticProviders) {
         add(createHeader(getTranslation("statistics.page.title")),
                 createContent(new StatisticTreeGrid(statisticProviders)),
-                createFooter());
+                createFooter(baseConfig));
     }
 
     @Override

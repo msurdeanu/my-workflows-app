@@ -55,7 +55,7 @@ public final class WorkflowPrintDetailsFormLayout extends FormLayout {
         final var textArea = new TextArea();
         textArea.setTooltipText(getTranslation("workflow-print.grid.details.tooltip", type, name));
         textArea.setValue(value);
-        textArea.scrollToEnd();
+        textArea.focus();
         return textArea;
     }
 

@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
+import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
@@ -115,7 +116,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         shareButton = createShareButton();
         add(createHeader(getTranslation("workflow-development.page.title"), shareButton, filterByDefinition),
             createContent(splitLayout),
-            createFooter());
+            createFooter(applicationManager.getBeanOfType(BaseConfig.class)));
     }
 
     @Override

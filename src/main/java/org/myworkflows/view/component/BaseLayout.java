@@ -95,7 +95,7 @@ public class BaseLayout extends AppLayout {
                 return getClass().getResourceAsStream(logoSrc);
             }
         });
-        return new Image(resource, baseConfig.getLogoAlt());
+        return new Image(resource, baseConfig.getName());
     }
 
 }
