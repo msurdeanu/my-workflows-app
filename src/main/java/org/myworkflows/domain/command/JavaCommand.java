@@ -2,8 +2,6 @@ package org.myworkflows.domain.command;
 
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.janino.SimpleCompiler;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.WorkflowRun;
@@ -13,7 +11,6 @@ import org.myworkflows.domain.command.api.ExecutionParam;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.holder.ParentClassLoaderHolder;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -43,7 +40,8 @@ public final class JavaCommand extends AbstractCommand {
                        @ExecutionParam List<String> scriptLines,
                        @ExecutionParam(required = false, defaultValue = "run") String method,
                        @ExecutionParam(required = false, defaultValue = "DynamicClass") String clazz,
-                       @ExecutionParam(required = false) List<String> files) {
+                       @ExecutionParam(required = false, defaultValue = "11") Number sourceVersion,
+                       @ExecutionParam(required = false, defaultValue = "11") Number targetVersion) {
         if (scriptLines.isEmpty()) {
             return null;
         }
@@ -52,7 +50,8 @@ public final class JavaCommand extends AbstractCommand {
         try {
             final var compiler = new SimpleCompiler();
             compiler.setParentClassLoader(ParentClassLoaderHolder.INSTANCE.getClassLoader());
-            processFiles(compiler, files);
+            compiler.setSourceVersion(sourceVersion.intValue());
+            compiler.setTargetVersion(targetVersion.intValue());
             compiler.cook(resolvedScriptLines);
 
             final var dynamicClass = compiler.getClassLoader().loadClass(clazz);
@@ -63,14 +62,6 @@ public final class JavaCommand extends AbstractCommand {
         } catch (Exception exception) {
             log.debug("Command '{}' thrown an exception.", getName(), exception);
             throw new WorkflowRuntimeException(exception);
-        }
-    }
-
-    private void processFiles(SimpleCompiler compiler, List<String> files) throws CompileException, IOException {
-        for (String file: files) {
-            if (!StringUtils.EMPTY.equals(file)) {
-                compiler.cookFile(file);
-            }
         }
     }
 

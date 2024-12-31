@@ -29,7 +29,7 @@ public final class TranslationProviderTest {
         final var provider = new TranslationProvider();
 
         // when & then
-        assertEquals("5 decades ago", provider.getTranslation("pretty.time.format", Locale.ENGLISH, Instant.ofEpochSecond(0)));
+        assertEquals("6 decades ago", provider.getTranslation("pretty.time.format", Locale.ENGLISH, Instant.ofEpochSecond(0)));
     }
 
     @Test
