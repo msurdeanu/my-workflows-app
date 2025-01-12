@@ -157,7 +157,8 @@ public abstract class AbstractCommand {
     }
 
     private void runOutputs(Object output, WorkflowRunCache workflowRunCache, Object innerObject) {
-        ofNullable(innerObject).ifPresentOrElse(inner -> outputs.forEach(out -> workflowRunCache.putAsMap(out.getName(), inner, out.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache, OUTPUT, output)))),
+        ofNullable(innerObject).ifPresentOrElse(inner -> outputs.forEach(out -> workflowRunCache.putAsMap(out.getName(), inner,
+                out.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache, OUTPUT, output)))),
             () -> outputs.forEach(out -> workflowRunCache.put(out.getName(), out.evaluate(Map.of(WORKFLOW_CACHE, workflowRunCache, OUTPUT, output)))));
     }
 
