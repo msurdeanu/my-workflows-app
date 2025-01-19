@@ -172,11 +172,7 @@ public final class InternalCache implements org.springframework.cache.Cache {
     }
 
     private Object removeItemFromTheList() {
-        if (cacheOrder == InternalCacheOrder.FIFO) {
-            return keys.removeFirst();
-        } else {
-            return keys.removeLast();
-        }
+        return cacheOrder == InternalCacheOrder.FIFO ? keys.removeFirst() : keys.removeLast();
     }
 
     private <K, V> V applyFunctionInsideOptimisticReadBlock(K key, Function<K, V> function) {
