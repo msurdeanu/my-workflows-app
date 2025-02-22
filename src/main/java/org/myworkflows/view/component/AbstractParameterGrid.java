@@ -5,12 +5,14 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.ComboBoxVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextFieldVariant;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.Validator;
@@ -86,6 +88,7 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(WorkflowParameter::getName).setHeader(getTranslation(id + ".grid.name.column"));
 
         final var typeField = new ComboBox<WorkflowParameterType>();
+        typeField.addThemeVariants(ComboBoxVariant.LUMO_SMALL);
         typeField.setItems(WorkflowParameterType.values());
         typeField.setWidthFull();
         typeField.setAllowCustomValue(false);
@@ -98,6 +101,7 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
             .setEditorComponent(typeField);
 
         final var valueField = new TextField();
+        valueField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
         valueField.setWidthFull();
         binder.forField(valueField)
             .withValidator((Validator<String>) (value, valueContext) -> WorkflowParameter.validateTypeAndValue(typeField.getValue(), value)

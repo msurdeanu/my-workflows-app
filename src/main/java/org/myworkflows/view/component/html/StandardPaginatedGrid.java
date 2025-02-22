@@ -10,14 +10,14 @@ import org.vaadin.klaudeta.PaginatedGrid;
 public final class StandardPaginatedGrid<T, F> extends PaginatedGrid<T, F> {
 
     public StandardPaginatedGrid() {
-        this(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
+        this(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
     }
 
     public StandardPaginatedGrid(GridVariant... variants) {
         setEmptyStateText(getTranslation("paginated-grid.no-result"));
         setPageSize(10);
         setPaginatorSize(5);
-        addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
+        addThemeVariants(variants);
     }
 
 }

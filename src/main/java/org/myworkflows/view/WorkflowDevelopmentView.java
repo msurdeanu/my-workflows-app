@@ -57,6 +57,7 @@ import org.myworkflows.view.util.EditorAutoCompleteUtil;
 import org.myworkflows.view.util.RequestUtil;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.IntStream;
@@ -102,7 +103,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         editor.setMode(AceMode.json);
         editor.setSofttabs(true);
         editor.setTabSize(2);
-        editor.setHeight("400px");
+        editor.setHeight("450px");
         editor.addFocusShortcut(Key.KEY_E, KeyModifier.ALT);
         editor.setAutoComplete(true);
         editor.setLiveAutocompletion(true);
@@ -134,7 +135,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
                 onFilterByDefinition(workflowDefinition);
                 processReadOnlyParamIfPresent(beforeEvent.getLocation().getQueryParameters());
             });
-        processRemainingQueryParams(beforeEvent.getLocation().getQueryParameters());
+        processRemainingQueryParams(beforeEvent.getLocation().getQueryParameters().getParameters());
     }
 
     @Override
@@ -335,15 +336,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         }
     }
 
-    private void processRemainingQueryParams(QueryParameters queryParameters) {
-        final var parameters = queryParameters.getParameters();
-        if (parameters.isEmpty()) {
+    private void processRemainingQueryParams(Map<String, List<String>> queryParameters) {
+        if (queryParameters.isEmpty()) {
             return;
         }
-        final var names = parameters.getOrDefault("n", List.of());
+        final var names = queryParameters.getOrDefault("n", List.of());
         workflowDevParamGrid.addParameters(IntStream.range(0, names.size()).boxed().flatMap(index -> {
-            final var type = ListUtil.getValueAtIndex(parameters.getOrDefault("t", List.of()), index, WorkflowParameterType.STR.getValue());
-            final var value = ListUtil.getValueAtIndex(parameters.getOrDefault("v", List.of()), index, StringUtils.EMPTY);
+            final var type = ListUtil.getValueAtIndex(queryParameters.getOrDefault("t", List.of()), index, WorkflowParameterType.STR.getValue());
+            final var value = ListUtil.getValueAtIndex(queryParameters.getOrDefault("v", List.of()), index, StringUtils.EMPTY);
             final var workflowParameterType = ofNullable(WorkflowParameterType.of(type)).orElse(WorkflowParameterType.STR);
             return workflowParameterType.validate(value)
                 .<Stream<WorkflowParameter>>map(error -> Stream.empty())

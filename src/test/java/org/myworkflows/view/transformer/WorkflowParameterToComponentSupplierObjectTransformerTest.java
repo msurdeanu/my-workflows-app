@@ -44,7 +44,7 @@ public final class WorkflowParameterToComponentSupplierObjectTransformerTest {
     public void whenWorkflowParameterIsAPassThenATextFieldIsCreated() {
         testScenario(WorkflowParameter.of("test", WorkflowParameterType.PASS, "value"),
             field -> assertEquals("value", field.getValue()),
-            componentValue -> assertEquals("value", componentValue), PasswordField.class);
+            componentValue -> assertEquals("", componentValue), PasswordField.class);
     }
 
     @Test

@@ -22,6 +22,7 @@ import com.vaadin.flow.server.VaadinService;
 import jakarta.servlet.http.Cookie;
 import lombok.Builder;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.WorkflowParameter;
 
 import java.time.LocalDate;
@@ -104,7 +105,7 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
             .component(passwordField)
             .componentValueSupplier(ComponentValueSupplier.builder()
                 .valueSupplier(passwordField::getValue)
-                .valueAsStringSupplier(passwordField::getValue)
+                .valueAsStringSupplier(() -> StringUtils.EMPTY) // avoid to expose passwords when Share button is used
                 .build())
             .build();
     }

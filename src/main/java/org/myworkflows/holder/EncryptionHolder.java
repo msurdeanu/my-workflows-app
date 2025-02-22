@@ -39,7 +39,7 @@ public enum EncryptionHolder {
             cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
             return ofNullable(Base64.getEncoder().encodeToString(cipher.doFinal(value.getBytes(CHARSET))));
         } catch (Exception exception) {
-            log.warn("An exception occurred during process of encrypting a value using AES.", exception);
+            log.warn("An exception occurred during process of encrypting value using AES.", exception);
             return empty();
         }
     }
@@ -50,7 +50,7 @@ public enum EncryptionHolder {
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
             return of(new String(cipher.doFinal(Base64.getDecoder().decode(value))));
         } catch (Exception exception) {
-            log.warn("An exception occurred during process of encrypting a value using AES.", exception);
+            log.warn("An exception occurred during process of decrypting value using AES.", exception);
             return empty();
         }
     }
