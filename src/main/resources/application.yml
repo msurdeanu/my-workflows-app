@@ -28,6 +28,9 @@ spring:
     driver-class-name: org.sqlite.JDBC
   mustache:
     check-template-location: false
+  threads:
+    virtual:
+      enabled: true
 
 logging:
   pattern:
@@ -57,16 +60,3 @@ my-workflows:
       algorithm: "AES"
       # Secret key used to encrypt cookies internally for storing sensitive data
       secret-key: "$2a$10$2KfdoXL0u.t4WnK7h9PZjOLnJZir7yvD3i84SlPI4k3oChci0ZR2"
-    executor:
-      # Number of threads used to schedule workflow templates using cron-jobs.
-      workflow-scheduler-pool-size: 4
-      # Number of threads part of workflow pool size.
-      # Those threads are eligible to process submitted workflows.
-      workflow-pool-size: 4
-      # Capacity for workflow pool queue
-      workflow-pool-capacity: 1000
-      # Number of threads part of event pool size.
-      # Multiple components part of this tool needs to communicate in async mode.
-      event-pool-size: 2
-      # Capacity for event pool queue
-      event-pool-capacity: 1000

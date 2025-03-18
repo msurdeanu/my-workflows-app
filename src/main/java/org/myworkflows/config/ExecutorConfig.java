@@ -6,11 +6,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author Mihai Surdeanu
@@ -22,42 +21,16 @@ import java.util.concurrent.TimeUnit;
 @EnableScheduling
 public class ExecutorConfig {
 
-    private int workflowSchedulerPoolSize = 4;
-
-    private int workflowPoolSize = 8;
-    private int workflowPoolCapacity = 1_000;
-
-    private int eventPoolSize = 4;
-    private int eventPoolCapacity = 1_000;
-
     @Bean(name = "workflow-scheduler-pool")
     public TaskScheduler workflowSchedulerPool() {
-        final var threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(workflowSchedulerPoolSize);
-        threadPoolTaskScheduler.setThreadNamePrefix("workflow-scheduler-");
-        threadPoolTaskScheduler.initialize();
-
-        return threadPoolTaskScheduler;
+        final var virtualThreadFactory = Thread.ofVirtual().factory();
+        final var virtualThreadScheduler = Executors.newScheduledThreadPool(1, virtualThreadFactory);
+        return new ConcurrentTaskScheduler(virtualThreadScheduler);
     }
 
     @Bean(name = "workflow-pool")
-    public ThreadPoolExecutor workflowPool() {
-        final var threadPoolExecutor = new ThreadPoolExecutor(workflowPoolSize, workflowPoolSize,
-                60L, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(workflowPoolCapacity),
-                new ThreadPoolExecutor.CallerRunsPolicy());
-        threadPoolExecutor.allowCoreThreadTimeOut(true);
-        return threadPoolExecutor;
-    }
-
-    @Bean(name = "event-pool")
-    public ThreadPoolExecutor eventPool() {
-        final var threadPoolExecutor = new ThreadPoolExecutor(eventPoolSize, eventPoolSize,
-                60L, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(eventPoolCapacity),
-                new ThreadPoolExecutor.CallerRunsPolicy());
-        threadPoolExecutor.allowCoreThreadTimeOut(true);
-        return threadPoolExecutor;
+    public ExecutorService workflowPool() {
+        return Executors.newVirtualThreadPerTaskExecutor();
     }
 
 }

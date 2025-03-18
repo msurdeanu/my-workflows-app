@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import static java.util.Optional.ofNullable;
@@ -25,42 +27,52 @@ public final class EventBroadcaster {
 
     private final Map<Class<? extends Event>, List<Consumer<Event>>> consumersMap = new HashMap<>();
 
-    private final ThreadPoolExecutor threadPoolExecutor;
+    private final Lock lock = new ReentrantLock();
 
-    public EventBroadcaster(@Qualifier("event-pool") ThreadPoolExecutor threadPoolExecutor) {
-        this.threadPoolExecutor = threadPoolExecutor;
+    private final ExecutorService executorService;
+
+    public EventBroadcaster(@Qualifier("workflow-pool") ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
-    public synchronized void broadcast(Event event) {
+    public void broadcast(Event event) {
         broadcast(event, 0);
     }
 
-    public synchronized void broadcast(Event event, long millisDelay) {
-        ofNullable(consumersMap.get(event.getClass()))
-            .orElse(List.of())
-            .forEach(consumer -> threadPoolExecutor.execute(() -> {
-                if (millisDelay > 0) {
-                    safeSleep(millisDelay);
-                }
-                consumer.accept(event);
-            }));
+    public void broadcast(Event event, long millisDelay) {
+        lock.lock();
+        try {
+            ofNullable(consumersMap.get(event.getClass()))
+                    .orElse(List.of())
+                    .forEach(consumer -> executorService.execute(() -> {
+                        if (millisDelay > 0) {
+                            safeSleep(millisDelay);
+                        }
+                        consumer.accept(event);
+                    }));
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public synchronized Registration register(Consumer<Event> consumer, Class<? extends Event> acceptedEvent) {
+    public Registration register(Consumer<Event> consumer, Class<? extends Event> acceptedEvent) {
         ofNullable(consumersMap.get(acceptedEvent)).ifPresentOrElse(
-            consumers -> consumers.add(consumer),
-            () -> consumersMap.put(acceptedEvent, new ArrayList<>(List.of(consumer)))
+                consumers -> consumers.add(consumer),
+                () -> consumersMap.put(acceptedEvent, new ArrayList<>(List.of(consumer)))
         );
 
         log.debug("A new broadcast consumer is registered for event type '{}'.", acceptedEvent.getName());
 
         return () -> {
-            synchronized (EventBroadcaster.class) {
+            lock.lock();
+            try {
                 ofNullable(consumersMap.get(acceptedEvent)).ifPresent(items -> {
                     items.remove(consumer);
 
                     log.debug("A new broadcast consumer is de-registered for event type '{}'.", acceptedEvent.getName());
                 });
+            } finally {
+                lock.unlock();
             }
         };
     }

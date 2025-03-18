@@ -63,6 +63,7 @@ public class WorkflowRun {
     @Column(name = "failure_message")
     private String failureMessage;
 
+    @Getter
     private long duration = -1;
 
     @Getter

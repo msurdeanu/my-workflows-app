@@ -31,12 +31,13 @@ import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.f0rce.ace.AceEditor;
 import de.f0rce.ace.enums.AceMode;
-import jakarta.annotation.security.RolesAllowed;
+import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.config.BaseConfig;
+import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
@@ -73,7 +74,7 @@ import static org.myworkflows.serializer.JsonFactory.toPrettyString;
  * @since 1.0.0
  */
 @Slf4j
-@RolesAllowed("ROLE_ADMIN")
+@PermitAll
 @Route(value = WorkflowDevelopmentView.ROUTE, layout = BaseLayout.class)
 public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResizeableWidth, HasDynamicTitle, HasUrlParameter<Integer> {
 
@@ -85,6 +86,11 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private final Div currentWorkflowStatus = new Div();
     private final WorkflowDevParamGrid workflowDevParamGrid = new WorkflowDevParamGrid();
     private final WorkflowPrintGrid workflowPrintGrid = new WorkflowPrintGrid();
+    private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
+    private final Button updateWorkflowButton = new Button(getTranslation("workflow-development.update.button"),
+        new Icon(VaadinIcon.UPLOAD));
+    private final Button runWorkflowButton = new Button(getTranslation("workflow-development.run.button"),
+        new Icon(VaadinIcon.PLAY));
 
     private final ApplicationManager applicationManager;
     private final SplitLayout splitLayout;
@@ -94,8 +100,6 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private Registration onSubmittedRegistration;
     private Registration onProgressRegistration;
     private UUID lastSubmittedUuid;
-    private final Button updateWorkflowButton = new Button(getTranslation("workflow-development.update.button"),
-        new Icon(VaadinIcon.UPLOAD));
 
     public WorkflowDevelopmentView(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
@@ -223,8 +227,10 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private void onFilterByDefinition(WorkflowDefinition workflowDefinition) {
         filterByDefinition.setValue(workflowDefinition);
         editor.setValue(toPrettyString(workflowDefinition.getScript(), StringUtils.EMPTY));
-        updateWorkflowButton.setEnabled(true);
-        shareButton.setEnabled(true);
+        if (isLoggedAsAdmin) {
+            updateWorkflowButton.setEnabled(true);
+            shareButton.setEnabled(true);
+        }
     }
 
     private SplitLayout createBody() {
@@ -242,8 +248,6 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         defDetails.setOpened(true);
         defDetails.setWidthFull();
 
-        final var runWorkflowButton = new Button(getTranslation("workflow-development.run.button"),
-            new Icon(VaadinIcon.PLAY));
         runWorkflowButton.setIconAfterText(true);
         runWorkflowButton.addClickListener(event -> {
             lastSubmittedUuid = UUID.randomUUID();
@@ -254,6 +258,9 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
                 .build());
         });
         runWorkflowButton.addClickShortcut(Key.KEY_R, KeyModifier.CONTROL, KeyModifier.ALT).resetFocusOnActiveElement();
+        if (!isLoggedAsAdmin) {
+            runWorkflowButton.setEnabled(false);
+        }
         runWorkflowButton.setWidthFull();
 
         updateWorkflowButton.setEnabled(false);
@@ -332,6 +339,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         updateWorkflowButton.setVisible(!readOnly);
         workflowDevParamGrid.setReadOnly(readOnly);
         if (readOnly) {
+            runWorkflowButton.setEnabled(true);
             splitLayout.setSplitterPosition(30);
         }
     }

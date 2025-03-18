@@ -33,6 +33,9 @@ public class User {
     private String password;
 
     @Getter
+    private String token;
+
+    @Getter
     @Setter
     private String role;
 

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
@@ -35,13 +35,13 @@ import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
 @Service
 public final class WorkflowScriptService implements EventListener<WorkflowDefinitionOnSubmitEvent> {
 
-    private final ThreadPoolExecutor threadPoolExecutor;
+    private final ExecutorService executorService;
 
     private final ApplicationManager applicationManager;
 
-    public WorkflowScriptService(@Qualifier("workflow-pool") ThreadPoolExecutor threadPoolExecutor,
+    public WorkflowScriptService(@Qualifier("workflow-pool") ExecutorService executorService,
                                  ApplicationManager applicationManager) {
-        this.threadPoolExecutor = threadPoolExecutor;
+        this.executorService = executorService;
         this.applicationManager = applicationManager;
     }
 
@@ -81,7 +81,7 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
     private WorkflowRun submit(WorkflowDefinitionScript workflowDefinitionScript,
                                WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var workflowRun = onSubmitEvent.getWorkflowRun();
-        final var future = threadPoolExecutor.submit(() -> runSynchronously(workflowDefinitionScript, workflowRun, onSubmitEvent.getToken()));
+        final var future = executorService.submit(() -> runSynchronously(workflowDefinitionScript, workflowRun, onSubmitEvent.getToken()));
         workflowRun.setFuture(future);
         return workflowRun;
     }
