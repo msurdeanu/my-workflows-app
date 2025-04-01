@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.3</version>
+        <version>3.4.4</version>
     </parent>
 
     <properties>
@@ -23,12 +23,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <vaadin.version>24.6.6</vaadin.version>
-        <flyway-core.version>11.3.4</flyway-core.version>
+        <vaadin.version>24.7.1</vaadin.version>
+        <flyway-core.version>11.5.0</flyway-core.version>
         <markdown-editor-addon.version>1.1.0</markdown-editor-addon.version>
         <grid-pagination.version>4.0.1</grid-pagination.version>
         <ace.version>3.4.2</ace.version>
-        <lombok.version>1.18.36</lombok.version>
+        <lombok.version>1.18.38</lombok.version>
         <prettytime.version>5.0.9.Final</prettytime.version>
         <groovy.version>4.0.26</groovy.version>
         <janino.version>3.1.12</janino.version>

@@ -23,6 +23,8 @@ public final class CookieUtil {
 
     public static Cookie createSimpleCookie(String name, String value) {
         final var cookie = new Cookie(name, value);
+        cookie.setSecure(true);
+        cookie.setHttpOnly(true);
         cookie.setMaxAge((int) TimeUnit.DAYS.toSeconds(COOKIE_EXPIRY_DAYS));
         return cookie;
     }

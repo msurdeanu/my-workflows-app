@@ -26,9 +26,9 @@ public final class ExceptionUtilTest {
         // when
         final var messageAndCause = getMessageAndCause(new WorkflowRuntimeException(new WorkflowRuntimeException("My root cause")));
         // then
-        assertTrue(messageAndCause.contains("Cause type: WorkflowRuntimeException"));
-        assertTrue(messageAndCause.contains("Cause message: My root cause"));
-        assertTrue(messageAndCause.contains("Cause stacktrace:"));
+        assertTrue(messageAndCause.contains("Type: WorkflowRuntimeException"));
+        assertTrue(messageAndCause.contains("Message: My root cause"));
+        assertTrue(messageAndCause.contains("Stacktrace:"));
     }
 
 }

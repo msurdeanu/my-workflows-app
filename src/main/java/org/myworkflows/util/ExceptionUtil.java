@@ -27,19 +27,19 @@ public final class ExceptionUtil {
     }
 
     private static String formatCause(Throwable cause) {
-        final var builder = new StringBuilder(" Cause type: ");
+        final var builder = new StringBuilder(". Type: ");
         builder.append(cause.getClass().getSimpleName());
         builder.append(DOT);
 
         ofNullable(cause.getMessage()).ifPresent(causeMessage -> {
-            builder.append(" Cause message: ");
+            builder.append(" Message: ");
             builder.append(causeMessage);
             builder.append(DOT);
         });
 
         final var stackTrace = cause.getStackTrace();
         if (stackTrace.length > 0) {
-            builder.append(" Cause stacktrace: ");
+            builder.append(" Stacktrace: ");
             builder.append(stackTrace[0]);
             builder.append(DOT);
         }

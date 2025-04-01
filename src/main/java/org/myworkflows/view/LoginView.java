@@ -28,7 +28,7 @@ public class LoginView extends Composite<VerticalLayout> implements BeforeEnterO
         layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
         loginForm.setForgotPasswordButtonVisible(false);
-        loginForm.setAction("login");
+        loginForm.setAction(ROUTE);
         layout.add(loginForm);
 
         return layout;

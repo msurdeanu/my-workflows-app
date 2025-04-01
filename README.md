@@ -256,6 +256,40 @@ Shortcuts are present for multiple views, and they are here to improve your expe
     * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>W</kbd> = wraps / unwraps the code present inside the editor. Needs editor
       focus.
 
+#### REST API interface
+
+The app provides also a REST API interface that can be used to interact with the app in a programmatic mode.
+Each user has a `token` field (usually 64 random characters) which represents the API token that can be used to
+authenticate REST API calls. The token is unique across all users, so, we cannot have two users with the same token.
+
+In order to authenticate all REST API calls, you need to fill URL parameter `token` for each request performed:
+`GET:https://myworkflows.org/workflow-definitions?token={TOKEN}`.
+
+The following APIs are available for you:
+
+##### `WorkflowDefinition` APIs
+
+| Method | URI                                              | Description                                                                                                                                                                                                                                                      |
+|--------|--------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`  | `/api/v1/workflow-definitions`                   | Returns all workflow definitions as a list of `WorkflowDefinitionResponse` objects.                                                                                                                                                                              |
+| `GET`  | `/api/v1/workflow-definitions/{id}`              | Returns a single workflow definition (selected after `id` where type is `int`) as `WorkflowDefinitionResponse` object. An exception is raised if nothing is found.                                                                                               |
+| `POST` | `/api/v1/workflow-definitions/{id}/schedule-now` | Schedules immediately a run for a specific workflow definition (selected after `id` where type is `int`). Request body is mandatory and contains an object of `Map<String, Object>` with parameters. It returns the UUID as string to identify the workflow run. |
+
+##### `WorkflowTemplate` APIs
+
+| Method | URI                                            | Description                                                                                                                                                    |
+|--------|------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`  | `/api/v1/workflow-templates`                   | Returns all workflow templates as a list of `WorkflowTemplateResponse` objects.                                                                                |
+| `GET`  | `/api/v1/workflow-templates/{id}`              | Returns a single workflow template (selected after `id` where type is `int`) as `WorkflowTemplateResponse` object. An exception is raised if nothing is found. |
+| `POST` | `/api/v1/workflow-templates/{id}/schedule-now` | Schedules immediately a run for a specific workflow template (selected after `id` where type is `int`). Nothing is returned.                                   |
+
+##### `WorkflowRun` APIs
+
+| Method | URI                          | Description                                                                                                                                             |
+|--------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`  | `/api/v1/workflow-runs`      | Returns all workflow runs as a list of `WorkflowRunResponse` objects.                                                                                   |
+| `GET`  | `/api/v1/workflow-runs/{id}` | Returns a single workflow run (selected after `id` where type is `String`) as `WorkflowRunResponse` object. An exception is raised if nothing is found. |
+
 ## Predefined type of commands
 
 ### Database command
@@ -373,9 +407,9 @@ Example of a dummy command:
 
 This command provides a programmatic way to do HTTP requests.
 
-| `@type`       | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Output                   |
-|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
-| `httpRequest` | <ul><li><strong>httpRequest.url</strong>: Mandatory. Represents request URL.</li><li><em>httpRequest.method</em>: Optional. Represents request method type. Default value: `GET`.</li><li><em>httpRequest.body</em>: Optional. Represents request body. No body is set by default.</li><li><em>httpRequest.headers</em>: Optional. Map with request headers.</li><li><em>httpRequest.timeout</em>: Optional. Defines connection and read timeout in millis. Default value: `60000`.</li><li><em>httpRequest.skipSsl</em>: Optional. Flag to signal if SSL validation should be skipped or not. Default value: `false`.</li></ul> | `ResponseEntity<String>` |
+| `@type`       | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Output                   |
+|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| `httpRequest` | <ul><li><strong>httpRequest.url</strong>: Mandatory. Represents request URL.</li><li><em>httpRequest.method</em>: Optional. Represents request method type. Default value: `GET`.</li><li><em>httpRequest.body</em>: Optional. Represents request body. No body is set by default.</li><li><em>httpRequest.headers</em>: Optional. Map with request headers.</li><li><em>httpRequest.timeout</em>: Optional. Defines connection and read timeout in millis. Default value: `60000`.</li></ul> | `ResponseEntity<String>` |
 
 Example of a dummy command:
 
@@ -386,7 +420,7 @@ Example of a dummy command:
   "inputs": [
     {
       "name": "httpRequest.url",
-      "value": "https://mihaisurdeanu.ro"
+      "value": "https://myworkflows.org"
     }
   ]
 }
@@ -397,8 +431,8 @@ Example of a dummy command:
 Provides ability to run Java code at runtime.
 Like for Groovy command, this command is also very powerful.
 
-| `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Output                             |
-|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Output                             |
+|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
 | `java`  | <ul><li><strong>java.scriptLines</strong>: Mandatory. Represents source code which contains definition of a `java.method` (or `run`) method inside a class `java.clazz` (or `DynamicClass`) which will be executed.</li><li><em>java.method</em>: Optional. Represents the method name invoked when code is executed.</li><li><em>java.clazz</em>: Optional. Represents the class name invoked when code is executed.</li><li><em>java.sourceVersion</em>: Optional. Before running the script, set source version for Java compilation.</li><li><em>java.targetVersion</em>: Optional. Before running the script, set target version for Java compilation.</li></ul> | Return of invoked method or `void` |
 
 Example of a dummy command:
@@ -638,6 +672,7 @@ Vaadin web applications are full-stack and include both client-side and server-s
 | &nbsp;&nbsp;&nbsp;&nbsp;`holder/`                            | Contains a set of holders to store shared data        |
 | &nbsp;&nbsp;&nbsp;&nbsp;`provider/`                          | Java package with a set of providers                  |
 | &nbsp;&nbsp;&nbsp;&nbsp;`repository/`                        | Contains a set of JpaRepositories                     |
+| &nbsp;&nbsp;&nbsp;&nbsp;`restapi/`                           | Exposes REST API part for this app                    |
 | &nbsp;&nbsp;&nbsp;&nbsp;`service/`                           | Contains a set of services exposed by the application |
 | &nbsp;&nbsp;&nbsp;&nbsp;`view/`                              | Contains a set of views exposed by the application    |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`component/` | Package with all Vaadin custom components             |

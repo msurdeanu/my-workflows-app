@@ -13,6 +13,7 @@ import org.myworkflows.domain.event.EventListener;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
+import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.util.PlaceholderUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -93,28 +94,33 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
         applicationManager.getBeanOfType(EventBroadcaster.class)
             .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, false));
         try {
-            workflowDefinitionScript.getCommands().forEach(command -> {
-                resolveCommandPlaceholders(command);
-                command.run(workflowRun);
-                applicationManager.getBeanOfType(EventBroadcaster.class)
-                    .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, false));
-            });
-        } catch (Exception exception) {
-            workflowRun.markAsFailed(exception);
+            workflowDefinitionScript.getCommands().stream()
+                .takeWhile(command -> runCommandAndMarkAsFailedIfNeeded(command, workflowRun))
+                .forEach(command -> applicationManager.getBeanOfType(EventBroadcaster.class)
+                    .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, false)));
         } finally {
-            try {
-                workflowDefinitionScript.getFinallyCommands().forEach(command -> {
-                    resolveCommandPlaceholders(command);
-                    command.run(workflowRun);
-                    applicationManager.getBeanOfType(EventBroadcaster.class)
-                        .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, false));
-                });
-            } catch (Exception exception) {
-                workflowRun.markAsFailed(exception);
-            }
+            workflowDefinitionScript.getFinallyCommands().stream()
+                .takeWhile(command -> runCommandAndMarkAsFailedIfNeeded(command, workflowRun))
+                .forEach(command -> applicationManager.getBeanOfType(EventBroadcaster.class)
+                    .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, false)));
             workflowRun.markAsCompleted(System.currentTimeMillis() - startTime);
             applicationManager.getBeanOfType(EventBroadcaster.class)
                 .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, true), 10);
+        }
+    }
+
+    private boolean runCommandAndMarkAsFailedIfNeeded(AbstractCommand abstractCommand, WorkflowRun workflowRun) {
+        try {
+            resolveCommandPlaceholders(abstractCommand);
+            abstractCommand.run(workflowRun);
+            return true;
+        } catch (Exception exception) {
+            if (log.isDebugEnabled()) {
+                log.debug("An exception was raised by command '{}' inside workflow run '{}'", abstractCommand.getName(), workflowRun.getId().toString(),
+                    exception);
+            }
+            workflowRun.markAsFailed(new WorkflowRuntimeException("Command '" + abstractCommand.getName() + "' failed with exception", exception));
+            return false;
         }
     }
 
@@ -138,7 +144,7 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
         if (value instanceof String valueAsString) {
             final var resolvedValueAsString = PlaceholderUtil.resolvePlaceholders(valueAsString,
                 applicationManager.getBeanOfType(WorkflowPlaceholderService.class).getAllAsMap());
-            log.debug("After resolving placeholders, '{}' was converted to '{}'.", valueAsString, resolvedValueAsString);
+            log.debug("After resolving placeholders, '{}' was converted to '{}'", valueAsString, resolvedValueAsString);
             return resolvedValueAsString;
         } else if (value instanceof List<?> valueAsList) {
             return valueAsList.stream()
