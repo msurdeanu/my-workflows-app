@@ -2,9 +2,9 @@ package org.myworkflows.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
+import org.myworkflows.cache.CacheNameEnum;
 import org.myworkflows.cache.InternalCache;
 import org.myworkflows.cache.InternalCacheManager;
-import org.myworkflows.cache.CacheNameEnum;
 import org.myworkflows.config.CacheConfig;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowTemplate;
@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.cache.CacheNameEnum.WORKFLOW_RUN_NAME;
+import static org.springframework.data.domain.PageRequest.of;
 
 /**
  * @author Mihai Surdeanu
@@ -73,8 +74,18 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
         }
         final var start = System.currentTimeMillis();
         final var workflowRunRepository = applicationManager.getBeanOfType(WorkflowRunRepository.class);
-        final var entries = workflowRunRepository.deleteOldEntries(cacheConfig.getWorkflowRunMaxSize());
-        log.debug("{} workflow run(s) deleted from database in {} ms.", entries, System.currentTimeMillis() - start);
+        final var oldestCutoffDate = workflowRunRepository.findOldestCutoffDate(of(cacheConfig.getWorkflowRunMaxSize(), 1));
+        if (oldestCutoffDate.size() != 1) {
+            return;
+        }
+        final var eldestEntries = workflowRunRepository.findOldestEntriesByCutoff(oldestCutoffDate.getFirst());
+        if (!eldestEntries.isEmpty()) {
+            workflowRunRepository.deleteAllById(eldestEntries);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("{} run(s) deleted from database in {} ms.", eldestEntries.size(),
+                System.currentTimeMillis() - start);
+        }
     }
 
     @Override

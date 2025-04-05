@@ -1,6 +1,7 @@
 package org.myworkflows.domain;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.exception.WorkflowRuntimeException;
 
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
@@ -23,10 +25,14 @@ import static java.util.Optional.ofNullable;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@RequiredArgsConstructor
 public final class WorkflowRunCache implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    @Getter
+    private final UUID id;
 
     private transient Map<String, Object> cachedObjectMap = new HashMap<>();
 

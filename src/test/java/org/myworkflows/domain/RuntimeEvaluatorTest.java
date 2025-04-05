@@ -3,6 +3,7 @@ package org.myworkflows.domain;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.myworkflows.domain.ExpressionNameValue.CACHE_ACCESS_PATTERN;
@@ -28,7 +29,7 @@ public final class RuntimeEvaluatorTest {
 
     @Test
     public void testThroughCacheJavaExpression() {
-        final var cache = new WorkflowRunCache();
+        final var cache = new WorkflowRunCache(UUID.randomUUID());
         cache.put("a", 1);
         cache.put("b", 2);
         assertEquals(false, JAVA.evaluate("cache.get(\"a\", Integer.class) == cache.get(\"b\", Integer.class)",
@@ -37,7 +38,7 @@ public final class RuntimeEvaluatorTest {
 
     @Test
     public void testSimpleAccessCachePatterns() {
-        final var cache = new WorkflowRunCache();
+        final var cache = new WorkflowRunCache(UUID.randomUUID());
         cache.put("a", 1);
         cache.put("b", 1);
         assertEquals(true, GROOVY.evaluate("$(a).equals($(b))", Map.of("cache", cache), CACHE_ACCESS_PATTERN));
