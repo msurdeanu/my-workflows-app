@@ -4,7 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.PreRemove;
+import jakarta.persistence.PostRemove;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
@@ -145,7 +145,7 @@ public class WorkflowRun {
         return failureMessage != null && cache.isCacheObjectMapComplete();
     }
 
-    @PreRemove
+    @PostRemove
     public void deleteCacheFile() {
         try {
             INSTANCE.deleteIfExists(BinaryFileSource.of(cache.getId().toString()));
