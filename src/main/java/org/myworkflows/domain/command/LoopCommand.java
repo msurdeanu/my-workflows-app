@@ -32,7 +32,7 @@ public final class LoopCommand extends AbstractSubCommand {
     }
 
     @ExecutionMethod(prefix = PREFIX)
-    public int loop(@ExecutionParam WorkflowRun workflowRun,
+    public int loop(@ExecutionParam(bypassed = true) WorkflowRun workflowRun,
                     @ExecutionParam List<Object> items,
                     @ExecutionParam(required = false, defaultValue = "1000") Number backoffPeriod) {
         final var previousLoopItem = workflowRun.getCache().find(LOOP_ITEM);

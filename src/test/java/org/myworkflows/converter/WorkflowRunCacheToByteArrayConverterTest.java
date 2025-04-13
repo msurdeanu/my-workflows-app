@@ -1,9 +1,11 @@
 package org.myworkflows.converter;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.myworkflows.domain.WorkflowRunCache;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,9 +21,14 @@ import static org.myworkflows.holder.file.FileSourceHolder.INSTANCE;
  */
 public final class WorkflowRunCacheToByteArrayConverterTest {
 
+    @BeforeEach
+    public void setUp() throws IOException {
+        final var path = Files.createTempDirectory("files");
+        INSTANCE.setBaseDirectory(path.toAbsolutePath().toString());
+    }
+
     @Test
     public void testWorkflowRunCacheCompleteSerialization() {
-        new File(INSTANCE.getBaseDirectory()).mkdirs();
         final var workflowRunCache = new WorkflowRunCache(UUID.randomUUID());
         workflowRunCache.put("a", "z");
         workflowRunCache.put("b", 1);
@@ -37,7 +44,6 @@ public final class WorkflowRunCacheToByteArrayConverterTest {
 
     @Test
     public void testWorkflowRunCacheIncompleteSerialization() {
-        new File(INSTANCE.getBaseDirectory()).mkdirs();
         final var workflowRunCache = new WorkflowRunCache(UUID.randomUUID());
         workflowRunCache.put("a", new MyClassWhichIsNotSerializable(1));
 

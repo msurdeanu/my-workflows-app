@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 /**
  * @author Mihai Surdeanu
@@ -26,13 +26,13 @@ public final class BinaryFileSource implements FileSource<byte[]> {
     }
 
     @Override
-    public byte[] readFrom(String fileFullPath) throws IOException {
-        return Files.readAllBytes(Paths.get(fileFullPath));
+    public byte[] readFrom(Path filePath) throws IOException {
+        return Files.readAllBytes(filePath);
     }
 
     @Override
-    public void writeTo(String fileFullPath, byte[] data) throws IOException {
-        Files.write(Paths.get(fileFullPath), data);
+    public void writeTo(Path filePath, byte[] data) throws IOException {
+        Files.write(filePath, data);
     }
 
 }

@@ -128,13 +128,17 @@ public abstract class AbstractCommand {
         final var resolvedParameters = new Object[parameters.length];
         range(0, parameters.length).forEach(index -> resolvedParameters[index] = resolveParameter(parameters[index], executionMethod, workflowRun));
         if (workflowRun.isDebugModeEnabled()) {
-            range(0, parameters.length).forEach(index -> {
-                final var cache = workflowRun.getCache();
-                final var parameterName = parameters[index].getName();
-                final var resolvedParameter = resolvedParameters[index];
-                cache.putAsDebug(name, parameterName + ".type", resolvedParameter.getClass().getSimpleName());
-                cache.putAsDebug(name, parameterName + ".value", resolvedParameter);
-            });
+            range(0, parameters.length)
+                .filter(index -> !parameters[index].getDeclaredAnnotation(ExecutionParam.class).bypassed())
+                .forEach(index -> {
+                    final var cache = workflowRun.getCache();
+                    final var parameterName = parameters[index].getName();
+                    final var resolvedParameter = resolvedParameters[index];
+                    cache.putAsDebug(name, executionMethod.prefix() + "." + parameterName + ">type",
+                        resolvedParameter.getClass().getSimpleName());
+                    cache.putAsDebug(name, executionMethod.prefix() + "." + parameterName + ">value",
+                        resolvedParameter);
+                });
         }
         return resolvedParameters;
     }

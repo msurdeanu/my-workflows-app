@@ -106,7 +106,7 @@ public final class WorkflowRunCache implements Serializable {
     }
 
     public Object putAsDebug(String command, String key, Object value) {
-        return cachedObjectMap.put(String.format("[%s].%s", command, key), value);
+        return cachedObjectMap.put(String.format("[%s]%s", command, key), value);
     }
 
     public Object remove(String key) {
