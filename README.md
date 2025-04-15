@@ -259,6 +259,10 @@ Shortcuts are present for multiple views, and they are here to improve your expe
 #### REST API interface
 
 The app provides also a REST API interface that can be used to interact with the app in a programmatic mode.
+
+By default, the REST API is not enabled by default, but you can easily enable this feature by setting the following
+application config `my-workflows.config.features.rest-api.enabled` on `true`.
+
 Each user has a `token` field (usually 64 random characters) which represents the API token that can be used to
 authenticate REST API calls. The token is unique across all users, so, we cannot have two users with the same token.
 

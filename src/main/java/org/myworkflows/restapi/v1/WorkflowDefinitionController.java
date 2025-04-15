@@ -10,6 +10,7 @@ import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.restapi.dto.WorkflowDefinitionResponse;
 import org.myworkflows.service.WorkflowDefinitionService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +29,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "my-workflows.config.features.rest-api.enabled", havingValue = "true")
 public class WorkflowDefinitionController {
 
     private final ApplicationManager applicationManager;
