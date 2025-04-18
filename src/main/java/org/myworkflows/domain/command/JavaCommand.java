@@ -36,7 +36,7 @@ public final class JavaCommand extends AbstractCommand {
     }
 
     @ExecutionMethod(prefix = PREFIX)
-    public Object java(@ExecutionParam WorkflowRun workflowRun,
+    public Object java(@ExecutionParam(bypassed = true) WorkflowRun workflowRun,
                        @ExecutionParam List<String> scriptLines,
                        @ExecutionParam(required = false, defaultValue = "run") String method,
                        @ExecutionParam(required = false, defaultValue = "DynamicClass") String clazz,

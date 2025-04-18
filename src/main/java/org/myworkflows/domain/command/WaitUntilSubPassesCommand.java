@@ -30,7 +30,7 @@ public final class WaitUntilSubPassesCommand extends AbstractSubCommand {
     }
 
     @ExecutionMethod(prefix = PREFIX)
-    public int waitUntilSubPasses(@ExecutionParam WorkflowRun workflowRun,
+    public int waitUntilSubPasses(@ExecutionParam(bypassed = true) WorkflowRun workflowRun,
                                   @ExecutionParam(required = false, defaultValue = "3") Number rounds,
                                   @ExecutionParam(required = false, defaultValue = "1000") Number backoffPeriod) {
         int remainingIterations = rounds.intValue();

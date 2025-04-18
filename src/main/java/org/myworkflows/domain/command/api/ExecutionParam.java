@@ -15,6 +15,8 @@ public @interface ExecutionParam {
 
     boolean required() default true;
 
+    boolean bypassed() default false;
+
     String defaultValue() default "";
 
 }

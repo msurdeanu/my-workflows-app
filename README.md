@@ -10,13 +10,13 @@ All workflows are defined in JSON format, and the tool provides an intuitive UI 
 
 ## Technology stack
 
-* Java 21 as programming language.
-* Spring Boot 3.x as DI framework.
-* [Vaadin 24](https://vaadin.com) as UI framework.
+* Java 21 as a programming language.
+* Spring Boot 3.x as a DI framework.
+* [Vaadin 24](https://vaadin.com) as a UI framework.
 * [SQLite](https://www.sqlite.org/) as relational database for persisting data.
 * [JSON Schema Validator](https://github.com/networknt/json-schema-validator) as JSON schema validator for workflow
   scripts.
-* [Groovy](https://groovy-lang.org/) as additional language for defining commands.
+* [Groovy](https://groovy-lang.org/) as an additional language for defining commands.
 * [Janino](https://www.janino.net/) as Java runtime compiler.
 * [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) as another runtime evaluator.
 
@@ -37,7 +37,7 @@ All workflows are defined in JSON format, and the tool provides an intuitive UI 
 
 ## TODOs
 
-- [ ] **Checkpoints**. Introduce ability to reschedule a failing workflow from a specific moment in time.
+- [ ] **Checkpoints**. Introduce the ability to reschedule a failing workflow from a specific moment in time.
 - [ ] **Debug mode**. Improve debugging experience for failing workflows to easily find the root cause of their failure.
 
 ## How it works?
@@ -47,7 +47,7 @@ All workflows are defined in JSON format, and the tool provides an intuitive UI 
 * **Workflow**: Represents a list of steps to resolve a given task.
 * **Command**: Represents a unitary step in the workflow. A command has a `name`, a `@type`, `ifs`, `inputs`,
   `asserts` and `outputs`. `name` and `@type` are mandatory for being able to define a valid command.
-* **If**: Each command allows to define some running conditions. If at least one condition is not met, the command will
+* **If**: Each command allows defining some running conditions. If at least one condition is not met, the command will
   be skipped.
 * **Input**: Each command allows input parameters to customize the running step.
 * **Assert**: Once a command is run, if the command output exists, you can inject different assertions.
@@ -63,7 +63,7 @@ Each workflow has a `name` to be able to identify easily what is doing.
 
 When the time comes, the workflow can be run `manually` by the user or `automatically` using a scheduler.
 Behind the scene, there is a `thread pool` responsible for executing the workflow.
-Each workflow is scheduled to run inside a single thread and all his commands are run in sequential order.
+Each workflow is scheduled to run inside a single thread, and all his commands are run in sequential order.
 
 #### Command
 
@@ -105,7 +105,7 @@ stateDiagram-v2
 
 ### Features
 
-#### Finally commands
+#### `Finally` commands
 
 The concept of `finally commands` lets you declare some special commands for your workflow to be executed at the end, no
 matter if the workflow failed or not.
@@ -125,8 +125,8 @@ try {
 #### Placeholders
 
 You are allowed to use global `placeholders` to avoid data duplication in your workflow definition.
-Please note that all placeholders are resolved immediately before workflow running process.
-All placeholders are persisted in a database - a table called `placeholders`.
+Please note that all placeholders are resolved immediately before a workflow running process.
+All placeholders are persisted in a database—a table called `placeholders`.
 
 Inside workflow definition, you can recognize a placeholder by having this format: `$$([A-Z0-9_.]+)`.
 You are allowed to use placeholders inside any `input`, `assert` and `output` (`name` and `value` fields).
@@ -181,11 +181,10 @@ as it is.
 
 ##### Cache access patterns
 
-If you analyze all the above examples, you are going to see that sometimes is quite difficult to write the expression,
-because is too long. In addition, by accessing the workflow run cache using the following pattern
-`cache.get('sleepTime')`, it makes the expression harder to be read.
+If you analyze all the above examples, you are going to see that sometimes it is quite challenging to write the expression because it is too long.
+In addition, by accessing the workflow run cache using the following pattern `cache.get('sleepTime')`, it makes the expression harder to be read.
 
-This is why, you can use a simplified version by using **cache access pattern feature** exposed by this tool.
+This is why you can use a simplified version by using **the cache access pattern feature** exposed by this tool.
 
 If we take one of the previous examples:
 
@@ -209,8 +208,8 @@ we can rewrite it like this:
 
 The tool will be able to recognize every string pattern inside `value` which matches the following regex pattern:
 `\$\(([a-zA-Z0-9_.]+)(:[a-zA-Z0-9_.]+)?\)`.
-The string between parenthesis is split in two parts: first part defines name of the variable that we are going to
-search into workflow run cache (this part is mandatory) and the second part (which is optional) and defines type of
+The string between parenthesis is split in two parts: the first part defines the name of the variable that we are going to
+search into workflow run cache (this part is mandatory) and the second part (which is optional) and defines a type of
 the value that we are looking for.
 
 If there is no variable named `sleepTime` of type `Integer` in the workflow run cache, during workflow execution phase,
@@ -218,10 +217,10 @@ you are going to receive a runtime exception.
 
 #### JAR loading at runtime
 
-The tool is capable of loading a list of JAR files at runtime, during application initialization phase.
+The tool is capable of loading a list of JAR files at runtime, during the application initialization phase.
 This is quite useful if you want to extend `java` or `groovy` commands with more functionalities.
 
-In order to do this, please use the following application config property:
+To do this, please use the following application config property:
 
 ```yaml
 my-workflows:
@@ -237,7 +236,7 @@ my-workflows:
 
 #### Comments
 
-From technical point of view, each workflow is defined in JSON format.
+From a technical point of view, each workflow is defined in JSON format.
 If you are familiar with JSON, you probably know that comments are not allowed.
 Since comments are useful sometimes, there is a hack that can be implemented to have this wonderful feature: by using a
 dedicated field called `_comment.*`.
@@ -259,10 +258,14 @@ Shortcuts are present for multiple views, and they are here to improve your expe
 #### REST API interface
 
 The app provides also a REST API interface that can be used to interact with the app in a programmatic mode.
-Each user has a `token` field (usually 64 random characters) which represents the API token that can be used to
-authenticate REST API calls. The token is unique across all users, so, we cannot have two users with the same token.
 
-In order to authenticate all REST API calls, you need to fill URL parameter `token` for each request performed:
+By default, the REST API is not enabled by default, but you can enable this feature by setting the following
+application config `my-workflows.config.features.rest-api.enabled` on `true`.
+
+Each user has a `token` field (usually 64 random characters) which represents the API token that can be used to
+authenticate REST API calls. The token is unique across all users, so we cannot have two users with the same token.
+
+To authenticate all REST API calls, you need to fill URL parameter `token` for each request performed:
 `GET:https://myworkflows.org/workflow-definitions?token={TOKEN}`.
 
 The following APIs are available for you:
@@ -294,13 +297,13 @@ The following APIs are available for you:
 
 ### Database command
 
-Provides ability to interact with a relational database by running SQL queries.
+Provides an ability to interact with a relational database by running SQL queries.
 
 | `@type`    | Inputs                                                                                                                                                                                      | Output                         |
 |------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
 | `database` | <ul><li><strong>database.url</strong>: Mandatory. Represents the connection URL.</li><li><strong>database.query</strong>: Mandatory. Represents the query which will be executed.</li></ul> | Returns `Optional<ResultSet>`. |
 
-Example of a dummy command:
+Example of a fake command:
 
 ```json
 {
@@ -321,13 +324,13 @@ Example of a dummy command:
 
 ### Email command
 
-This command allows to send emails using Jakarta Mail API.
+This command allows sending emails using Jakarta Mail API.
 
 | `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Output |
 |---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
 | `email` | <ul><li><strong>email.from</strong>: Mandatory. Email address for the sender.</li><li><strong>email.to</strong>: Mandatory. Email address for the receiver.</li><li><strong>email.subject</strong>: Mandatory. The email subject.</li><li><strong>email.body</strong>: Mandatory. The email body.</li><li><strong>email.props</strong>: Mandatory. Email properties as map.</li><li><em>email.bodyType</em>: Optional. Defines the type of the body. Default value: `text/html; charset=utf-8`.</li><li><em>email.username</em>: Optional. The user name for authentication. Keep it blank to disable authentication.</li><li><em>email.password</em>: Optional. Password for the user.</li></ul> | N/A    |
 
-Example of a dummy command:
+Example of a fake command:
 
 ```json
 {
@@ -374,14 +377,14 @@ Example of a dummy command:
 
 ### Groovy command
 
-Provides ability to run Groovy code at runtime.
+Provides an ability to run Groovy code at runtime.
 As you probably already imagine, this command is very powerful.
 
 | `@type`  | Inputs                                                                                                                                                                                                                                                                        | Output                             |
 |----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
 | `groovy` | <ul><li><strong>groovy.scriptLines</strong>: Mandatory. Represents source code which contains definition of a `groovy.method` (or `run`) method to be executed.</li><li><em>groovy.method</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
 
-Example of a dummy command:
+Example of a fake command:
 
 ```json
 {
@@ -411,7 +414,7 @@ This command provides a programmatic way to do HTTP requests.
 |---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
 | `httpRequest` | <ul><li><strong>httpRequest.url</strong>: Mandatory. Represents request URL.</li><li><em>httpRequest.method</em>: Optional. Represents request method type. Default value: `GET`.</li><li><em>httpRequest.body</em>: Optional. Represents request body. No body is set by default.</li><li><em>httpRequest.headers</em>: Optional. Map with request headers.</li><li><em>httpRequest.timeout</em>: Optional. Defines connection and read timeout in millis. Default value: `60000`.</li></ul> | `ResponseEntity<String>` |
 
-Example of a dummy command:
+Example of a fake command:
 
 ```json
 {
@@ -428,14 +431,14 @@ Example of a dummy command:
 
 ### Java command
 
-Provides ability to run Java code at runtime.
+Provides an ability to run Java code at runtime.
 Like for Groovy command, this command is also very powerful.
 
 | `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Output                             |
 |---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
 | `java`  | <ul><li><strong>java.scriptLines</strong>: Mandatory. Represents source code which contains definition of a `java.method` (or `run`) method inside a class `java.clazz` (or `DynamicClass`) which will be executed.</li><li><em>java.method</em>: Optional. Represents the method name invoked when code is executed.</li><li><em>java.clazz</em>: Optional. Represents the class name invoked when code is executed.</li><li><em>java.sourceVersion</em>: Optional. Before running the script, set source version for Java compilation.</li><li><em>java.targetVersion</em>: Optional. Before running the script, set target version for Java compilation.</li></ul> | Return of invoked method or `void` |
 
-Example of a dummy command:
+Example of a fake command:
 
 ```json
 {
@@ -474,7 +477,7 @@ The purpose of this command is to allow inputs to be injected in the workflow pi
 |-----------|--------|--------|
 | `nothing` | N/A    | N/A    |
 
-Example of a dummy command:
+Example of a fake command:
 
 ```json
 {
@@ -497,7 +500,7 @@ Captures an input / output variable during workflow execution and shows the valu
 |---------|-----------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
 | `print` | <ul><li><strong>print.keys</strong>: Mandatory. Represents a list of variable names that will be displayed.</li></ul> | Returns total number of keys affected by this operation. Type: `int`. |
 
-Example of a dummy command:
+Example of a fake command:
 
 ```json
 {
@@ -519,14 +522,14 @@ Example of a dummy command:
 
 ### Sleep command
 
-Provides ability to pause current workflow execution by a given time.
+Provides an ability to pause current workflow execution by a given time.
 Time unit is milliseconds.
 
 | `@type` | Inputs                                                                                               | Output                                       |
 |---------|------------------------------------------------------------------------------------------------------|----------------------------------------------|
 | `sleep` | <ul><li><strong>sleep.time</strong>: Mandatory. Represents number of millis used to sleep.</li></ul> | Returns the actual time slept. Type: `long`. |
 
-Example of a dummy command:
+Example of a fake command:
 
 ```json
 {
@@ -551,7 +554,7 @@ Equivalent SSH command: `ssh user@localhost ls -l`
 |-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
 | `sshExec` | <ul><li><strong>sshExec.host</strong>: Mandatory. Represents the host.</li><li><strong>sshExec.command</strong>: Mandatory. Represents the command.</li><li><strong>sshExec.username</strong>: Mandatory. Represents the user name.</li><li><strong>sshExec.password</strong>: Mandatory. Represents the host.</li><li><em>sshExec.port</em>: Optional. The SSH port. Default value: `22`.</li><li><em>sshExec.timeout</em>: Optional. Defines timeout in millis for the operation to complete. Default value: `60000`.</li></ul> | `SshCommandOutput` - contains `exitCode` as integer and `output` as string |
 
-Example of a dummy command:
+Example of a fake command:
 
 ```json
 {
@@ -594,7 +597,7 @@ The command will open a shell and will run all given commands in that shell.
 |------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
 | `sshShell` | <ul><li><strong>sshExec.host</strong>: Mandatory. Represents the host.</li><li><strong>sshExec.commands</strong>: Mandatory. Represents the list of commands.</li><li><strong>sshExec.username</strong>: Mandatory. Represents the user name.</li><li><strong>sshExec.password</strong>: Mandatory. Represents the host.</li><li><em>sshShell.port</em>: Optional. The SSH port. Default value: `22`.</li><li><em>sshShell.timeout</em>: Optional. Defines timeout in millis for the operation to complete. Default value: `60000`.</li></ul> | `SshCommandOutput` - contains `exitCode` as integer and `output` as string |
 
-Example of a dummy command:
+Example of a fake command:
 
 ```json
 {
@@ -642,17 +645,17 @@ You can use any IDE of your preference, but I suggest IntelliJ IDEA.
 
 ### Application bootstrap phase
 
-During application bootstrap phase, multiple local caches are filled with information found in database.
+During the application bootstrap phase, multiple local caches are filled with information found in a database.
 The data is loaded in the following order:
 
 1. Once the **application is ready**, the app will load any kind of **external JAR** provided by the user.
 2. After all **external JARs** are loaded, the app will proceed with loading all **workflow placeholders** from
-   database.
+   a database.
 3. Once all **placeholders** are loaded, the app will continue with **workflow parameters**.
 4. Once all **parameters** are loaded, the app will continue with **workflow definitions**.
-5. When all **definitions** are available, the app will load all **workflow templates** found in database. They
+5. When all **definitions** are available, the app will load all **workflow templates** found in a database. They
    are also scheduled.
-6. Next step is to load all **workflow runs**. In fact, is not all of them. The app will load only the
+6. The next step is to load all **workflow runs**. In fact, is not all of them. The app will load only the
    accepted capacity for workflow runs defined in application config.
 7. Last but not least, the app will load all documentation pages available in the local database.
 
@@ -682,7 +685,7 @@ Vaadin web applications are full-stack and include both client-side and server-s
 
 ### How to deploy this application to your Ubuntu server?
 
-First of all, make sure you have **OpenJDK 21** installed on your server.
+First, make sure you have **OpenJDK 21** installed on your server.
 It's recommended to use OpenJDK distribution for your JDK.
 
 ```bash

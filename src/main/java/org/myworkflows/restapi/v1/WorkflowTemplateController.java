@@ -7,6 +7,7 @@ import org.myworkflows.domain.filter.WorkflowTemplateFilter;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.restapi.dto.WorkflowTemplateResponse;
 import org.myworkflows.service.WorkflowTemplateService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "my-workflows.config.features.rest-api.enabled", havingValue = "true")
 public class WorkflowTemplateController {
 
     private final ApplicationManager applicationManager;

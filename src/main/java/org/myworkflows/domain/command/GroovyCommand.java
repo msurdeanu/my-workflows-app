@@ -32,7 +32,7 @@ public final class GroovyCommand extends AbstractCommand {
     }
 
     @ExecutionMethod(prefix = PREFIX)
-    public Object groovy(@ExecutionParam WorkflowRun workflowRun,
+    public Object groovy(@ExecutionParam(bypassed = true) WorkflowRun workflowRun,
                          @ExecutionParam List<String> scriptLines,
                          @ExecutionParam(required = false, defaultValue = "run") String method) {
         if (scriptLines.isEmpty()) {

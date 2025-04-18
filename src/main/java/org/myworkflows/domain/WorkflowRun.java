@@ -96,7 +96,8 @@ public class WorkflowRun {
     }
 
     public List<WorkflowRunPrint> getAllPrints() {
-        return printedKeys.stream()
+        final var keysSet = isDebugModeEnabled() ? cache.getAllKeys() : printedKeys;
+        return keysSet.stream()
             .flatMap(item -> cache.find(item).map(value -> new WorkflowRunPrint(item, value)).stream())
             .collect(Collectors.toList());
     }
@@ -131,6 +132,10 @@ public class WorkflowRun {
 
     public void markAsCompleted(long duration) {
         this.duration = duration;
+    }
+
+    public boolean isDebugModeEnabled() {
+        return cache.find("debug", Boolean.class).orElse(false);
     }
 
     public boolean isRunning() {

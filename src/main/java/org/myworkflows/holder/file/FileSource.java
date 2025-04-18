@@ -1,6 +1,7 @@
 package org.myworkflows.holder.file;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * @author Mihai Surdeanu
@@ -12,8 +13,8 @@ public interface FileSource<T> {
 
     String getFileExtension();
 
-    T readFrom(String fileFullPath) throws IOException;
+    T readFrom(Path filePath) throws IOException;
 
-    void writeTo(String fileFullPath, T data) throws IOException;
+    void writeTo(Path filePath, T data) throws IOException;
 
 }

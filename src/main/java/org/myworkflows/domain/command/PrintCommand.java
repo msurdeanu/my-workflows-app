@@ -27,7 +27,7 @@ public final class PrintCommand extends AbstractCommand {
     }
 
     @ExecutionMethod(prefix = PREFIX)
-    public int print(@ExecutionParam WorkflowRun workflowRun,
+    public int print(@ExecutionParam(bypassed = true) WorkflowRun workflowRun,
                      @ExecutionParam List<String> keys) {
         return keys.stream()
             .map(workflowRun::markKeyAsPrinted)
