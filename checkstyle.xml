@@ -4,14 +4,14 @@
         "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name="Checker">
     <property name="charset" value="UTF-8"/>
-    <!-- Any issue detected will be reported as error and will fail the build. -->
+    <!-- Any issue detected will be reported as an error and will fail the build. -->
     <property name="severity" value="error"/>
     <property name="fileExtensions" value="java, properties, xml"/>
 
-    <!-- Provides ability to suppress some checks if necessary. E.g: @SuppressWarnings({"LineLength"}) -->
+    <!-- Provides an ability to suppress some checks if necessary. E.g: @SuppressWarnings({"LineLength"}) -->
     <module name="SuppressWarningsFilter"/>
 
-    <!-- Make sure there is no tab characters in the source code -->
+    <!-- Make sure there are no tab characters in the source code -->
     <module name="FileTabCharacter">
         <property name="eachLine" value="true"/>
     </module>
