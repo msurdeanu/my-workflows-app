@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "my-workflows.config.features.rest-api.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "my-workflows.config.feature.restApiEnabled", havingValue = "true")
 public class WorkflowRunController {
 
     private final ApplicationManager applicationManager;

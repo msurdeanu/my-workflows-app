@@ -21,7 +21,7 @@ import java.util.Collections;
  */
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "my-workflows.config.features.rest-api.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "my-workflows.config.feature.restApiEnabled", havingValue = "true")
 public class UserTokenFilter extends OncePerRequestFilter {
 
     private final UserRepository userRepository;

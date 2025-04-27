@@ -29,7 +29,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "my-workflows.config.features.rest-api.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "my-workflows.config.feature.restApiEnabled", havingValue = "true")
 public class WorkflowDefinitionController {
 
     private final ApplicationManager applicationManager;

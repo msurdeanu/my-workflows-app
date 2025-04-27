@@ -25,20 +25,26 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @RequiredArgsConstructor
 public class SecurityConfig extends VaadinWebSecurity {
 
-    public static final String REMEMBER_ME = "mw-rm";
-
-    public static final int REMEMBER_ME_VALIDITY_SECONDS = 30 * 86400;
-
     private final ApplicationManager applicationManager;
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
+        final var baseConfig = applicationManager.getBeanOfType(BaseConfig.class);
+        final var featureConfig = applicationManager.getBeanOfType(FeatureConfig.class);
+
         http.rememberMe(
-                config -> config.alwaysRemember(true).key(REMEMBER_ME).tokenValiditySeconds(REMEMBER_ME_VALIDITY_SECONDS).rememberMeCookieName(REMEMBER_ME));
-        http.authorizeHttpRequests(config -> config
-                .requestMatchers(new AntPathRequestMatcher("/logo.png")).permitAll()
-                .requestMatchers(new AntPathRequestMatcher("/api/**")).permitAll());
-        http.addFilterBefore(applicationManager.getBeanOfType(UserTokenFilter.class), UsernamePasswordAuthenticationFilter.class);
+            config -> config.alwaysRemember(true).key(baseConfig.getRememberMeCookieName())
+                .tokenValiditySeconds(baseConfig.getRememberMeCookieDays() * 86400)
+                .rememberMeCookieName(baseConfig.getRememberMeCookieName()));
+        http.authorizeHttpRequests(config -> {
+            config.requestMatchers(new AntPathRequestMatcher("/logo.png")).permitAll();
+            if (featureConfig.isRestApiEnabled()) {
+                config.requestMatchers(new AntPathRequestMatcher("/api/**")).permitAll();
+            }
+        });
+        if (featureConfig.isRestApiEnabled()) {
+            http.addFilterBefore(applicationManager.getBeanOfType(UserTokenFilter.class), UsernamePasswordAuthenticationFilter.class);
+        }
         super.configure(http);
 
         setLoginView(http, LoginView.class);
