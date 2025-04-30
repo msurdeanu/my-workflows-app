@@ -22,7 +22,7 @@ spring:
         # Pretty print all SQL queries in console
         format_sql: true
   datasource:
-    # Property to specify location of main SQLite database
+    # Property to specify the location of the main SQLite database
     url: jdbc:sqlite:database.db
     # Database driver
     driver-class-name: org.sqlite.JDBC
@@ -38,7 +38,7 @@ logging:
     file: "%d %-5level [%thread] %logger : %msg%n"
   level:
     # Property for defining root level for application logs.
-    root: INFO # use DEBUG as value for activating DEBUG level
+    root: INFO # use DEBUG as a value for activating DEBUG level
     # Uncomment the following property if you want to activate debug level only for classes created by this app.
     #org:
     #  myworkflows: DEBUG
@@ -47,7 +47,7 @@ logging:
       max-file-size: 100MB # Limit for log file size
       max-history: 10 # Activate log rolling
   file:
-    name: application.log # Default name for logging file
+    name: application.log # Default name for a logging file
 
 my-workflows:
   config:
