@@ -9,12 +9,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Mihai Surdeanu
@@ -46,21 +46,15 @@ public class ExpressionNameValue {
         return recursiveEvaluation(value, variables);
     }
 
-    @SuppressWarnings("unchecked")
     private Object recursiveEvaluation(Object object, Map<String, Object> variables) {
-        if (object instanceof String objectAsStr) {
-            return runtimeEvaluator.evaluate(objectAsStr, variables, CACHE_ACCESS_PATTERN);
-        } else if (object instanceof List<?> objectAsList) {
-            return objectAsList.stream().map(item -> recursiveEvaluation(item, variables)).collect(toList());
-        } else if (object instanceof Map) {
-            final var copyOfInitialMap = new HashMap<>((Map<?, Object>) object);
-            for (Map.Entry<?, Object> entry : copyOfInitialMap.entrySet()) {
-                entry.setValue(recursiveEvaluation(entry.getValue(), variables));
-            }
-            return copyOfInitialMap;
-        }
-
-        return object;
+        return switch (object) {
+            case String objectAsStr -> runtimeEvaluator.evaluate(objectAsStr, variables, CACHE_ACCESS_PATTERN);
+            case List<?> objectAsList ->
+                objectAsList.stream().map(item -> recursiveEvaluation(item, variables)).collect(toList());
+            case Map<?, ?> objectAsMap -> objectAsMap.entrySet().stream()
+                .collect(toMap(Map.Entry::getKey, entry -> recursiveEvaluation(entry.getValue(), variables)));
+            default -> object;
+        };
     }
 
 }

@@ -1,11 +1,12 @@
 package org.myworkflows.provider;
 
 import com.vaadin.flow.i18n.I18NProvider;
+import groovy.lang.Tuple2;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.ocpsoft.prettytime.PrettyTime;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
@@ -25,8 +26,6 @@ public final class TranslationProvider implements I18NProvider {
 
     public static final String PRETTY_TIME_FORMAT = "pretty.time.format";
 
-    private static final PrettyTime PRETTY_TIME = new PrettyTime();
-
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("translation", ENGLISH);
 
     @Override
@@ -41,7 +40,8 @@ public final class TranslationProvider implements I18NProvider {
         }
 
         if (PRETTY_TIME_FORMAT.equals(key) && params.length == 1 && params[0] instanceof Instant instant) {
-            return PRETTY_TIME.format(instant);
+            final var prettiedTime = prettyTime(instant);
+            return getTranslation(prettiedTime.getV1(), locale, prettiedTime.getV2());
         }
 
         if (RESOURCE_BUNDLE.containsKey(key)) {
@@ -50,6 +50,20 @@ public final class TranslationProvider implements I18NProvider {
 
         log.warn("Missing translation for key '{}'", key);
         return key;
+    }
+
+    private Tuple2<String, Long> prettyTime(Instant instant) {
+        final var duration = Duration.between(instant, Instant.now());
+        final var seconds = duration.getSeconds();
+        if (seconds < 60) {
+            return Tuple2.tuple("pretty.time.seconds", seconds);
+        } else if (seconds < 3600) {
+            return Tuple2.tuple("pretty.time.minutes", seconds / 60);
+        } else if (seconds < 86400) {
+            return Tuple2.tuple("pretty.time.hours", seconds / 3600);
+        } else {
+            return Tuple2.tuple("pretty.time.days", seconds / 86400);
+        }
     }
 
 }

@@ -23,19 +23,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <vaadin.version>24.7.3</vaadin.version>
-        <flyway-core.version>11.8.0</flyway-core.version>
+        <vaadin.version>24.7.4</vaadin.version>
+        <flyway-core.version>11.8.2</flyway-core.version>
         <markdown-editor-addon.version>1.1.0</markdown-editor-addon.version>
         <grid-pagination.version>4.0.1</grid-pagination.version>
         <ace.version>3.4.2</ace.version>
         <lombok.version>1.18.38</lombok.version>
-        <prettytime.version>5.0.9.Final</prettytime.version>
         <groovy.version>4.0.26</groovy.version>
         <janino.version>3.1.12</janino.version>
         <maverick-synergy-client.version>3.1.2</maverick-synergy-client.version>
         <angus-mail.version>2.0.3</angus-mail.version>
         <json-schema-validator.version>1.5.6</json-schema-validator.version>
-        <junit-jupiter.version>5.12.2</junit-jupiter.version>
+        <junit-jupiter.version>5.13.0-M3</junit-jupiter.version>
         <mockito-junit-jupiter.version>5.17.0</mockito-junit-jupiter.version>
     </properties>
 
@@ -134,11 +133,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ocpsoft.prettytime</groupId>
-            <artifactId>prettytime</artifactId>
-            <version>${prettytime.version}</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.janino</groupId>

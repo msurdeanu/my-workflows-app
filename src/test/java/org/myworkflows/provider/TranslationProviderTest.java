@@ -2,7 +2,8 @@ package org.myworkflows.provider;
 
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,8 +29,9 @@ public final class TranslationProviderTest {
         // given
         final var provider = new TranslationProvider();
 
-        // when & then
-        assertEquals("6 decades ago", provider.getTranslation("pretty.time.format", Locale.ENGLISH, Instant.ofEpochSecond(0)));
+        // when and then
+        final var time = LocalDate.now().minusDays(2).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        assertEquals("2 days ago", provider.getTranslation("pretty.time.format", Locale.ENGLISH, time));
     }
 
     @Test
