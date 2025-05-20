@@ -21,6 +21,7 @@ public abstract class ResponsiveLayout extends FlexLayout implements HasResizeab
 
     public ResponsiveLayout() {
         setId("responsiveLayout");
+        setSizeFull();
     }
 
     @Override

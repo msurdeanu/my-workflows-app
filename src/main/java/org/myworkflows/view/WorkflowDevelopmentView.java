@@ -79,7 +79,6 @@ import static org.myworkflows.serializer.JsonFactory.toPrettyString;
 public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResizeableWidth, HasDynamicTitle, HasUrlParameter<Integer> {
 
     public static final String ROUTE = "workflow/dev";
-
     private static final String READ_ONLY = "ro";
 
     private final AceEditor editor = new AceEditor();
@@ -87,14 +86,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private final WorkflowDevParamGrid workflowDevParamGrid = new WorkflowDevParamGrid();
     private final WorkflowPrintGrid workflowPrintGrid = new WorkflowPrintGrid();
     private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
-    private final Button updateWorkflowButton = new Button(getTranslation("workflow-development.update.button"),
-        new Icon(VaadinIcon.UPLOAD));
     private final Button runWorkflowButton = new Button(getTranslation("workflow-development.run.button"),
         new Icon(VaadinIcon.PLAY));
 
     private final ApplicationManager applicationManager;
+
     private final SplitLayout splitLayout;
-    private final Button shareButton;
+    private final Button updateWorkflowButton;
+    private final Button shareWorkflowButton;
     private final Select<WorkflowDefinition> filterByDefinition;
 
     private Registration onSubmittedRegistration;
@@ -107,19 +106,20 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         editor.setMode(AceMode.json);
         editor.setSofttabs(true);
         editor.setTabSize(2);
-        editor.setHeight("450px");
         editor.addFocusShortcut(Key.KEY_E, KeyModifier.ALT);
         editor.setAutoComplete(true);
         editor.setLiveAutocompletion(true);
         EditorAutoCompleteUtil.apply(editor);
         attachShortcutsToEditor();
-        currentWorkflowStatus.addClassNames(LumoUtility.BorderRadius.LARGE, LumoUtility.Padding.SMALL, LumoUtility.FontSize.SMALL);
+
+        currentWorkflowStatus.addClassNames("workflow-dev-status", LumoUtility.BorderRadius.LARGE, LumoUtility.Padding.SMALL, LumoUtility.FontSize.SMALL);
         currentWorkflowStatus.setVisible(false);
 
-        filterByDefinition = createFilterByTemplate();
-        splitLayout = createBody();
-        shareButton = createShareButton();
-        add(createHeader(getTranslation("workflow-development.page.title"), shareButton, filterByDefinition),
+        filterByDefinition = createFilterByDefinition();
+        shareWorkflowButton = createShareWorkflowButton();
+        updateWorkflowButton = createUpdateWorkflowButton();
+        splitLayout = createSplitLayout();
+        add(createHeader(getTranslation("workflow-development.page.title"), shareWorkflowButton, updateWorkflowButton, filterByDefinition),
             createContent(splitLayout),
             createFooter(applicationManager.getBeanOfType(BaseConfig.class)));
     }
@@ -190,7 +190,26 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         }, Key.KEY_F, KeyModifier.CONTROL, KeyModifier.ALT).listenOn(editor).resetFocusOnActiveElement();
     }
 
-    private Button createShareButton() {
+    private Select<WorkflowDefinition> createFilterByDefinition() {
+        final var filterByDefinitionSelect = new Select<WorkflowDefinition>();
+        filterByDefinitionSelect.setItems(applicationManager.getBeanOfType(WorkflowDefinitionService.class)
+            .getAll().toList());
+        filterByDefinitionSelect.setPlaceholder(getTranslation("workflow-development.filter.by-template.placeholder"));
+        filterByDefinitionSelect.setItemLabelGenerator(WorkflowDefinition::getName);
+        filterByDefinitionSelect.addValueChangeListener(event -> onFilterByDefinition(event.getValue()));
+        return filterByDefinitionSelect;
+    }
+
+    private void onFilterByDefinition(WorkflowDefinition workflowDefinition) {
+        filterByDefinition.setValue(workflowDefinition);
+        editor.setValue(toPrettyString(workflowDefinition.getScript(), StringUtils.EMPTY));
+        if (isLoggedAsAdmin) {
+            shareWorkflowButton.setEnabled(true);
+            updateWorkflowButton.setEnabled(true);
+        }
+    }
+
+    private Button createShareWorkflowButton() {
         final var button = new Button(VaadinIcon.LINK.create());
         button.setTooltipText(getTranslation("workflow-development.share.button.tooltip"));
         button.setEnabled(false);
@@ -214,41 +233,32 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         return button;
     }
 
-    private Select<WorkflowDefinition> createFilterByTemplate() {
-        final var filterByTemplateSelect = new Select<WorkflowDefinition>();
-        filterByTemplateSelect.setItems(applicationManager.getBeanOfType(WorkflowDefinitionService.class)
-            .getAll().toList());
-        filterByTemplateSelect.setPlaceholder(getTranslation("workflow-development.filter.by-template.placeholder"));
-        filterByTemplateSelect.setItemLabelGenerator(WorkflowDefinition::getName);
-        filterByTemplateSelect.addValueChangeListener(event -> onFilterByDefinition(event.getValue()));
-        return filterByTemplateSelect;
+    private Button createUpdateWorkflowButton() {
+        final var button = new Button(VaadinIcon.EDIT.create());
+        button.setTooltipText(getTranslation("workflow-development.update.button.tooltip"));
+        button.setEnabled(false);
+        button.addThemeVariants(ButtonVariant.LUMO_ICON);
+        button.addClickListener(event -> ofNullable(filterByDefinition.getValue())
+            .ifPresent(workflowDefinition -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
+                .updateDefinition(workflowDefinition, editor.getValue())));
+        button.addClickShortcut(Key.KEY_U, KeyModifier.CONTROL, KeyModifier.ALT).resetFocusOnActiveElement();
+        return button;
     }
 
-    private void onFilterByDefinition(WorkflowDefinition workflowDefinition) {
-        filterByDefinition.setValue(workflowDefinition);
-        editor.setValue(toPrettyString(workflowDefinition.getScript(), StringUtils.EMPTY));
-        if (isLoggedAsAdmin) {
-            updateWorkflowButton.setEnabled(true);
-            shareButton.setEnabled(true);
-        }
-    }
-
-    private SplitLayout createBody() {
+    private SplitLayout createSplitLayout() {
         final var layout = new SplitLayout(createLeft(), createRight());
         layout.setSplitterPosition(50);
-        layout.setWidthFull();
+        layout.setSizeFull();
         return layout;
     }
 
     private Component createLeft() {
         final var layout = new VerticalLayout();
-        layout.setDefaultHorizontalComponentAlignment(Alignment.START);
-
-        final var defDetails = new Details(getTranslation("workflow-development.def.label"), editor);
-        defDetails.setOpened(true);
-        defDetails.setWidthFull();
+        layout.setSizeFull();
+        editor.setSizeFull();
 
         runWorkflowButton.setIconAfterText(true);
+        runWorkflowButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         runWorkflowButton.addClickListener(event -> {
             lastSubmittedUuid = UUID.randomUUID();
             applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
@@ -263,21 +273,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         }
         runWorkflowButton.setWidthFull();
 
-        updateWorkflowButton.setEnabled(false);
-        updateWorkflowButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-        updateWorkflowButton.setWidthFull();
-        updateWorkflowButton.addClickListener(event -> ofNullable(filterByDefinition.getValue())
-            .ifPresent(workflowDefinition -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
-                .updateDefinition(workflowDefinition, editor.getValue())));
-        updateWorkflowButton.addClickShortcut(Key.KEY_U, KeyModifier.CONTROL, KeyModifier.ALT).resetFocusOnActiveElement();
-
-        layout.add(currentWorkflowStatus, defDetails, new Hr(), runWorkflowButton, updateWorkflowButton);
+        layout.add(currentWorkflowStatus, editor, new Hr(), runWorkflowButton);
+        layout.setFlexGrow(1, editor);
         return layout;
     }
 
     private Component createRight() {
         final var layout = new VerticalLayout();
-        layout.setDefaultHorizontalComponentAlignment(Alignment.START);
+        layout.setSizeFull();
 
         final var inputDetails = new Details(getTranslation("workflow-development.input.label"), workflowDevParamGrid);
         inputDetails.setOpened(true);
@@ -340,7 +343,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         workflowDevParamGrid.setReadOnly(readOnly);
         if (readOnly) {
             runWorkflowButton.setEnabled(true);
-            splitLayout.setSplitterPosition(30);
+            splitLayout.setSplitterPosition(40);
         }
     }
 

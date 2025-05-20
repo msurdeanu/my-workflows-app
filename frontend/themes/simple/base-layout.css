@@ -38,6 +38,10 @@ vaadin-scroller[slot="drawer"] {
     overflow: auto;
 }
 
+.workflow-dev-status {
+    width: 100%;
+}
+
 footer > span {
     width: 100%;
     text-align: center;
