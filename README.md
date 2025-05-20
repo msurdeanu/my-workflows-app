@@ -40,7 +40,15 @@ All workflows are defined in JSON format, and the tool provides an intuitive UI 
 - [ ] **Checkpoints**. Introduce the ability to reschedule a failing workflow from a specific moment in time.
 - [ ] **Debug mode**. Improve debugging experience for failing workflows to easily find the root cause of their failure.
 
-## How it works?
+## In action
+
+### Workflow Runs View
+![Runs View](screenshots/myworkflows_runs.png)
+
+### Workflow Development View
+![Development View](screenshots/myworkflows_dev.png)
+
+## How does it work?
 
 ### Abbreviations
 
