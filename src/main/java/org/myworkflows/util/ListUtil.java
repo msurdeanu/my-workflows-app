@@ -14,11 +14,7 @@ import java.util.stream.Collectors;
 public final class ListUtil {
 
     public static String getValueAtIndex(List<String> values, int index, String defaultValue) {
-        if (index >= 0 && index < values.size()) {
-            return values.get(index);
-        } else {
-            return defaultValue;
-        }
+        return index >= 0 && index < values.size() ? values.get(index) : defaultValue;
     }
 
     public static <T> List<T> substract(List<T> list1, List<T> list2) {

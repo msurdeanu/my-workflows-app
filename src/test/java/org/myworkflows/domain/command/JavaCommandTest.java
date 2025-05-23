@@ -32,7 +32,7 @@ public final class JavaCommandTest {
             "}"
         ));
 
-        // when & then
+        // when and then
         assertDoesNotThrow(() -> new JavaCommand("A", Set.of(), Set.of(), Set.of(),
             Set.of(new ExpressionNameValue("var", "#output", RuntimeEvaluator.SPEL))).run(workflowRun));
         assertEquals("Test", workflowRun.getCache().get("var", String.class));
@@ -53,7 +53,7 @@ public final class JavaCommandTest {
         workflowRun.getCache().put("java.method", "myRun");
         workflowRun.getCache().put("java.clazz", "MyClass");
 
-        // when & then
+        // when and then
         assertDoesNotThrow(() -> new JavaCommand("A", Set.of(), Set.of(), Set.of(),
             Set.of(new ExpressionNameValue("var", "#output", RuntimeEvaluator.SPEL))).run(workflowRun));
         assertEquals(1, workflowRun.getCache().get("var", Integer.class));
@@ -74,7 +74,7 @@ public final class JavaCommandTest {
         workflowRun.getCache().put("java.method", "myRun");
         workflowRun.getCache().put("java.clazz", "MyClass");
 
-        // when & then
+        // when and then
         assertThrows(WorkflowRuntimeException.class,
             () -> new JavaCommand("A", Set.of(), Set.of(), Set.of(), Set.of()).run(workflowRun));
     }

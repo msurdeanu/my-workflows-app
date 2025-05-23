@@ -18,7 +18,7 @@ public final class EncryptionHolderTest {
         EncryptionHolder.INSTANCE.setAlgorithm("AES");
         EncryptionHolder.INSTANCE.setSecretKey("key");
 
-        // when & then
+        // when and then
         final var optionalEncrypt = EncryptionHolder.INSTANCE.encrypt(data);
         assertTrue(optionalEncrypt.isPresent());
         final var optionalDecrypt = EncryptionHolder.INSTANCE.decrypt(optionalEncrypt.get());

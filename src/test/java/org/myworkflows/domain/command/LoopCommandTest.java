@@ -24,7 +24,7 @@ public final class LoopCommandTest {
         workflowRun.getCache().put("print.keys", List.of("loop.item"));
         final var printSubCommand = new PrintCommand("P", Set.of(), Set.of(), Set.of(), Set.of());
 
-        // when & then
+        // when and then
         new LoopCommand("A", Set.of(), Set.of(), Set.of(), Set.of(), List.of(printSubCommand)).run(workflowRun);
         assertNull(workflowRun.getCache().get("loop.item"));
     }
@@ -38,7 +38,7 @@ public final class LoopCommandTest {
         workflowRun.getCache().put("print.keys", List.of("loop.item"));
         final var printSubCommand = new PrintCommand("P", Set.of(), Set.of(), Set.of(), Set.of());
 
-        // when & then
+        // when and then
         final var start = System.currentTimeMillis();
         new LoopCommand("A", Set.of(), Set.of(), Set.of(), Set.of(), List.of(printSubCommand)).run(workflowRun);
         final var duration = System.currentTimeMillis() - start;

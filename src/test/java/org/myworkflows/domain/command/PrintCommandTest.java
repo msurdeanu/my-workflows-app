@@ -23,7 +23,7 @@ public final class PrintCommandTest {
         workflowRun.getCache().put("prop1", 1);
         workflowRun.getCache().put("prop2", 2);
 
-        // when & then
+        // when and then
         assertEquals(1, new PrintCommand().print(workflowRun, List.of("prop1", "prop3")));
         final var allPrints = workflowRun.getAllPrints();
         assertEquals(1, allPrints.size());
@@ -40,7 +40,7 @@ public final class PrintCommandTest {
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("prop", createLongValueString());
 
-        // when & then
+        // when and then
         assertEquals(1, new PrintCommand().print(workflowRun, List.of("prop")));
         final var allPrints = workflowRun.getAllPrints();
         assertEquals(1, allPrints.size());

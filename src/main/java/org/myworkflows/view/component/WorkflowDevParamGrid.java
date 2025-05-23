@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
+import static org.myworkflows.util.Base64Util.base64Encode;
 
 /**
  * @author Mihai Surdeanu
@@ -56,10 +57,10 @@ public final class WorkflowDevParamGrid extends AbstractParameterGrid {
         workflowParameters.forEach(workflowParameter -> {
             names.add(workflowParameter.getName());
             types.add(workflowParameter.getType().getValue());
-            values.add(ofNullable(workflowParameterFields.get(workflowParameter.getName()))
+            values.add(base64Encode(ofNullable(workflowParameterFields.get(workflowParameter.getName()))
                 .map(WorkflowParameterToComponentSupplierObjectTransformer.ComponentValueSupplier::getValueAsStringSupplier)
                 .orElseGet(() -> workflowParameter::getValue)
-                .get());
+                .get()));
         });
         final var parameters = new HashMap<String, List<String>>(3);
         parameters.put("n", names);

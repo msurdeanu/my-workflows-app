@@ -23,7 +23,7 @@ public final class HttpRequestCommandTest {
         // given
         final var workflowRun = new WorkflowRun();
 
-        // when & then
+        // when and then
         assertDoesNotThrow(() -> new HttpRequestCommand("T",
             Set.of(),
             Set.of(new ExpressionNameValue("httpRequest.url", "https://httpbin.dev/json", RuntimeEvaluator.PLAIN)),
@@ -38,7 +38,7 @@ public final class HttpRequestCommandTest {
         // given
         final var workflowRun = new WorkflowRun();
 
-        // when & then
+        // when and then
         assertThrows(WorkflowRuntimeException.class, () -> new HttpRequestCommand("T", Set.of(),
             Set.of(new ExpressionNameValue("httpRequest.url", "https://httpbin.dev/get", RuntimeEvaluator.PLAIN),
                 new ExpressionNameValue("httpRequest.method", "POST", RuntimeEvaluator.PLAIN)),

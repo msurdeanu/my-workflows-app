@@ -1,6 +1,7 @@
 package org.myworkflows.view.transformer;
 
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.EmailField;
@@ -85,8 +86,29 @@ public final class WorkflowParameterToComponentSupplierObjectTransformerTest {
     @Test
     public void whenWorkflowParameterIsASingleStringThenASelectFieldIsCreated() {
         testScenario(WorkflowParameter.of("test", WorkflowParameterType.S_STR, "1,2"),
-            field -> assertEquals("1", field.getValue()),
+            field -> assertEquals("1", field.getValue().toString()),
             componentValue -> assertEquals("1,2", componentValue), Select.class);
+    }
+
+    @Test
+    public void whenWorkflowParameterIsASingleStringWithLabelThenASelectFieldIsCreated() {
+        testScenario(WorkflowParameter.of("test", WorkflowParameterType.S_STR, "1|2,3|4"),
+            field -> assertEquals("1|2", field.getValue().toString()),
+            componentValue -> assertEquals("1|2,3|4", componentValue), Select.class);
+    }
+
+    @Test
+    public void whenWorkflowParameterIsAMultiSingleStringThenASelectFieldIsCreated() {
+        testScenario(WorkflowParameter.of("test", WorkflowParameterType.MS_STR, "1,2"),
+            field -> assertEquals("[]", field.getValue().toString()),
+            componentValue -> assertEquals("1,2", componentValue), MultiSelectComboBox.class);
+    }
+
+    @Test
+    public void whenWorkflowParameterIsAMultiSingleStringWithLabelThenASelectFieldIsCreated() {
+        testScenario(WorkflowParameter.of("test", WorkflowParameterType.MS_STR, "1|2,3|4"),
+            field -> assertEquals("[]", field.getValue().toString()),
+            componentValue -> assertEquals("1|2,3|4", componentValue), MultiSelectComboBox.class);
     }
 
     @Test

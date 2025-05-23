@@ -20,7 +20,7 @@ public final class InternalCacheTest {
         // given
         final var cache = new InternalCache("test", 1);
 
-        // when & then
+        // when and then
         assertEquals("test", cache.getName());
         assertInstanceOf(HashMap.class, cache.getNativeCache());
         assertEquals(0, cache.size());
@@ -43,7 +43,7 @@ public final class InternalCacheTest {
         // given
         final var cache = new InternalCache("test", 3, InternalCache.InternalCacheOrder.FIFO);
 
-        // when & then
+        // when and then
         cache.get("key1", () -> "value1");
         cache.get("key2", () -> "value2");
         cache.putIfAbsent("key1", "value11");
@@ -58,7 +58,7 @@ public final class InternalCacheTest {
         // given
         final var cache = new InternalCache("test", 3, InternalCache.InternalCacheOrder.LIFO);
 
-        // when & then
+        // when and then
         cache.get("key1", () -> "value1");
         cache.get("key1", () -> "value2");
         cache.put("key2", "value2");

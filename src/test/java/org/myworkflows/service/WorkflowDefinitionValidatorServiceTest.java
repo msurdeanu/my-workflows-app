@@ -32,7 +32,7 @@ public final class WorkflowDefinitionValidatorServiceTest {
               } ]
             }
             """;
-        // when & then
+        // when and then
         final var validationMessages = new WorkflowDefinitionValidatorService().validate(workflowAsString);
         assertEquals(0, validationMessages.size());
     }
@@ -58,7 +58,7 @@ public final class WorkflowDefinitionValidatorServiceTest {
               } ]
             }
             """;
-        // when & then
+        // when and then
         final var validationMessages = new WorkflowDefinitionValidatorService().validate(workflowAsString);
         assertEquals(1, validationMessages.size());
         assertEquals("$.commands[0]: required property 'name' not found", validationMessages.iterator().next().getMessage());
@@ -86,7 +86,7 @@ public final class WorkflowDefinitionValidatorServiceTest {
               } ]
             }
             """;
-        // when & then
+        // when and then
         final var validationMessages = new WorkflowDefinitionValidatorService().validate(workflowAsString);
         assertEquals(1, validationMessages.size());
         assertEquals("$.commands[1]: property '_inputs' is not defined in the schema and the schema does not allow additional properties",
@@ -117,7 +117,7 @@ public final class WorkflowDefinitionValidatorServiceTest {
               } ]
             }
             """;
-        // when & then
+        // when and then
         final var validationMessages = new WorkflowDefinitionValidatorService().validate(workflowAsString);
         assertEquals(0, validationMessages.size());
     }

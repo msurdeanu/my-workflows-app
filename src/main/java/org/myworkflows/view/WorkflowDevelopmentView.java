@@ -47,7 +47,6 @@ import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.service.WorkflowDefinitionService;
-import org.myworkflows.util.ListUtil;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.HasResizeableWidth;
 import org.myworkflows.view.component.ResponsiveLayout;
@@ -68,6 +67,8 @@ import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.serializer.JsonFactory.toPrettyString;
+import static org.myworkflows.util.ListUtil.getValueAtIndex;
+import static org.myworkflows.util.Base64Util.base64Decode;
 
 /**
  * @author Mihai Surdeanu
@@ -353,8 +354,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         }
         final var names = queryParameters.getOrDefault("n", List.of());
         workflowDevParamGrid.addParameters(IntStream.range(0, names.size()).boxed().flatMap(index -> {
-            final var type = ListUtil.getValueAtIndex(queryParameters.getOrDefault("t", List.of()), index, WorkflowParameterType.STR.getValue());
-            final var value = ListUtil.getValueAtIndex(queryParameters.getOrDefault("v", List.of()), index, StringUtils.EMPTY);
+            final var type = getValueAtIndex(queryParameters.getOrDefault("t", List.of()), index, WorkflowParameterType.STR.getValue());
+            final var value = base64Decode(getValueAtIndex(queryParameters.getOrDefault("v", List.of()), index, StringUtils.EMPTY));
             final var workflowParameterType = ofNullable(WorkflowParameterType.of(type)).orElse(WorkflowParameterType.STR);
             return workflowParameterType.validate(value)
                 .<Stream<WorkflowParameter>>map(error -> Stream.empty())

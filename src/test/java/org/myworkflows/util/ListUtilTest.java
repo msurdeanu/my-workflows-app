@@ -20,7 +20,7 @@ public final class ListUtilTest {
         final var values = List.of("a", "b", "c");
         final var defaultValue = "default";
 
-        // when & then
+        // when and then
         assertEquals(defaultValue, getValueAtIndex(values, -1, defaultValue));
         assertEquals("a", getValueAtIndex(values, 0, defaultValue));
         assertEquals(defaultValue, getValueAtIndex(values, 3, defaultValue));
@@ -32,7 +32,7 @@ public final class ListUtilTest {
         final var firstList = List.of("a", "b", "c");
         final var secondList = List.of("a", "d");
 
-        // when & then
+        // when and then
         final var substractedList = substract(firstList, secondList);
         assertEquals(2, substractedList.size());
         assertEquals("b", substractedList.get(0));

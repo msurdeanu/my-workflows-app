@@ -21,7 +21,7 @@ public final class JsonFactoryTest {
     public void testAllMethodsExposed() {
         // given
         final var expressionNameValue = new ExpressionNameValue("A", "B", RuntimeEvaluator.PLAIN);
-        // when & then
+        // when and then
         final var expressionNameValueAsString = JsonFactory.toString(expressionNameValue, "N/A");
         assertEquals("{\"name\":\"A\",\"value\":\"B\"}", expressionNameValueAsString);
         assertNotEquals("{\"name\":\"A\",\"value\":\"B\"}", JsonFactory.toPrettyString(expressionNameValue, "N/A"));

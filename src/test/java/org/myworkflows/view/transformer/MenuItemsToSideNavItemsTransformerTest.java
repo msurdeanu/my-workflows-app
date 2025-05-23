@@ -1,6 +1,5 @@
 package org.myworkflows.view.transformer;
 
-import com.vaadin.flow.component.sidenav.SideNavItem;
 import org.junit.jupiter.api.Test;
 import org.myworkflows.domain.MenuItem;
 import org.myworkflows.domain.MenuItemPath;
@@ -23,7 +22,7 @@ public final class MenuItemsToSideNavItemsTransformerTest {
         final var transformer = new MenuItemsToSideNavItemsTransformer();
         final var menuItems = List.of(createMenuItem("Book", "book", null, UserRole.GUEST, 1));
 
-        // when & then
+        // when and then
         final var sideNavItems = transformer.transform(menuItems);
         assertNotNull(sideNavItems);
         assertEquals(0, sideNavItems.size());
@@ -35,7 +34,7 @@ public final class MenuItemsToSideNavItemsTransformerTest {
         final var transformer = new MenuItemsToSideNavItemsTransformer();
         final var menuItems = List.of(createMenuItem("Globe", "globe", new MenuItemPath<>("https://mydomain"), UserRole.GUEST, 2));
 
-        // when & then
+        // when and then
         final var sideNavItems = transformer.transform(menuItems);
         assertNotNull(sideNavItems);
         assertEquals(1, sideNavItems.size());

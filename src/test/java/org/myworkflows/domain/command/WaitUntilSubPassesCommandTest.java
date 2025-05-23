@@ -16,7 +16,7 @@ public final class WaitUntilSubPassesCommandTest {
         // given
         final var workflowRun = new WorkflowRun();
 
-        // when & then
+        // when and then
         assertDoesNotThrow(() -> new WaitUntilSubPassesCommand().run(workflowRun));
     }
 

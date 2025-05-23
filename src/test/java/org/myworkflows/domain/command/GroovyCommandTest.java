@@ -30,7 +30,7 @@ public final class GroovyCommandTest {
             "}"
         ));
 
-        // when & then
+        // when and then
         assertDoesNotThrow(() -> new GroovyCommand("A", Set.of(), Set.of(), Set.of(),
             Set.of(new ExpressionNameValue("var", "#output", RuntimeEvaluator.SPEL))).run(workflowRun));
         assertEquals("Test", workflowRun.getCache().get("var", String.class));
@@ -48,7 +48,7 @@ public final class GroovyCommandTest {
         ));
         workflowRun.getCache().put("groovy.method", "myRun");
 
-        // when & then
+        // when and then
         assertDoesNotThrow(() -> new GroovyCommand("A", Set.of(), Set.of(), Set.of(),
             Set.of(new ExpressionNameValue("var", "#output", RuntimeEvaluator.SPEL))).run(workflowRun));
         assertEquals(1, workflowRun.getCache().get("var", Integer.class));
@@ -66,7 +66,7 @@ public final class GroovyCommandTest {
         ));
         workflowRun.getCache().put("groovy.method", "myRun");
 
-        // when & then
+        // when and then
         assertThrows(WorkflowRuntimeException.class,
             () -> new JavaCommand("A", Set.of(), Set.of(), Set.of(), Set.of()).run(workflowRun));
     }

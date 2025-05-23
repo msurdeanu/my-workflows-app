@@ -40,7 +40,7 @@ public class ApplicationUserDetailsServiceTest {
         // given
         when(userRepository.findByUsername(any(String.class))).thenReturn(Optional.empty());
 
-        // when & then
+        // when and then
         final var service = new ApplicationUserDetailsService(applicationManager);
         assertThrows(UsernameNotFoundException.class, () -> service.loadUserByUsername("test"));
     }
@@ -50,7 +50,7 @@ public class ApplicationUserDetailsServiceTest {
         // given
         when(userRepository.findByUsername(any(String.class))).thenReturn(Optional.of(new User()));
 
-        // when & then
+        // when and then
         final var userDetails = new ApplicationUserDetailsService(applicationManager).loadUserByUsername("test");
         assertNotNull(userDetails);
     }

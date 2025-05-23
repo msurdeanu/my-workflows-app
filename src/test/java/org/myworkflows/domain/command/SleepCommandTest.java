@@ -23,7 +23,7 @@ public final class SleepCommandTest {
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("sleep.time", 100L);
 
-        // when & then
+        // when and then
         assertDoesNotThrow(() -> new SleepCommand("T", Set.of(), Set.of(),
             Set.of(new ExpressionNameValue("assert", "output >= 100L", RuntimeEvaluator.JAVA)), Set.of()).run(workflowRun));
     }
@@ -34,7 +34,7 @@ public final class SleepCommandTest {
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("sleep", 100L);
 
-        // when & then
+        // when and then
         assertThrows(WorkflowRuntimeException.class, () -> new SleepCommand().run(workflowRun));
     }
 
@@ -44,7 +44,7 @@ public final class SleepCommandTest {
         final var workflowRun = new WorkflowRun();
         workflowRun.getCache().put("sleep", 100L);
 
-        // when & then
+        // when and then
         assertDoesNotThrow(() -> new SleepCommand("T", Set.of(new ExpressionNameValue("var", "1 == 0", RuntimeEvaluator.JAVA)),
             Set.of(), Set.of(), Set.of()).run(workflowRun));
     }

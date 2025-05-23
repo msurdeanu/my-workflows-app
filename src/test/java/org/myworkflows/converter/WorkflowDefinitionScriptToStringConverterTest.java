@@ -19,7 +19,7 @@ public final class WorkflowDefinitionScriptToStringConverterTest {
             "{\"commands\":[{\"@type\":\"sleep\",\"name\":\"Sleep command\",\"inputs\":[{\"name\":\"sleep.time\",\"value\":1000}]},{\"@type\":\"print\",\"name\":\"Print command\",\"inputs\":[{\"name\":\"print.keys\",\"value\":[\"sleep.time\"]}]}]}";
         final var converter = new WorkflowDefinitionScriptToStringConverter();
 
-        // when & then
+        // when and then
         final var workflowDefinitionScript = converter.convertToEntityAttribute(data);
         assertNotNull(workflowDefinitionScript);
         assertEquals(2, workflowDefinitionScript.getCommands().size());

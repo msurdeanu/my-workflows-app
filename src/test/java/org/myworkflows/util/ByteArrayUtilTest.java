@@ -15,7 +15,7 @@ public final class ByteArrayUtilTest {
         // given
         final var myString = "test";
 
-        // when & then
+        // when and then
         assertEquals(myString, new String(ByteArrayUtil.toPrimitive(ByteArrayUtil.toObject(myString.getBytes()))));
     }
 

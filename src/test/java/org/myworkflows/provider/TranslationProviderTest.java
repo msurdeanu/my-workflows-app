@@ -20,7 +20,7 @@ public final class TranslationProviderTest {
         // given
         final var provider = new TranslationProvider();
 
-        // when & then
+        // when and then
         assertNull(provider.getTranslation(null, Locale.ENGLISH));
     }
 
@@ -40,7 +40,7 @@ public final class TranslationProviderTest {
         final var provider = new TranslationProvider();
         final var notFoundKey = "bla.bla.bla";
 
-        // when & then
+        // when and then
         assertEquals(notFoundKey, provider.getTranslation(notFoundKey, Locale.ENGLISH));
     }
 
@@ -48,7 +48,7 @@ public final class TranslationProviderTest {
     public void whenKeyIsFoundThenTranslationIsFormattedCorrectly() {
         // given
         final var provider = new TranslationProvider();
-        // when & then
+        // when and then
         assertEquals("My Workflows - Test", provider.getTranslation("site.base.title", Locale.ENGLISH, "Test"));
     }
 

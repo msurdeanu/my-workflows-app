@@ -16,7 +16,7 @@ public final class ResourceStatisticProviderTest {
         // given
         final var provider = new ResourceStatisticProvider();
 
-        // when & then
+        // when and then
         final var statisticItemGroup = provider.getStatisticItemGroup();
         assertNotNull(statisticItemGroup);
         assertNotNull(statisticItemGroup.getRoot());

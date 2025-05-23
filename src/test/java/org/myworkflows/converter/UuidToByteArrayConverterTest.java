@@ -18,7 +18,7 @@ public final class UuidToByteArrayConverterTest {
         final var initialUuid = UUID.randomUUID();
         final var converter = new UuidToByteArrayConverter();
 
-        // when & then
+        // when and then
         final var convertedUuid = converter.convertToEntityAttribute(converter.convertToDatabaseColumn(initialUuid));
         assertEquals(initialUuid, convertedUuid);
     }

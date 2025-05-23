@@ -2,6 +2,7 @@ package org.myworkflows.util;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.myworkflows.exception.WorkflowRuntimeException;
 
 import java.io.ByteArrayOutputStream;
 import java.util.zip.DataFormatException;
@@ -29,17 +30,21 @@ public final class ByteArrayCompressUtil {
         return outputStream.toByteArray();
     }
 
-    public static byte[] decompress(byte[] input) throws DataFormatException {
+    public static byte[] decompress(byte[] input) {
         final var inflater = new Inflater();
         inflater.setInput(input);
 
-        final var outputStream = new ByteArrayOutputStream();
-        final var buffer = new byte[1024];
-        while (!inflater.finished()) {
-            final var decompressedSize = inflater.inflate(buffer);
-            outputStream.write(buffer, 0, decompressedSize);
+        try {
+            final var outputStream = new ByteArrayOutputStream();
+            final var buffer = new byte[1024];
+            while (!inflater.finished()) {
+                final var decompressedSize = inflater.inflate(buffer);
+                outputStream.write(buffer, 0, decompressedSize);
+            }
+            return outputStream.toByteArray();
+        } catch (DataFormatException e) {
+            throw new WorkflowRuntimeException(e);
         }
-        return outputStream.toByteArray();
     }
 
 }

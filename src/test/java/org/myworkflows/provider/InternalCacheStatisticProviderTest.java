@@ -22,7 +22,7 @@ public final class InternalCacheStatisticProviderTest {
         internalCacheManager.addCache(WORKFLOW_RUN, 100, InternalCache.InternalCacheOrder.LIFO);
         internalCacheManager.addCache(WORKFLOW_TEMPLATE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.NO);
 
-        // when & then
+        // when and then
         final var internalCacheStatisticProvider = new InternalCacheStatisticProvider(internalCacheManager);
         assertNotNull(internalCacheStatisticProvider);
         final var statisticItemGroup = internalCacheStatisticProvider.getStatisticItemGroup();

@@ -2,6 +2,8 @@ package org.myworkflows.view.transformer;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBoxVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.datepicker.DatePickerVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -30,6 +32,7 @@ import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
@@ -56,6 +59,7 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
             case DOUBLE -> createNumberField(workflowParameter);
             case BOOL -> createCheckboxField(workflowParameter);
             case S_STR -> createStringSelect(workflowParameter);
+            case MS_STR -> createMultiStringSelect(workflowParameter);
             case EMAIL -> createEmailField(workflowParameter);
             case M_STR -> createTextArea(workflowParameter);
             default -> createTextField(workflowParameter);
@@ -153,18 +157,36 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
 
     @SuppressWarnings("unchecked")
     private static ComponentSupplierObject createStringSelect(WorkflowParameter workflowParameter) {
-        final var singleValues = (List<String>) workflowParameter.getComputedValue();
-        final var stringSelect = new Select<String>();
+        final var options = ((List<String>) workflowParameter.getComputedValue()).stream().map(Option::of).toList();
+        final var stringSelect = new Select<Option>();
         stringSelect.addThemeVariants(SelectVariant.LUMO_SMALL);
-        stringSelect.setItems(singleValues);
-        stringSelect.setValue(singleValues.getFirst());
+        stringSelect.setItems(options);
+        stringSelect.setItemLabelGenerator(Option::label);
+        stringSelect.setValue(options.getFirst());
         stringSelect.setWidthFull();
         stringSelect.setEmptySelectionAllowed(false);
         return ComponentSupplierObject.builder()
             .component(stringSelect)
             .componentValueSupplier(ComponentValueSupplier.builder()
-                .valueSupplier(stringSelect::getValue)
-                .valueAsStringSupplier(() -> getAllItemsWithUserSelectionFirst(stringSelect.getValue(), singleValues))
+                .valueSupplier(() -> stringSelect.getValue().value())
+                .valueAsStringSupplier(() -> getAllItemsWithUserSelectionFirst(stringSelect.getValue(), options))
+                .build())
+            .build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ComponentSupplierObject createMultiStringSelect(WorkflowParameter workflowParameter) {
+        final var options = ((List<String>) workflowParameter.getComputedValue()).stream().map(Option::of).toList();
+        final var multiStringSelect = new MultiSelectComboBox<Option>();
+        multiStringSelect.addThemeVariants(MultiSelectComboBoxVariant.LUMO_SMALL);
+        multiStringSelect.setItems(options);
+        multiStringSelect.setItemLabelGenerator(Option::label);
+        multiStringSelect.setWidthFull();
+        return ComponentSupplierObject.builder()
+            .component(multiStringSelect)
+            .componentValueSupplier(ComponentValueSupplier.builder()
+                .valueSupplier(() -> multiStringSelect.getValue().stream().map(Option::value).collect(Collectors.toSet()))
+                .valueAsStringSupplier(() -> getAllItemsWithUserSelectionFirst(null, options))
                 .build())
             .build();
     }
@@ -213,25 +235,20 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
             .build();
     }
 
-    private static <T> String getAllItemsWithUserSelectionFirst(T userSelection, Collection<T> allItems) {
+    private static String getAllItemsWithUserSelectionFirst(Option userSelection, Collection<Option> allItems) {
         final var stringBuilder = new StringBuilder();
-        stringBuilder.append(userSelection.toString());
-        stringBuilder.append(COMMA);
-        for (T item : allItems) {
-            final var itemAsString = item.toString();
-            if (itemAsString.equals(userSelection)) {
-                continue;
-            }
-            stringBuilder.append(itemAsString);
+        ofNullable(userSelection).ifPresent(option -> stringBuilder.append(option).append(COMMA));
+        allItems.stream().filter(option -> !option.equals(userSelection)).map(Option::toString).forEach(option -> {
+            stringBuilder.append(option);
             stringBuilder.append(COMMA);
-        }
+        });
         return stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
     }
 
     private static Cookie[] getAllCookies() {
         return ofNullable(VaadinService.getCurrentRequest())
             .map(VaadinRequest::getCookies)
-            .orElseGet(() -> new Cookie[] {});
+            .orElseGet(() -> new Cookie[]{});
     }
 
     @Getter
@@ -246,6 +263,25 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
     public static class ComponentValueSupplier {
         private final Supplier<Object> valueSupplier;
         private final Supplier<String> valueAsStringSupplier;
+    }
+
+    private record Option(String label, String value) {
+
+        private static final String SEPARATOR = "|";
+
+        public String toString() {
+            return label.equals(value) ? value : label + SEPARATOR + value;
+        }
+
+        public static Option of(String value) {
+            final var labelIndex = value.indexOf(SEPARATOR);
+            if (labelIndex > -1) {
+                return new Option(value.substring(0, labelIndex), value.substring(labelIndex + 1));
+            } else {
+                return new Option(value, value);
+            }
+        }
+
     }
 
 }

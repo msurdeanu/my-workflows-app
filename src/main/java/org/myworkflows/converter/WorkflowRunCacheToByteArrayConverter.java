@@ -11,7 +11,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.zip.DataFormatException;
 
 import static org.myworkflows.holder.file.FileSourceHolder.INSTANCE;
 import static org.myworkflows.util.ByteArrayCompressUtil.compress;
@@ -50,7 +49,7 @@ public final class WorkflowRunCacheToByteArrayConverter implements AttributeConv
             INSTANCE.readFromSource(BinaryFileSource.of(uuid.toString()))));
              ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
             return (WorkflowRunCache) objectInputStream.readObject();
-        } catch (IOException | ClassNotFoundException | DataFormatException exception) {
+        } catch (Exception exception) {
             log.warn("Could not read workflow run cache from file", exception);
             return new WorkflowRunCache(uuid);
         }

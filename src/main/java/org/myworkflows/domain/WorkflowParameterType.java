@@ -53,6 +53,17 @@ public enum WorkflowParameterType {
             return empty();
         }
     },
+    MS_STR("sm") {
+        @Override
+        public Object getComputedValue(String value) {
+            return Arrays.asList(value.split(","));
+        }
+
+        @Override
+        public Optional<String> validate(String value) {
+            return empty();
+        }
+    },
     EMAIL("e") {
         @Override
         public Object getComputedValue(String value) {
