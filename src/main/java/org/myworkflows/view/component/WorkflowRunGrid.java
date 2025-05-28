@@ -19,11 +19,11 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.service.WorkflowRunService;
+import org.myworkflows.view.WorkflowRunView;
 import org.myworkflows.view.WorkflowTemplateView;
 import org.myworkflows.view.component.html.SpanBadge;
 import org.myworkflows.view.component.html.StandardPaginatedGrid;
 
-import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -71,7 +71,8 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
     }
 
     private Component renderId(WorkflowRun workflowRun) {
-        return new Span(valueOf(workflowRun.getId()));
+        final var workflowIdAsString = workflowRun.getId().toString();
+        return new RouterLink(workflowIdAsString, WorkflowRunView.class, workflowIdAsString);
     }
 
     private Component renderTemplateId(WorkflowRun workflowRun) {

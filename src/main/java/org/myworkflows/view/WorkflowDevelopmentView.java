@@ -113,7 +113,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         EditorAutoCompleteUtil.apply(editor);
         attachShortcutsToEditor();
 
-        currentWorkflowStatus.addClassNames("workflow-dev-status", LumoUtility.BorderRadius.LARGE, LumoUtility.Padding.SMALL, LumoUtility.FontSize.SMALL);
+        currentWorkflowStatus.addClassNames(LumoUtility.BorderRadius.LARGE, LumoUtility.Padding.SMALL, LumoUtility.FontSize.SMALL);
         currentWorkflowStatus.setVisible(false);
 
         filterByDefinition = createFilterByDefinition();

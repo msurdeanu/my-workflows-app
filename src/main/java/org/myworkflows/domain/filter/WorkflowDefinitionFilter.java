@@ -29,13 +29,13 @@ public final class WorkflowDefinitionFilter implements Filter<WorkflowDefinition
             : item -> true);
     }
 
-    public WorkflowDefinitionFilter setByIdCriteria(final int byIdCriteria) {
+    public WorkflowDefinitionFilter setByIdCriteria(int byIdCriteria) {
         this.byIdCriteria = byIdCriteria;
 
         return this;
     }
 
-    public WorkflowDefinitionFilter setByNameCriteria(final String byNameCriteria) {
+    public WorkflowDefinitionFilter setByNameCriteria(String byNameCriteria) {
         this.byNameCriteria = byNameCriteria;
 
         return this;

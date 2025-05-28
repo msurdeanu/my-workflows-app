@@ -1,5 +1,8 @@
 target/
 files/
+!files/.gitkeep
+libs/
+!libs/.gitkeep
 .idea/
 .settings
 .project

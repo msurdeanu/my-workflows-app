@@ -18,6 +18,7 @@ public enum CacheNameEnum {
     WORKFLOW_TEMPLATE("workflowTemplate"),
     WORKFLOW_RUN("workflowRun"),
     MENU_ITEM("menuItem"),
+    LIBRARY("library"),
     DOC_PAGE("docPage"),
     DEFAULT("default");
 
@@ -26,6 +27,7 @@ public enum CacheNameEnum {
     public static final String WORKFLOW_DEFINITION_NAME = "workflowDefinition";
     public static final String WORKFLOW_TEMPLATE_NAME = "workflowTemplate";
     public static final String WORKFLOW_RUN_NAME = "workflowRun";
+    public static final String LIBRARY_NAME = "library";
     public static final String DOC_PAGE_NAME = "docPage";
 
     private final String name;

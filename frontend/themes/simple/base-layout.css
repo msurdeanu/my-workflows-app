@@ -20,7 +20,7 @@ vaadin-scroller[slot="drawer"] {
 }
 
 .draggable-grid {
-    height: 250px;
+    height: 230px;
     margin-left: 0.5rem;
     margin-top: 0.5rem;
     align-self: unset;
@@ -34,12 +34,8 @@ vaadin-scroller[slot="drawer"] {
 }
 
 .workflow-dev-param {
-    max-height: 200px;
+    max-height: 230px;
     overflow: auto;
-}
-
-.workflow-dev-status {
-    width: 98%;
 }
 
 footer > span {

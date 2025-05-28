@@ -223,9 +223,9 @@ the value that we are looking for.
 If there is no variable named `sleepTime` of type `Integer` in the workflow run cache, during workflow execution phase,
 you are going to receive a runtime exception.
 
-#### JAR loading at runtime
+#### Load Java libraries at runtime
 
-The tool is capable of loading a list of JAR files at runtime, during the application initialization phase.
+The tool is capable of loading a list of Java libraries (JAR files) at runtime, during the application initialization phase.
 This is quite useful if you want to extend `java` or `groovy` commands with more functionalities.
 
 To do this, please use the following application config property:
@@ -233,10 +233,8 @@ To do this, please use the following application config property:
 ```yaml
 my-workflows:
   config:
-    loader:
-      jars:
-        - "/home/admin/file1.jar" # Full path is recommended
-        - "/home/admin/file2.jar"
+    library:
+      base-directory: "./libs" # Directory where all JAR files will be discovered
 ```
 
 > [!TIP]

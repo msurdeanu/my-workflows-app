@@ -6,7 +6,10 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasDynamicTitle;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +35,7 @@ import static java.util.Optional.ofNullable;
 @Slf4j
 @PermitAll
 @Route(value = WorkflowRunView.ROUTE, layout = BaseLayout.class)
-public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle {
+public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle, HasUrlParameter<String> {
 
     public static final String ROUTE = "workflow/runs";
 
@@ -63,6 +66,11 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
     @Override
     public String getPageTitle() {
         return getTranslation("site.base.title", getTranslation("menu.main.workflow-runs"));
+    }
+
+    @Override
+    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String runId) {
+        ofNullable(runId).ifPresent(this::onFilterByRunId);
     }
 
     private Component createFilterByTemplate() {
