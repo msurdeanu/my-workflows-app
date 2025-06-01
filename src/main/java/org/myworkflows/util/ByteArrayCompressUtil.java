@@ -5,7 +5,6 @@ import lombok.NoArgsConstructor;
 import org.myworkflows.exception.WorkflowRuntimeException;
 
 import java.io.ByteArrayOutputStream;
-import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -34,7 +33,7 @@ public final class ByteArrayCompressUtil {
         final var inflater = new Inflater();
         inflater.setInput(input);
 
-        try {
+        return WorkflowRuntimeException.wrap(() -> {
             final var outputStream = new ByteArrayOutputStream();
             final var buffer = new byte[1024];
             while (!inflater.finished()) {
@@ -42,9 +41,7 @@ public final class ByteArrayCompressUtil {
                 outputStream.write(buffer, 0, decompressedSize);
             }
             return outputStream.toByteArray();
-        } catch (DataFormatException e) {
-            throw new WorkflowRuntimeException(e);
-        }
+        });
     }
 
 }

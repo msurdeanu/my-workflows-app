@@ -46,7 +46,7 @@ public final class LibraryServiceLoader implements ServiceLoader {
                 log.info("JAR file ready to be loaded: {}", file.getAbsolutePath());
                 libraryService.create(Library.of(file.getAbsolutePath(), true), false);
                 return url;
-            }, () -> libraryService.create(Library.of(file.getAbsolutePath(), false), false)))
+            }, exception -> libraryService.create(Library.of(file.getAbsolutePath(), false), false)))
             .toArray(URL[]::new);
 
         urlClassLoader = new URLClassLoader(jarUrls, getClass().getClassLoader());

@@ -47,7 +47,7 @@ public final class JavaCommand extends AbstractCommand {
         }
 
         final var resolvedScriptLines = scriptLines.stream().collect(joining(lineSeparator()));
-        try {
+        return WorkflowRuntimeException.wrap(() -> {
             final var compiler = new SimpleCompiler();
             compiler.setParentClassLoader(ParentClassLoaderHolder.INSTANCE.getClassLoader());
             compiler.setSourceVersion(sourceVersion.intValue());
@@ -59,10 +59,7 @@ public final class JavaCommand extends AbstractCommand {
 
             final var runMethod = dynamicClass.getMethod(method, WorkflowRunCache.class);
             return runMethod.invoke(instance, workflowRun.getCache());
-        } catch (Exception exception) {
-            log.debug("Command '{}' thrown an exception.", getName(), exception);
-            throw new WorkflowRuntimeException(exception);
-        }
+        }, exception -> log.debug("Command '{}' thrown an exception.", getName(), exception));
     }
 
 }

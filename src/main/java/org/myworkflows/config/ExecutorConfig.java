@@ -1,7 +1,6 @@
 package org.myworkflows.config;
 
 import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
@@ -17,7 +16,6 @@ import java.util.concurrent.Executors;
  */
 @Setter
 @Configuration("executorConfig")
-@ConfigurationProperties(prefix = "my-workflows.config.executor")
 @EnableScheduling
 public class ExecutorConfig {
 

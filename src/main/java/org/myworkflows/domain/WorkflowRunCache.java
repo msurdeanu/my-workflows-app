@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
@@ -180,13 +181,9 @@ public final class WorkflowRunCache implements Serializable {
     }
 
     private Map<String, Serializable> getSerializedObjectMap() {
-        final var objectMap = new HashMap<String, Serializable>();
-        cachedObjectMap.forEach((key, value) -> {
-            if (value instanceof Serializable serializedValue) {
-                objectMap.put(key, serializedValue);
-            }
-        });
-        return objectMap;
+        return cachedObjectMap.entrySet().stream()
+            .filter(entry -> entry.getValue() instanceof Serializable)
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> (Serializable) entry.getValue()));
     }
 
 }

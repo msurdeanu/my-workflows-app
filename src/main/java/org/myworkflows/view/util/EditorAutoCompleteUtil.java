@@ -50,11 +50,10 @@ public final class EditorAutoCompleteUtil {
         COMMAND_INPUTS_COMPLETER.put(WaitUntilSubPassesCommand.PREFIX, List.of("rounds", "backoffPeriod"));
     }
 
-    @SuppressWarnings("deprecation")
     public static void apply(AceEditor editor) {
-        editor.setCustomAutocompletion(WORKFLOW_KEYWORDS, editor.getTranslation("workflow-development.auto-complete.workflow-keyword"), true);
-        editor.setCustomAutocompletion(COMMAND_TYPES, editor.getTranslation("workflow-development.auto-complete.command-type"), true);
-        editor.addDynamicAutocompletion(COMMAND_INPUTS_COMPLETER, ".", editor.getTranslation("workflow-development.auto-complete.command-input"), true);
+        editor.addStaticWordCompleter(WORKFLOW_KEYWORDS, editor.getTranslation("workflow-development.auto-complete.workflow-keyword"), true);
+        editor.addStaticWordCompleter(COMMAND_TYPES, editor.getTranslation("workflow-development.auto-complete.command-type"), true);
+        editor.addDynamicWordCompleter(COMMAND_INPUTS_COMPLETER, ".", editor.getTranslation("workflow-development.auto-complete.command-input"), true);
     }
 
 }

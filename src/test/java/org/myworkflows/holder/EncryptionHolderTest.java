@@ -26,4 +26,15 @@ public final class EncryptionHolderTest {
         assertEquals(data, optionalDecrypt.get());
     }
 
+    @Test
+    public void testExceptions() {
+        // given
+        EncryptionHolder.INSTANCE.setAlgorithm("AES");
+        EncryptionHolder.INSTANCE.setSecretKey("key");
+
+        // when and then
+        assertTrue(EncryptionHolder.INSTANCE.encrypt(null).isEmpty());
+        assertTrue(EncryptionHolder.INSTANCE.decrypt(null).isEmpty());
+    }
+
 }

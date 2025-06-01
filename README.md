@@ -27,11 +27,14 @@ All workflows are defined in JSON format, and the tool provides an intuitive UI 
 * **Vaadin Push** enabled—using WebSockets, the server can send real-time updates to the client.
 * **Persistence layer** powered by **SQLite** for reliable data storage.
 * Dedicated page for **workflow definition script development**, allowing you to:
-  * Code your script.
-  * Inject parameters.
-  * Run the script and view its output.
-  * Benefit from an editor with auto-complete functionality to simplify your workflow scripting.
-* Dedicated web pages for managing **workflow placeholders**, **workflow definitions**, **workflow templates**, and **workflow runs**.
+    * Code your script.
+    * Inject parameters.
+    * Run the script and view its output.
+    * Benefit from an editor with auto-complete functionality to simplify your workflow scripting.
+    * Share the script made together with the params
+* Dedicated web pages for managing **workflow placeholders**, **workflow definitions**, **workflow templates**, and *
+  *workflow runs**.
+* A dedicated web page for managing **Java libraries** at runtime.
 * A dedicated web page for writing **markdown documentation** with ease.
 * A dedicated web page for viewing and analyzing **statistics**.
 
@@ -43,9 +46,11 @@ All workflows are defined in JSON format, and the tool provides an intuitive UI 
 ## In action
 
 ### Workflow Runs View
+
 ![Runs View](screenshots/myworkflows_runs.png)
 
 ### Workflow Development View
+
 ![Development View](screenshots/myworkflows_dev.png)
 
 ## How does it work?
@@ -189,8 +194,10 @@ as it is.
 
 ##### Cache access patterns
 
-If you analyze all the above examples, you are going to see that sometimes it is quite challenging to write the expression because it is too long.
-In addition, by accessing the workflow run cache using the following pattern `cache.get('sleepTime')`, it makes the expression harder to be read.
+If you analyze all the above examples, you are going to see that sometimes it is quite challenging to write the
+expression because it is too long.
+In addition, by accessing the workflow run cache using the following pattern `cache.get('sleepTime')`, it makes the
+expression harder to be read.
 
 This is why you can use a simplified version by using **the cache access pattern feature** exposed by this tool.
 
@@ -216,7 +223,8 @@ we can rewrite it like this:
 
 The tool will be able to recognize every string pattern inside `value` which matches the following regex pattern:
 `\$\(([a-zA-Z0-9_.]+)(:[a-zA-Z0-9_.]+)?\)`.
-The string between parenthesis is split in two parts: the first part defines the name of the variable that we are going to
+The string between parenthesis is split in two parts: the first part defines the name of the variable that we are going
+to
 search into workflow run cache (this part is mandatory) and the second part (which is optional) and defines a type of
 the value that we are looking for.
 
@@ -225,7 +233,8 @@ you are going to receive a runtime exception.
 
 #### Load Java libraries at runtime
 
-The tool is capable of loading a list of Java libraries (JAR files) at runtime, during the application initialization phase.
+The tool is capable of loading a list of Java libraries (JAR files) at runtime, during the application initialization
+phase.
 This is quite useful if you want to extend `java` or `groovy` commands with more functionalities.
 
 To do this, please use the following application config property:
@@ -235,10 +244,8 @@ my-workflows:
   config:
     library:
       base-directory: "./libs" # Directory where all JAR files will be discovered
+      reload-after-upload: false # Set this property on true to reload at runtime the new libraries after uploading them
 ```
-
-> [!TIP]
-> Once you change this property, your application has to be restarted!
 
 #### Comments
 
@@ -474,6 +481,15 @@ Example of a fake command:
 }
 ```
 
+### Loop command
+
+This command lets you iterate over a list of items and for each of them to run a list of subcommands.
+The command can be seen as a `for` instruction in Java.
+
+| `@type` | Inputs                                                                                                                                                                                           | Output                                                     |
+|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|
+| `loop`  | <ul><li><strong>loop.items</strong>: Mandatory. List of items.</li><li><em>loop.backoffPeriod</em>: Optional. Backoff period in millis between two iterations. Default value: 1000 ms.</li></ul> | Sets `loop.item` as current item and returns the item size |
+
 ### Nothing command
 
 This command is not doing anything.
@@ -642,8 +658,10 @@ Example of a fake command:
 
 ## Examples of workflow pipelines
 
-You can find [here](https://github.com/msurdeanu/my-workflows-app/wiki/Samples-of-workflow-definitions) a set of concrete workflow pipelines that you can use for inspiration.
+You can find [here](https://github.com/msurdeanu/my-workflows-app/wiki/Samples-of-workflow-definitions) a set of
+concrete workflow pipelines that you can use for inspiration.
 
 ## From development perspective
 
-Do you want to contribute to this project as a developer? You can find [here](https://github.com/msurdeanu/my-workflows-app/wiki/From-development-perspective) more technical details...
+Do you want to contribute to this project as a developer? You can
+find [here](https://github.com/msurdeanu/my-workflows-app/wiki/From-development-perspective) more technical details...

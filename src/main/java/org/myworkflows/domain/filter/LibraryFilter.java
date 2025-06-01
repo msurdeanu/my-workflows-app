@@ -1,6 +1,7 @@
 package org.myworkflows.domain.filter;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.Library;
 
@@ -14,6 +15,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
  * @since 1.1.0
  */
 @Getter
+@Setter
 public final class LibraryFilter implements Filter<Library> {
 
     private String byFileNameCriteria = StringUtils.EMPTY;
@@ -21,14 +23,8 @@ public final class LibraryFilter implements Filter<Library> {
     @Override
     public Predicate<Library> getFilterPredicate() {
         return isNotEmpty(byFileNameCriteria)
-            ? item -> containsIgnoreCase(item.getFilePath(), byFileNameCriteria)
+            ? item -> containsIgnoreCase(item.filePath(), byFileNameCriteria)
             : item -> true;
-    }
-
-    public LibraryFilter setByFileNameCriteria(String byFileNameCriteria) {
-        this.byFileNameCriteria = byFileNameCriteria;
-
-        return this;
     }
 
 }

@@ -56,7 +56,7 @@ public final class EmailCommand extends AbstractCommand {
             }
         });
 
-        try {
+        WorkflowRuntimeException.wrap(() -> {
             final var message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
@@ -70,9 +70,8 @@ public final class EmailCommand extends AbstractCommand {
             message.setContent(multipart);
 
             Transport.send(message);
-        } catch (Exception exception) {
-            throw new WorkflowRuntimeException(exception);
-        }
+            return null;
+        });
     }
 
 }

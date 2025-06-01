@@ -9,7 +9,6 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -56,12 +55,10 @@ public enum EncryptionHolder {
     }
 
     public void setSecretKey(String secretKey) {
-        try {
-            final var sha = MessageDigest.getInstance("SHA-1");
-            secretKeySpec = new SecretKeySpec(copyOf(sha.digest(secretKey.getBytes(CHARSET)), 16), algorithm);
-        } catch (NoSuchAlgorithmException exception) {
-            throw new WorkflowRuntimeException(exception);
-        }
+        WorkflowRuntimeException.wrap(() -> {
+            secretKeySpec = new SecretKeySpec(copyOf(MessageDigest.getInstance("SHA-1").digest(secretKey.getBytes(CHARSET)), 16), algorithm);
+            return null;
+        });
     }
 
 }

@@ -45,14 +45,14 @@ public final class LibraryGrid extends Composite<VerticalLayout> {
     }
 
     private Component renderFilePath(Library library) {
-        return new Span(library.getFilePath());
+        return new Span(library.filePath());
     }
 
     private Component renderStatus(Library library) {
         if (library.isLoaded()) {
-            return new SpanBadge(getTranslation("workflow-runs.grid.status.ok"), "success small");
+            return new SpanBadge(getTranslation("libs.grid.status.ok"), "success small");
         } else {
-            return new SpanBadge(getTranslation("workflow-runs.grid.status.nok"), "error small");
+            return new SpanBadge(getTranslation("libs.grid.status.nok"), "error small");
         }
     }
 

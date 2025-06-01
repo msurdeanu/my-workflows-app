@@ -2,6 +2,8 @@ package org.myworkflows.exception;
 
 import org.myworkflows.domain.CheckedSupplier;
 
+import java.util.function.Consumer;
+
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
@@ -21,15 +23,15 @@ public final class WorkflowRuntimeException extends RuntimeException {
     }
 
     public static <T> T wrap(CheckedSupplier<T> trySupplier) {
-        return wrap(trySupplier, () -> {
+        return wrap(trySupplier, exception -> {
         });
     }
 
-    public static <T> T wrap(CheckedSupplier<T> trySupplier, Runnable catchRunnable) {
+    public static <T> T wrap(CheckedSupplier<T> trySupplier, Consumer<Exception> catchExceptionConsumer) {
         try {
             return trySupplier.get();
         } catch (Exception exception) {
-            catchRunnable.run();
+            catchExceptionConsumer.accept(exception);
             throw new WorkflowRuntimeException(exception);
         }
     }

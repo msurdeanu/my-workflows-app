@@ -34,6 +34,7 @@ public class LibraryService extends CacheableDataService<Library, LibraryFilter>
 
     public void upload(String fileName, InputStream inputStream) {
         final var libraryConfig = applicationManager.getBeanOfType(LibraryConfig.class);
+
         try (OutputStream outputStream = new FileOutputStream(libraryConfig.getBaseDirectory() + File.separator + fileName)) {
             byte[] buffer = new byte[4096];
             int bytesRead;
@@ -41,8 +42,8 @@ public class LibraryService extends CacheableDataService<Library, LibraryFilter>
                 outputStream.write(buffer, 0, bytesRead);
             }
             reloadLibrariesIfNeeded(libraryConfig);
-        } catch (Exception e) {
-            throw new WorkflowRuntimeException(e);
+        } catch (Exception exception) {
+            throw new WorkflowRuntimeException(exception);
         }
     }
 

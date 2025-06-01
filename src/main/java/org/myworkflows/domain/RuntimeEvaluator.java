@@ -47,7 +47,7 @@ public enum RuntimeEvaluator {
     JAVA("java") {
         @Override
         public Object evaluate(String expression, Map<String, Object> variables, Pattern cacheAccessPattern) {
-            try {
+            return WorkflowRuntimeException.wrap(() -> {
                 final var newExpression = resolveCacheAccessPatterns(expression, cacheAccessPattern,
                     "cache.get(\"%s\")", "cache.get(\"%s\", %s)");
                 final var expressionEvaluator = new ExpressionEvaluator();
@@ -65,9 +65,7 @@ public enum RuntimeEvaluator {
                 expressionEvaluator.setParameters(parameterNames, parameterTypes);
                 expressionEvaluator.cook(newExpression);
                 return expressionEvaluator.evaluate(parameterObjects);
-            } catch (Exception e) {
-                throw new WorkflowRuntimeException(e);
-            }
+            });
         }
     },
 

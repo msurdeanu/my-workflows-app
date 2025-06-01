@@ -16,7 +16,6 @@ import org.myworkflows.domain.command.api.ExecutionMethod;
 import org.myworkflows.domain.command.api.ExecutionParam;
 import org.myworkflows.exception.WorkflowRuntimeException;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -115,11 +114,7 @@ public abstract class AbstractCommand {
     }
 
     private Optional<Object> runMethod(Method method, WorkflowRun workflowRun) {
-        try {
-            return ofNullable(method.invoke(this, resolveParameters(method, workflowRun)));
-        } catch (IllegalAccessException | InvocationTargetException exception) {
-            throw new WorkflowRuntimeException(exception);
-        }
+        return WorkflowRuntimeException.wrap(() -> ofNullable(method.invoke(this, resolveParameters(method, workflowRun))));
     }
 
     private Object[] resolveParameters(Method method, WorkflowRun workflowRun) {

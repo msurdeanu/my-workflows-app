@@ -15,12 +15,16 @@ public final class UserRoleToStringConverter implements AttributeConverter<UserR
 
     @Override
     public String convertToDatabaseColumn(UserRole attribute) {
-        return ofNullable(attribute).map(UserRole::getLabel).orElse(null);
+        return ofNullable(attribute)
+            .map(UserRole::getLabel)
+            .orElse(null);
     }
 
     @Override
     public UserRole convertToEntityAttribute(String data) {
-        return ofNullable(data).map(UserRole::of).orElse(UserRole.GUEST);
+        return ofNullable(data)
+            .map(UserRole::of)
+            .orElse(UserRole.GUEST);
     }
 
 }

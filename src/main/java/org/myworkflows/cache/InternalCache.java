@@ -89,15 +89,11 @@ public final class InternalCache implements org.springframework.cache.Cache {
     public <T> T get(@NonNull Object key, @NonNull Callable<T> valueLoader) {
         return ofNullable(applyFunctionInsideOptimisticReadBlock(key, cacheMap::get))
             .map(item -> (T) item)
-            .orElseGet(() -> {
-                try {
-                    T loadedValue = valueLoader.call();
-                    put(key, loadedValue);
-                    return loadedValue;
-                } catch (Exception e) {
-                    throw new WorkflowRuntimeException(e);
-                }
-            });
+            .orElseGet(() -> WorkflowRuntimeException.wrap(() -> {
+                T loadedValue = valueLoader.call();
+                put(key, loadedValue);
+                return loadedValue;
+            }));
     }
 
     public <T> Set<T> getAllKeys(Class<T> type) {

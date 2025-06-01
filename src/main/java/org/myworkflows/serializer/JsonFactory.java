@@ -1,7 +1,6 @@
 package org.myworkflows.serializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,11 +40,7 @@ public final class JsonFactory {
     }
 
     public static <T> T fromJsonToObject(String content, Class<T> clazz) {
-        try {
-            return MAPPER.readValue(content, clazz);
-        } catch (JsonProcessingException e) {
-            throw new WorkflowRuntimeException(e);
-        }
+        return WorkflowRuntimeException.wrap(() -> MAPPER.readValue(content, clazz));
     }
 
     public static JsonSchema fromJsonToSchema(JsonNode jsonNode) {

@@ -18,7 +18,7 @@ public class BaseConfig {
     private String logoSrc = "src/main/resources/META-INF/resources/logo.png";
     private String name = "My Workflows";
     private String url = "https://myworkflows.org";
-    private String version = "1.1";
+    private String version = "1.2";
 
     private String rememberMeCookieName = "mw-rm";
     private short rememberMeCookieDays = 30;

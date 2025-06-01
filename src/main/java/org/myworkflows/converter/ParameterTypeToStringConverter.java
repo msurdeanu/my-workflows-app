@@ -15,12 +15,16 @@ public final class ParameterTypeToStringConverter implements AttributeConverter<
 
     @Override
     public String convertToDatabaseColumn(WorkflowParameterType attribute) {
-        return ofNullable(attribute).map(WorkflowParameterType::getValue).orElse(null);
+        return ofNullable(attribute)
+            .map(WorkflowParameterType::getValue)
+            .orElse(null);
     }
 
     @Override
     public WorkflowParameterType convertToEntityAttribute(String data) {
-        return ofNullable(data).map(WorkflowParameterType::of).orElse(null);
+        return ofNullable(data)
+            .map(WorkflowParameterType::of)
+            .orElse(null);
     }
 
 }
