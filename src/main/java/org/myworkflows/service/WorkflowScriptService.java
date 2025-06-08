@@ -92,20 +92,20 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
                                   UUID token) {
         final var startTime = System.currentTimeMillis();
         applicationManager.getBeanOfType(EventBroadcaster.class)
-            .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, false));
+            .broadcast(WorkflowDefinitionOnProgressEvent.of(token, workflowRun, false));
         try {
             workflowDefinitionScript.getCommands().stream()
                 .takeWhile(command -> runCommandAndMarkAsFailedIfNeeded(command, workflowRun))
                 .forEach(command -> applicationManager.getBeanOfType(EventBroadcaster.class)
-                    .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, false)));
+                    .broadcast(WorkflowDefinitionOnProgressEvent.of(token, workflowRun, false)));
         } finally {
             workflowDefinitionScript.getFinallyCommands().stream()
                 .takeWhile(command -> runCommandAndMarkAsFailedIfNeeded(command, workflowRun))
                 .forEach(command -> applicationManager.getBeanOfType(EventBroadcaster.class)
-                    .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, false)));
+                    .broadcast(WorkflowDefinitionOnProgressEvent.of(token, workflowRun, false)));
             workflowRun.markAsCompleted(System.currentTimeMillis() - startTime);
             applicationManager.getBeanOfType(EventBroadcaster.class)
-                .broadcast(createWorkflowDefinitionOnProgressEvent(workflowRun, token, true), 10);
+                .broadcast(WorkflowDefinitionOnProgressEvent.of(token, workflowRun, true), 10);
         }
     }
 
@@ -147,26 +147,13 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
             log.debug("After resolving placeholders, '{}' was converted to '{}'", valueAsString, resolvedValueAsString);
             return resolvedValueAsString;
         } else if (value instanceof List<?> valueAsList) {
-            return valueAsList.stream()
-                .map(this::resolvePlaceholders)
-                .collect(Collectors.toList());
+            return valueAsList.stream().map(this::resolvePlaceholders).toList();
         } else if (value instanceof Map<?, ?> valueAsMap) {
             return valueAsMap.entrySet().stream()
-                .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    entry -> resolvePlaceholders(entry.getValue())
-                ));
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> resolvePlaceholders(entry.getValue())));
         }
 
         return value;
-    }
-
-    private WorkflowDefinitionOnProgressEvent createWorkflowDefinitionOnProgressEvent(WorkflowRun workflowRun, UUID token, boolean persisted) {
-        final var onProgressEventBuilder = WorkflowDefinitionOnProgressEvent.builder();
-        onProgressEventBuilder.workflowRun(workflowRun);
-        onProgressEventBuilder.token(token);
-        onProgressEventBuilder.persisted(persisted);
-        return onProgressEventBuilder.build();
     }
 
 }

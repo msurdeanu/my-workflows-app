@@ -18,4 +18,12 @@ public class WorkflowDefinitionOnProgressEvent implements Event {
     private final WorkflowRun workflowRun;
     private final boolean persisted;
 
+    public static WorkflowDefinitionOnProgressEvent of(UUID token, WorkflowRun workflowRun, boolean persisted) {
+        final var onProgressEventBuilder = WorkflowDefinitionOnProgressEvent.builder();
+        onProgressEventBuilder.token(token);
+        onProgressEventBuilder.workflowRun(workflowRun);
+        onProgressEventBuilder.persisted(persisted);
+        return onProgressEventBuilder.build();
+    }
+
 }
