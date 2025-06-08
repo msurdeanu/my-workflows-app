@@ -98,12 +98,12 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
     }
 
     private void onFilterByName(String value) {
-        workflowDefinitionFilter.setByNameCriteria(value);
+        workflowDefinitionFilter.nameCriteria(value);
         workflowDefinitionGrid.refreshPage();
     }
 
     private void onFilterById(int value) {
-        workflowDefinitionFilter.setByIdCriteria(value);
+        workflowDefinitionFilter.idCriteria(value);
         workflowDefinitionGrid.refreshPage();
     }
 

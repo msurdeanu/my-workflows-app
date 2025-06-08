@@ -88,7 +88,7 @@ public class WorkflowPlaceholderView extends ResponsiveLayout implements HasDyna
     }
 
     private void onFilterByName(String value) {
-        workflowPlaceholderFilter.setByNameCriteria(value);
+        workflowPlaceholderFilter.nameCriteria(value);
         workflowPlaceholderGrid.refreshPage();
     }
 

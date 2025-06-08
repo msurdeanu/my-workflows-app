@@ -32,6 +32,7 @@ public final class MenuItemPathToStringConverter implements AttributeConverter<M
             .orElse(null);
     }
 
+    @SuppressWarnings("unchecked")
     private MenuItemPath<Class<? extends Component>> findMenuItemViewPath(String path) {
         try {
             final var targetClass = Class.forName(path);

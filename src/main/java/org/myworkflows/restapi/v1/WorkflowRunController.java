@@ -41,7 +41,7 @@ public class WorkflowRunController {
 
     private WorkflowRun getWorkflowRunById(String id) {
         return applicationManager.getBeanOfType(WorkflowRunService.class)
-            .getAll(new WorkflowRunFilter().setByRunIdCriteria(id), 0, 1)
+            .getAll(new WorkflowRunFilter().runIdCriteria(id), 0, 1)
             .findFirst()
             .orElseThrow(() -> new WorkflowRuntimeException("Could not find workflow run with id = " + id));
     }

@@ -47,7 +47,7 @@ public class WorkflowTemplateController {
 
     private WorkflowTemplate getWorkflowTemplateById(int id) {
         return applicationManager.getBeanOfType(WorkflowTemplateService.class)
-            .getAll(new WorkflowTemplateFilter().setByIdCriteria(id), 0, 1)
+            .getAll(new WorkflowTemplateFilter().idCriteria(id), 0, 1)
             .findFirst()
             .orElseThrow(() -> new WorkflowRuntimeException("Could not find workflow template with id = " + id));
     }

@@ -98,7 +98,7 @@ public class LibraryView extends ResponsiveLayout implements HasDynamicTitle, Li
     }
 
     private void onFilterByFilePath(String value) {
-        libraryFilter.setByFileNameCriteria(value);
+        libraryFilter.filePathCriteria(value);
         libraryGrid.refreshPage();
     }
 

@@ -1,6 +1,8 @@
 package org.myworkflows.domain.filter;
 
 import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.WorkflowDefinition;
 
@@ -14,31 +16,22 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
  * @since 1.0.0
  */
 @Getter
+@Setter
+@Accessors(fluent = true)
 public final class WorkflowDefinitionFilter implements Filter<WorkflowDefinition> {
 
-    private int byIdCriteria;
-    private String byNameCriteria = StringUtils.EMPTY;
+    private int idCriteria;
+
+    private String nameCriteria = StringUtils.EMPTY;
 
     @Override
     public Predicate<WorkflowDefinition> getFilterPredicate() {
-        final Predicate<WorkflowDefinition> predicate = byIdCriteria > 0
-            ? item -> item.getId() == byIdCriteria
+        final Predicate<WorkflowDefinition> predicate = idCriteria > 0
+            ? item -> item.getId() == idCriteria
             : item -> true;
-        return predicate.and(isNotEmpty(byNameCriteria)
-            ? item -> containsIgnoreCase(item.getName(), byNameCriteria)
+        return predicate.and(isNotEmpty(nameCriteria)
+            ? item -> containsIgnoreCase(item.getName(), nameCriteria)
             : item -> true);
-    }
-
-    public WorkflowDefinitionFilter setByIdCriteria(int byIdCriteria) {
-        this.byIdCriteria = byIdCriteria;
-
-        return this;
-    }
-
-    public WorkflowDefinitionFilter setByNameCriteria(String byNameCriteria) {
-        this.byNameCriteria = byNameCriteria;
-
-        return this;
     }
 
 }

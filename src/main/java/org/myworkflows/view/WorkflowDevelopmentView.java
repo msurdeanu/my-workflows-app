@@ -134,7 +134,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter Integer workflowDefinitionId) {
         ofNullable(workflowDefinitionId)
             .flatMap(item -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
-                .getAll(new WorkflowDefinitionFilter().setByIdCriteria(item), 0, 1)
+                .getAll(new WorkflowDefinitionFilter().idCriteria(item), 0, 1)
                 .findFirst())
             .ifPresent(workflowDefinition -> {
                 onFilterByDefinition(workflowDefinition);

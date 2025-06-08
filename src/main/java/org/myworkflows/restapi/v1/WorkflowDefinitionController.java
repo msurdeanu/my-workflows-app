@@ -60,7 +60,7 @@ public class WorkflowDefinitionController {
 
     private WorkflowDefinition getWorkflowDefinitionById(int id) {
         return applicationManager.getBeanOfType(WorkflowDefinitionService.class)
-            .getAll(new WorkflowDefinitionFilter().setByIdCriteria(id), 0, 1)
+            .getAll(new WorkflowDefinitionFilter().idCriteria(id), 0, 1)
             .findFirst()
             .orElseThrow(() -> new WorkflowRuntimeException("Could not find workflow definition with id = " + id));
     }

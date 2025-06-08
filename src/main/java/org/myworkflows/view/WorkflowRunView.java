@@ -97,13 +97,13 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
     }
 
     private void onFilterByTemplate(WorkflowTemplate workflowTemplate) {
-        workflowRunFilter.setByTemplateIdCriteria(ofNullable(workflowTemplate).map(WorkflowTemplate::getId).orElse(0));
+        workflowRunFilter.templateIdCriteria(ofNullable(workflowTemplate).map(WorkflowTemplate::getId).orElse(0));
 
         workflowRunGrid.refreshPage();
     }
 
     private void onFilterByRunId(String value) {
-        workflowRunFilter.setByRunIdCriteria(value);
+        workflowRunFilter.runIdCriteria(value);
 
         workflowRunGrid.refreshPage();
     }

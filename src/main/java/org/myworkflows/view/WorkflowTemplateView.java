@@ -128,12 +128,12 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
     }
 
     private void onFilterByName(String value) {
-        workflowTemplateFilter.setByNameCriteria(value.toLowerCase());
+        workflowTemplateFilter.nameCriteria(value.toLowerCase());
         workflowDefinitionGrid.refreshPage();
     }
 
     private void onFilterById(int value) {
-        workflowTemplateFilter.setByIdCriteria(value);
+        workflowTemplateFilter.idCriteria(value);
         workflowDefinitionGrid.refreshPage();
     }
 

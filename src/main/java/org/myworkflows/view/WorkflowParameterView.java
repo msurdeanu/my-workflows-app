@@ -88,7 +88,7 @@ public class WorkflowParameterView extends ResponsiveLayout implements HasDynami
     }
 
     private void onFilterByName(String value) {
-        workflowParameterFilter.setByNameCriteria(value);
+        workflowParameterFilter.nameCriteria(value);
         workflowParameterGrid.refreshPage();
     }
 
