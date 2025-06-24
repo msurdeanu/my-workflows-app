@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.2.0
+ * @since 1.0.0
  */
 @ExtendWith(MockitoExtension.class)
 public final class CacheableDataServiceTest {

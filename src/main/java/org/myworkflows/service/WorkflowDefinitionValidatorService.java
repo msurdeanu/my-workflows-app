@@ -7,12 +7,11 @@ import org.myworkflows.exception.WorkflowRuntimeException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
-import static org.myworkflows.serializer.JsonFactory.fromJsonToSchema;
+import static org.myworkflows.serializer.SerializerFactory.toObject;
+import static org.myworkflows.serializer.SerializerFactory.toSchema;
 
 /**
  * @author Mihai Surdeanu
@@ -25,23 +24,16 @@ public final class WorkflowDefinitionValidatorService {
 
     static {
         final var classPathResource = new ClassPathResource("workflow_schema.json");
-        final var stringBuilder = new StringBuilder();
-        try (var inputStreamReader = new InputStreamReader(classPathResource.getInputStream());
-             var buffer = new BufferedReader(inputStreamReader)) {
-            String line;
-            while ((line = buffer.readLine()) != null) {
-                stringBuilder.append(line);
-            }
+        try (var inputStream = classPathResource.getInputStream()) {
+            WORKFLOW_SCHEMA = toSchema(toObject(new String(inputStream.readAllBytes(), StandardCharsets.UTF_8), JsonNode.class));
+            WORKFLOW_SCHEMA.initializeValidators();
         } catch (Exception exception) {
             throw new WorkflowRuntimeException("An exception occurred during process of reading workflow schema from classpath.", exception);
         }
-
-        WORKFLOW_SCHEMA = fromJsonToSchema(fromJsonToObject(stringBuilder.toString(), JsonNode.class));
-        WORKFLOW_SCHEMA.initializeValidators();
     }
 
     public Set<ValidationMessage> validate(String wokflowAsString) {
-        return WORKFLOW_SCHEMA.validate(fromJsonToObject(wokflowAsString, JsonNode.class));
+        return WORKFLOW_SCHEMA.validate(toObject(wokflowAsString, JsonNode.class));
     }
 
 }

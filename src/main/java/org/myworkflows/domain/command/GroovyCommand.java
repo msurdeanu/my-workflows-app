@@ -8,11 +8,7 @@ import org.myworkflows.domain.command.api.ExecutionMethod;
 import org.myworkflows.domain.command.api.ExecutionParam;
 import org.myworkflows.holder.ParentClassLoaderHolder;
 
-import java.util.List;
 import java.util.Set;
-
-import static java.lang.System.lineSeparator;
-import static java.util.stream.Collectors.joining;
 
 /**
  * @author Mihai Surdeanu
@@ -33,15 +29,15 @@ public final class GroovyCommand extends AbstractCommand {
 
     @ExecutionMethod(prefix = PREFIX)
     public Object groovy(@ExecutionParam(bypassed = true) WorkflowRun workflowRun,
-                         @ExecutionParam List<String> scriptLines,
+                         @ExecutionParam String script,
                          @ExecutionParam(required = false, defaultValue = "run") String method) {
-        if (scriptLines.isEmpty()) {
+        if (script.isEmpty()) {
             return null;
         }
 
-        final var script = new GroovyShell(ParentClassLoaderHolder.INSTANCE.getClassLoader())
-            .parse(scriptLines.stream().collect(joining(lineSeparator())));
-        return script.invokeMethod(method, workflowRun.getCache());
+        return new GroovyShell(ParentClassLoaderHolder.INSTANCE.getClassLoader())
+            .parse(script)
+            .invokeMethod(method, workflowRun.getCache());
     }
 
 }

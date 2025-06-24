@@ -39,7 +39,7 @@ public class ExpressionNameValue {
     @JsonProperty("value")
     private Object value;
 
-    @JsonProperty("@type")
+    @JsonProperty("class")
     private RuntimeEvaluator runtimeEvaluator = RuntimeEvaluator.PLAIN;
 
     public Object evaluate(Map<String, Object> variables) {
@@ -49,8 +49,7 @@ public class ExpressionNameValue {
     private Object recursiveEvaluation(Object object, Map<String, Object> variables) {
         return switch (object) {
             case String objectAsStr -> runtimeEvaluator.evaluate(objectAsStr, variables, CACHE_ACCESS_PATTERN);
-            case List<?> objectAsList ->
-                objectAsList.stream().map(item -> recursiveEvaluation(item, variables)).collect(toList());
+            case List<?> objectAsList -> objectAsList.stream().map(item -> recursiveEvaluation(item, variables)).collect(toList());
             case Map<?, ?> objectAsMap -> objectAsMap.entrySet().stream()
                 .collect(toMap(Map.Entry::getKey, entry -> recursiveEvaluation(entry.getValue(), variables)));
             default -> object;

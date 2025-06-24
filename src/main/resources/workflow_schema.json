@@ -25,14 +25,14 @@
       "type": "object",
       "required": [
         "name",
-        "@type"
+        "class"
       ],
       "properties": {
         "name": {
           "type": "string",
           "description": "The name of the command."
         },
-        "@type": {
+        "class": {
           "enum": [
             "database",
             "email",
@@ -83,7 +83,7 @@
         {
           "if": {
             "properties": {
-              "@type": {
+              "class": {
                 "const": "loop"
               }
             }
@@ -97,7 +97,7 @@
         {
           "if": {
             "properties": {
-              "@type": {
+              "class": {
                 "const": "waitUntilSubPasses"
               }
             }
@@ -109,10 +109,7 @@
           }
         }
       ],
-      "additionalProperties": false,
-      "patternProperties": {
-        "^_comment.*": {}
-      }
+      "additionalProperties": false
     },
     "expression": {
       "type": "object",
@@ -131,7 +128,7 @@
           ],
           "description": "The value of the expression."
         },
-        "@type": {
+        "class": {
           "enum": [
             "groovy",
             "java",
@@ -140,14 +137,8 @@
           ]
         }
       },
-      "additionalProperties": false,
-      "patternProperties": {
-        "^_comment.*": {}
-      }
+      "additionalProperties": false
     }
   },
-  "additionalProperties": false,
-  "patternProperties": {
-    "^_comment.*": {}
-  }
+  "additionalProperties": false
 }

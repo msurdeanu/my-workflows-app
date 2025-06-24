@@ -6,7 +6,6 @@ import org.myworkflows.domain.RuntimeEvaluator;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.exception.WorkflowRuntimeException;
 
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -23,12 +22,12 @@ public final class GroovyCommandTest {
     public void whenSimpleGroovyCodeIsRunThenEverythingWorksAsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("groovy.scriptLines", List.of(
-            "import org.myworkflows.domain.WorkflowRunCache",
-            "def String run(WorkflowRunCache cache) {",
-            "  return \"Test\"",
-            "}"
-        ));
+        workflowRun.getCache().put("groovy.script", """
+            import org.myworkflows.domain.WorkflowRunCache
+            def String run(WorkflowRunCache cache) {
+              return "Test"
+            }
+            """);
 
         // when and then
         assertDoesNotThrow(() -> new GroovyCommand("A", Set.of(), Set.of(), Set.of(),
@@ -40,12 +39,12 @@ public final class GroovyCommandTest {
     public void whenSimpleGroovyCodeIsRunWithOptionalParamsThenEverythingWorksAsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("groovy.scriptLines", List.of(
-            "import org.myworkflows.domain.WorkflowRunCache",
-            "def int myRun(WorkflowRunCache cache) {",
-            "  return 1",
-            "}"
-        ));
+        workflowRun.getCache().put("groovy.script", """
+            import org.myworkflows.domain.WorkflowRunCache
+            def int myRun(WorkflowRunCache cache) {
+              return 1
+            }
+            """);
         workflowRun.getCache().put("groovy.method", "myRun");
 
         // when and then
@@ -58,12 +57,13 @@ public final class GroovyCommandTest {
     public void whenSimpleGroovyCodeIsRunWithSyntaxIssueThenAProperExceptionIsRaised() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("groovy.scriptLines", List.of(
-            "import org.myworkflows.domain.WorkflowRunCache",
-            "int myRun(WorkflowRunCache cache) {", // we forgot "def" keyword
-            "  return 1",
-            "}"
-        ));
+        // we will forget the "def" keyword here
+        workflowRun.getCache().put("groovy.script", """
+            import org.myworkflows.domain.WorkflowRunCache
+            int myRun(WorkflowRunCache cache) {
+              return 1
+            }
+            """);
         workflowRun.getCache().put("groovy.method", "myRun");
 
         // when and then

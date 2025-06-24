@@ -36,7 +36,7 @@ import static java.util.stream.IntStream.range;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "class")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = DatabaseCommand.class, name = DatabaseCommand.PREFIX),
     @JsonSubTypes.Type(value = EmailCommand.class, name = EmailCommand.PREFIX),

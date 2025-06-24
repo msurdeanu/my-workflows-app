@@ -12,11 +12,22 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public final class WorkflowDefinitionScriptToStringConverterTest {
 
     @Test
-    @SuppressWarnings("checkstyle:linelength")
     public void whenConverterIsUsedEverythingWorksAsExpected() {
         // given
-        final var data =
-            "{\"commands\":[{\"@type\":\"sleep\",\"name\":\"Sleep command\",\"inputs\":[{\"name\":\"sleep.time\",\"value\":1000}]},{\"@type\":\"print\",\"name\":\"Print command\",\"inputs\":[{\"name\":\"print.keys\",\"value\":[\"sleep.time\"]}]}]}";
+        final var data = """
+            commands:
+            - class: sleep
+              name: Sleep command
+              inputs:
+              - name: sleep.time
+                value: 1000
+            - class: print
+              name: Print command
+              inputs:
+              - name: print.keys
+                value:
+                - sleep.time
+            """;
         final var converter = new WorkflowDefinitionScriptToStringConverter();
 
         // when and then

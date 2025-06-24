@@ -2,7 +2,7 @@ package org.myworkflows.domain;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.2.0
+ * @since 1.0.0
  */
 public record Library(String filePath, boolean isLoaded) {
 

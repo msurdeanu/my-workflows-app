@@ -66,7 +66,7 @@ import java.util.stream.Stream;
 import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
-import static org.myworkflows.serializer.JsonFactory.toPrettyString;
+import static org.myworkflows.serializer.SerializerFactory.toPrettyString;
 import static org.myworkflows.util.ListUtil.getValueAtIndex;
 import static org.myworkflows.util.Base64Util.base64Decode;
 
@@ -104,7 +104,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     public WorkflowDevelopmentView(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
 
-        editor.setMode(AceMode.json);
+        editor.setMode(AceMode.yaml);
         editor.setSofttabs(true);
         editor.setTabSize(2);
         editor.addFocusShortcut(Key.KEY_E, KeyModifier.ALT);

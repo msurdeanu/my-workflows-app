@@ -11,11 +11,7 @@ import org.myworkflows.domain.command.api.ExecutionParam;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.holder.ParentClassLoaderHolder;
 
-import java.util.List;
 import java.util.Set;
-
-import static java.lang.System.lineSeparator;
-import static java.util.stream.Collectors.joining;
 
 /**
  * @author Mihai Surdeanu
@@ -37,22 +33,21 @@ public final class JavaCommand extends AbstractCommand {
 
     @ExecutionMethod(prefix = PREFIX)
     public Object java(@ExecutionParam(bypassed = true) WorkflowRun workflowRun,
-                       @ExecutionParam List<String> scriptLines,
+                       @ExecutionParam String script,
                        @ExecutionParam(required = false, defaultValue = "run") String method,
                        @ExecutionParam(required = false, defaultValue = "DynamicClass") String clazz,
                        @ExecutionParam(required = false, defaultValue = "11") Number sourceVersion,
                        @ExecutionParam(required = false, defaultValue = "11") Number targetVersion) {
-        if (scriptLines.isEmpty()) {
+        if (script.isEmpty()) {
             return null;
         }
 
-        final var resolvedScriptLines = scriptLines.stream().collect(joining(lineSeparator()));
         return WorkflowRuntimeException.wrap(() -> {
             final var compiler = new SimpleCompiler();
             compiler.setParentClassLoader(ParentClassLoaderHolder.INSTANCE.getClassLoader());
             compiler.setSourceVersion(sourceVersion.intValue());
             compiler.setTargetVersion(targetVersion.intValue());
-            compiler.cook(resolvedScriptLines);
+            compiler.cook(script);
 
             final var dynamicClass = compiler.getClassLoader().loadClass(clazz);
             final var instance = dynamicClass.getConstructor().newInstance();

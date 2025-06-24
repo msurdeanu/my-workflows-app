@@ -11,7 +11,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
 import static org.myworkflows.cache.CacheNameEnum.WORKFLOW_DEFINITION_NAME;
-import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
+import static org.myworkflows.serializer.SerializerFactory.toObject;
 
 /**
  * @author Mihai Surdeanu
@@ -57,7 +57,7 @@ public class WorkflowDefinitionService extends CacheableDataService<WorkflowDefi
     public void updateDefinition(WorkflowDefinition workflowDefinition, String newScript) {
         lock.lock();
         try {
-            workflowDefinition.setScript(fromJsonToObject(newScript, WorkflowDefinitionScript.class));
+            workflowDefinition.setScript(toObject(newScript, WorkflowDefinitionScript.class));
             applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).save(workflowDefinition);
         } finally {
             lock.unlock();

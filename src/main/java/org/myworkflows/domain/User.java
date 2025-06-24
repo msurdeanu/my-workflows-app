@@ -37,6 +37,6 @@ public class User {
 
     @Getter
     @Setter
-    private String role;
+    private boolean admin;
 
 }

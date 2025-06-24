@@ -14,23 +14,18 @@ public final class WorkflowDefinitionValidatorServiceTest {
     public void whenWorkflowIsValidThenNoIssueIsDetected() {
         // given
         final var workflowAsString = """
-            {
-              "commands" : [ {
-                "@type" : "sleep",
-                "name" : "Sleep with placeholder",
-                "inputs" : [ {
-                  "name" : "sleepTime",
-                  "value" : 1000
-                } ]
-              }, {
-                "@type" : "print",
-                "name" : "Print placeholder value",
-                "inputs" : [ {
-                  "name" : "keys",
-                  "value" : [ "sleepTime" ]
-                } ]
-              } ]
-            }
+            commands:
+            - class: sleep
+              name: Sleep command
+              inputs:
+              - name: sleep.time
+                value: 1000
+            - class: print
+              name: Print command
+              inputs:
+              - name: print.keys
+                value:
+                - sleep.time
             """;
         // when and then
         final var validationMessages = new WorkflowDefinitionValidatorService().validate(workflowAsString);
@@ -41,22 +36,17 @@ public final class WorkflowDefinitionValidatorServiceTest {
     public void whenCommandNameIsMissingThenAProperMessageIsReturned() {
         // given
         final var workflowAsString = """
-            {
-              "commands" : [ {
-                "@type" : "sleep",
-                "inputs" : [ {
-                  "name" : "sleepTime",
-                  "value" : 1000
-                } ]
-              }, {
-                "@type" : "print",
-                "name" : "Print placeholder value",
-                "inputs" : [ {
-                  "name" : "keys",
-                  "value" : [ "sleepTime" ]
-                } ]
-              } ]
-            }
+            commands:
+            - class: sleep
+              inputs:
+              - name: sleep.time
+                value: 1000
+            - class: print
+              name: Print command
+              inputs:
+              - name: print.keys
+                value:
+                - sleep.time
             """;
         // when and then
         final var validationMessages = new WorkflowDefinitionValidatorService().validate(workflowAsString);
@@ -68,23 +58,18 @@ public final class WorkflowDefinitionValidatorServiceTest {
     public void whenCommandHasUnknownPropertiesThenAProperMessageIsReturned() {
         // given
         final var workflowAsString = """
-            {
-              "commands" : [ {
-                "@type" : "sleep",
-                "name" : "Sleep with placeholder",
-                "inputs" : [ {
-                  "name" : "sleepTime",
-                  "value" : 1000
-                } ]
-              }, {
-                "@type" : "print",
-                "name" : "Print placeholder value",
-                "_inputs" : [ {
-                  "name" : "keys",
-                  "value" : [ "sleepTime" ]
-                } ]
-              } ]
-            }
+            commands:
+            - class: sleep
+              name: Sleep command
+              inputs:
+              - name: sleep.time
+                value: 1000
+            - class: print
+              name: Print command
+              _inputs:
+              - name: print.keys
+                value:
+                - sleep.time
             """;
         // when and then
         final var validationMessages = new WorkflowDefinitionValidatorService().validate(workflowAsString);
@@ -97,25 +82,42 @@ public final class WorkflowDefinitionValidatorServiceTest {
     public void whenCommandHasCommentsThenNoIssueIsDetected() {
         // given
         final var workflowAsString = """
-            {
-              "commands" : [ {
-                "@type" : "sleep",
-                "name" : "Sleep with placeholder",
-                "_comment1": "My first comment",
-                "_comment2": "My second comment",
-                "inputs" : [ {
-                  "name" : "sleepTime",
-                  "value" : 1000
-                } ]
-              }, {
-                "@type" : "print",
-                "name" : "Print placeholder value",
-                "inputs" : [ {
-                  "name" : "keys",
-                  "value" : [ "sleepTime" ]
-                } ]
-              } ]
-            }
+            # Few comments added
+            commands:
+            - class: sleep
+              name: Sleep command
+              inputs:
+              - name: sleep.time
+                value: 1000
+            - class: print
+              name: Print command
+              inputs:
+              - name: print.keys
+                # Add more comments
+                value:
+                - sleep.time
+            """;
+        // when and then
+        final var validationMessages = new WorkflowDefinitionValidatorService().validate(workflowAsString);
+        assertEquals(0, validationMessages.size());
+    }
+
+    @Test
+    public void whenCommandHasAliasesThenNoIssueIsDetected() {
+        // given
+        final var workflowAsString = """
+            commands:
+            - class: sleep
+              name: Sleep command
+              inputs:
+              - name: &sleep_time sleep.time
+                value: 1000
+            - class: print
+              name: Print command
+              inputs:
+              - name: print.keys
+                value:
+                - *sleep_time
             """;
         // when and then
         final var validationMessages = new WorkflowDefinitionValidatorService().validate(workflowAsString);

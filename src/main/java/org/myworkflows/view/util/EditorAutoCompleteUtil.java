@@ -33,15 +33,15 @@ public final class EditorAutoCompleteUtil {
     private static final Map<String, List<String>> COMMAND_INPUTS_COMPLETER = new LinkedHashMap<>();
 
     static {
-        WORKFLOW_KEYWORDS.addAll(List.of("@type", "name", "value", "ifs", "inputs", "asserts", "outputs", "commands", "subcommands", "finallyCommands"));
+        WORKFLOW_KEYWORDS.addAll(List.of("class", "name", "value", "ifs", "inputs", "asserts", "outputs", "commands", "subcommands", "finallyCommands"));
         COMMAND_TYPES.addAll(List.of(DatabaseCommand.PREFIX, EmailCommand.PREFIX, GroovyCommand.PREFIX, HttpRequestCommand.PREFIX, JavaCommand.PREFIX,
             NothingCommand.PREFIX, LoopCommand.PREFIX, PrintCommand.PREFIX, SleepCommand.PREFIX,
             SshExecCommand.PREFIX, SshShellCommand.PREFIX, WaitUntilSubPassesCommand.PREFIX));
         COMMAND_INPUTS_COMPLETER.put(DatabaseCommand.PREFIX, List.of("url", "query"));
         COMMAND_INPUTS_COMPLETER.put(EmailCommand.PREFIX, List.of("from", "to", "subject", "body", "props", "bodyType", "username", "password"));
-        COMMAND_INPUTS_COMPLETER.put(GroovyCommand.PREFIX, List.of("scriptLines", "method"));
+        COMMAND_INPUTS_COMPLETER.put(GroovyCommand.PREFIX, List.of("script", "method"));
         COMMAND_INPUTS_COMPLETER.put(HttpRequestCommand.PREFIX, List.of("url", "method", "body", "headers", "timeout"));
-        COMMAND_INPUTS_COMPLETER.put(JavaCommand.PREFIX, List.of("scriptLines", "method", "clazz", "sourceVersion", "targetVersion"));
+        COMMAND_INPUTS_COMPLETER.put(JavaCommand.PREFIX, List.of("script", "method", "clazz", "sourceVersion", "targetVersion"));
         COMMAND_INPUTS_COMPLETER.put(LoopCommand.PREFIX, List.of("items", "item", "backoffPeriod"));
         COMMAND_INPUTS_COMPLETER.put(PrintCommand.PREFIX, List.of("keys"));
         COMMAND_INPUTS_COMPLETER.put(SleepCommand.PREFIX, List.of("time"));

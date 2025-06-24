@@ -1,115 +1,4 @@
-CREATE TABLE menu_items
-(
-    label    TEXT PRIMARY KEY NOT NULL,
-    icon     TEXT             NOT NULL,
-    path     TEXT             NOT NULL,
-    role     TEXT                      DEFAULT 'ROLE_GUEST',
-    position INTEGER          NOT NULL DEFAULT (0)
-);
-
-INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-runs', 'lines', 'class://org.myworkflows.view.WorkflowRunView', 'ROLE_GUEST',
-        '1');
-INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-templates', 'cubes', 'class://org.myworkflows.view.WorkflowTemplateView', 'ROLE_GUEST',
-        '2');
-INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-definitions', 'cube', 'class://org.myworkflows.view.WorkflowDefinitionView', 'ROLE_LOGGED',
-        '3');
-INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-params', 'options', 'class://org.myworkflows.view.WorkflowParameterView', 'ROLE_ADMIN',
-        '4');
-INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-placeholders', 'archives', 'class://org.myworkflows.view.WorkflowPlaceholderView', 'ROLE_ADMIN',
-        '5');
-INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.workflow-development', 'code', 'class://org.myworkflows.view.WorkflowDevelopmentView', 'ROLE_ADMIN',
-        '6');
-INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.doc-pages', 'book', 'class://org.myworkflows.view.DocPageView', 'ROLE_GUEST', '7');
-INSERT INTO menu_items ("label", "icon", "path", "role", "position")
-VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', '8');
-
-CREATE TABLE workflow_definitions
-(
-    id     INTEGER PRIMARY KEY AUTOINCREMENT,
-    name   TEXT NOT NULL,
-    script TEXT NOT NULL DEFAULT ''
-);
-
-INSERT INTO workflow_definitions ("name", "script")
-VALUES ('Sleep command with placeholder',
-        '{"commands":[{"name":"Sleep with placeholder","@type":"sleep"},{"name":"Print sleep time","@type":"print","inputs":[{"name":"print.keys","value":["$$(SLEEP_TIME)"]}]}]}');
-
-CREATE TABLE workflow_templates
-(
-    id      INTEGER PRIMARY KEY AUTOINCREMENT,
-    enabled BOOLEAN NOT NULL DEFAULT (1),
-    name    TEXT    NOT NULL,
-    cron    TEXT
-);
-
-INSERT INTO workflow_templates ("enabled", "name", "cron")
-VALUES ('1', '"Sleep command with placeholder" template', '0 0 * * * MON-FRI');
-
-CREATE TABLE workflow_template_renames
-(
-    workflow_template_id INTEGER,
-    old_name             TEXT,
-    new_name             TEXT,
-    PRIMARY KEY (workflow_template_id, old_name),
-    FOREIGN KEY (workflow_template_id) REFERENCES workflow_templates (id)
-);
-
-INSERT INTO workflow_template_renames ("workflow_template_id", "old_name", "new_name")
-VALUES (1, 'defaultSleepTime', 'sleep.time');
-
-CREATE TABLE workflow_templates_workflow_definitions
-(
-    workflow_template_id   INTEGER NOT NULL,
-    workflow_definition_id INTEGER NOT NULL,
-    PRIMARY KEY (workflow_template_id, workflow_definition_id),
-    FOREIGN KEY (workflow_template_id) REFERENCES workflow_templates (id),
-    FOREIGN KEY (workflow_definition_id) REFERENCES workflow_definitions (id)
-);
-
-CREATE INDEX workflow_templates_workflow_definitions_workflow_template_id_index
-    ON workflow_templates_workflow_definitions (workflow_template_id);
-
-CREATE INDEX workflow_templates_workflow_definitions_workflow_definition_id_index
-    ON workflow_templates_workflow_definitions (workflow_definition_id);
-
-INSERT INTO workflow_templates_workflow_definitions ("workflow_template_id", "workflow_definition_id")
-VALUES (1, 1);
-
-CREATE TABLE workflow_parameters
-(
-    name  TEXT PRIMARY KEY NOT NULL,
-    type  TEXT             NOT NULL,
-    value TEXT             NOT NULL
-);
-
-INSERT INTO workflow_parameters ("name", "type", "value")
-VALUES ('defaultSleepTime', 'i', 1000);
-
-CREATE TABLE workflow_templates_workflow_parameters
-(
-    workflow_template_id    INTEGER NOT NULL,
-    workflow_parameter_name TEXT    NOT NULL,
-    PRIMARY KEY (workflow_template_id, workflow_parameter_name),
-    FOREIGN KEY (workflow_template_id) REFERENCES workflow_templates (id),
-    FOREIGN KEY (workflow_parameter_name) REFERENCES workflow_parameters (name)
-);
-
-CREATE INDEX workflow_templates_workflow_parameters_workflow_template_id_index
-    ON workflow_templates_workflow_parameters (workflow_template_id);
-
-CREATE INDEX workflow_templates_workflow_parameters_workflow_parameter_name_index
-    ON workflow_templates_workflow_parameters (workflow_parameter_name);
-
-INSERT INTO workflow_templates_workflow_parameters ("workflow_template_id", "workflow_parameter_name")
-VALUES (1, 'defaultSleepTime');
-
+--- Workflow Runs
 CREATE TABLE workflow_runs
 (
     id                   BLOB PRIMARY KEY NOT NULL,
@@ -118,42 +7,127 @@ CREATE TABLE workflow_runs
     printed_keys         TEXT,
     failure_message      TEXT,
     duration             INTEGER          NOT NULL DEFAULT (0),
-    created              DATETIME         NOT NULL,
+    created              INTEGER          NOT NULL,
     FOREIGN KEY (workflow_template_id) REFERENCES workflow_templates (id) ON DELETE CASCADE
 );
-
 CREATE INDEX workflow_runs_created_index ON workflow_runs (created DESC);
 
+--- Workflow Definitions
+CREATE TABLE workflow_definitions
+(
+    id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    name   TEXT NOT NULL,
+    script TEXT NOT NULL DEFAULT ''
+);
+
+--- Workflow Templates
+CREATE TABLE workflow_templates
+(
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    enabled BOOLEAN NOT NULL DEFAULT (1),
+    name    TEXT    NOT NULL,
+    cron    TEXT
+);
+
+CREATE TABLE workflow_templates_workflow_definitions
+(
+    workflow_template_id   INTEGER NOT NULL,
+    workflow_definition_id INTEGER NOT NULL,
+    PRIMARY KEY (workflow_template_id, workflow_definition_id),
+    FOREIGN KEY (workflow_template_id) REFERENCES workflow_templates (id) ON DELETE CASCADE,
+    FOREIGN KEY (workflow_definition_id) REFERENCES workflow_definitions (id) ON DELETE CASCADE
+) WITHOUT ROWID;
+CREATE INDEX workflow_templates_workflow_definitions_workflow_template_id_index
+    ON workflow_templates_workflow_definitions (workflow_template_id);
+CREATE INDEX workflow_templates_workflow_definitions_workflow_definition_id_index
+    ON workflow_templates_workflow_definitions (workflow_definition_id);
+
+--- Workflow Parameters
+CREATE TABLE workflow_parameters
+(
+    name  TEXT PRIMARY KEY NOT NULL,
+    type  TEXT             NOT NULL,
+    value TEXT             NOT NULL
+) WITHOUT ROWID;
+
+CREATE TABLE workflow_templates_workflow_parameters
+(
+    workflow_template_id    INTEGER NOT NULL,
+    workflow_parameter_name TEXT    NOT NULL,
+    PRIMARY KEY (workflow_template_id, workflow_parameter_name),
+    FOREIGN KEY (workflow_template_id) REFERENCES workflow_templates (id) ON DELETE CASCADE,
+    FOREIGN KEY (workflow_parameter_name) REFERENCES workflow_parameters (name) ON DELETE CASCADE
+) WITHOUT ROWID;
+CREATE INDEX workflow_templates_workflow_parameters_workflow_template_id_index
+    ON workflow_templates_workflow_parameters (workflow_template_id);
+CREATE INDEX workflow_templates_workflow_parameters_workflow_parameter_name_index
+    ON workflow_templates_workflow_parameters (workflow_parameter_name);
+
+--- Workflow Placeholders
 CREATE TABLE workflow_placeholders
 (
     name  TEXT PRIMARY KEY NOT NULL,
     value TEXT             NOT NULL
-);
+) WITHOUT ROWID;
 
-INSERT INTO workflow_placeholders ("name", "value")
-VALUES ('SLEEP_TIME', 'sleep.time');
-
+--- Users
 CREATE TABLE users
 (
     id       INTEGER PRIMARY KEY AUTOINCREMENT,
-    enabled  INTEGER(1) NOT NULL DEFAULT (1),
+    enabled  INTEGER(1) NOT NULL DEFAULT (1) CHECK (enabled IN (0, 1)),
     username TEXT NOT NULL,
     password TEXT NOT NULL,
-    role     TEXT DEFAULT 'ROLE_USER'
+    token    TEXT NOT NULL,
+    admin    INTEGER(1) NOT NULL DEFAULT (0) CHECK (admin IN (0, 1))
 );
-
-INSERT INTO users ("username", "password", "role")
-VALUES ('user', '$2a$10$LEPDrW3rJp98sJ96Rb2KgOaGwDJcMdGz0BPcDTRBgM9PhY2g2KmA2', 'ROLE_USER');
-INSERT INTO users ("username", "password", "role")
-VALUES ('admin', '$2a$10$omNibHqZ1p6kx4/bLMNWJ.82c30oAdg0asgGWr9jB9o2zwhim3G7O', 'ROLE_ADMIN');
-
 CREATE UNIQUE INDEX users_username_index ON users (username);
+CREATE UNIQUE INDEX users_token_index ON users (token);
+INSERT INTO users ("username", "password", "token")
+VALUES ('user', '$2a$10$LEPDrW3rJp98sJ96Rb2KgOaGwDJcMdGz0BPcDTRBgM9PhY2g2KmA2', hex(randomblob(32)));
+INSERT INTO users ("username", "password", "token", "admin")
+VALUES ('admin', '$2a$10$omNibHqZ1p6kx4/bLMNWJ.82c30oAdg0asgGWr9jB9o2zwhim3G7O', hex(randomblob(32)), 1);
 
+--- Menu Items
+CREATE TABLE menu_items
+(
+    label    TEXT PRIMARY KEY NOT NULL,
+    icon     TEXT             NOT NULL,
+    path     TEXT             NOT NULL,
+    role     TEXT                      DEFAULT 'ROLE_GUEST',
+    position INTEGER          NOT NULL DEFAULT (0)
+) WITHOUT ROWID;
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.workflow-runs', 'lines', 'class://org.myworkflows.view.WorkflowRunView', 'ROLE_GUEST',
+        1);
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.workflow-templates', 'cubes', 'class://org.myworkflows.view.WorkflowTemplateView', 'ROLE_GUEST',
+        2);
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.workflow-definitions', 'cube', 'class://org.myworkflows.view.WorkflowDefinitionView', 'ROLE_LOGGED',
+        3);
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.workflow-params', 'options', 'class://org.myworkflows.view.WorkflowParameterView', 'ROLE_LOGGED',
+        4);
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.workflow-placeholders', 'archives', 'class://org.myworkflows.view.WorkflowPlaceholderView',
+        'ROLE_LOGGED',
+        5);
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.workflow-development', 'code', 'class://org.myworkflows.view.WorkflowDevelopmentView', 'ROLE_LOGGED',
+        6);
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.libs', 'package', 'class://org.myworkflows.view.LibraryView', 'ROLE_LOGGED', 7);
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.doc-pages', 'book', 'class://org.myworkflows.view.DocPageView', 'ROLE_GUEST', 8);
+INSERT INTO menu_items ("label", "icon", "path", "role", "position")
+VALUES ('menu.main.statistics', 'chart', 'class://org.myworkflows.view.StatisticView', 'ROLE_LOGGED', 9);
+
+--- Doc Pages
 CREATE TABLE doc_pages
 (
     name  TEXT PRIMARY KEY NOT NULL,
     value TEXT             NOT NULL
-);
+) WITHOUT ROWID;
 
 INSERT INTO doc_pages ("name", "value")
 VALUES ('Markdown Syntax', '# h1 Heading

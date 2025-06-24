@@ -6,7 +6,7 @@ It allows you to encapsulate manual tasks as workflows, schedule them, and view 
 The tool uses Java as its programming language and Vaadin as its UI framework.
 
 MyWorkflows is ideal for small teams overwhelmed by daily manual tasks.
-All workflows are defined in JSON format, and the tool provides an intuitive UI for interacting with them.
+All workflows are defined in YAML format, and the tool provides an intuitive UI for interacting with them.
 
 ## Technology stack
 
@@ -14,8 +14,7 @@ All workflows are defined in JSON format, and the tool provides an intuitive UI 
 * Spring Boot 3.x as a DI framework.
 * [Vaadin 24](https://vaadin.com) as a UI framework.
 * [SQLite](https://www.sqlite.org/) as relational database for persisting data.
-* [JSON Schema Validator](https://github.com/networknt/json-schema-validator) as JSON schema validator for workflow
-  scripts.
+* [YAML Schema Validator](https://github.com/networknt/json-schema-validator) as schema validator for workflow scripts.
 * [Groovy](https://groovy-lang.org/) as an additional language for defining commands.
 * [Janino](https://www.janino.net/) as Java runtime compiler.
 * [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) as another runtime evaluator.
@@ -43,23 +42,13 @@ All workflows are defined in JSON format, and the tool provides an intuitive UI 
 - [ ] **Checkpoints**. Introduce the ability to reschedule a failing workflow from a specific moment in time.
 - [ ] **Debug mode**. Improve debugging experience for failing workflows to easily find the root cause of their failure.
 
-## In action
-
-### Workflow Runs View
-
-![Runs View](screenshots/myworkflows_runs.png)
-
-### Workflow Development View
-
-![Development View](screenshots/myworkflows_dev.png)
-
 ## How does it work?
 
 ### Abbreviations
 
 * **Workflow**: Represents a list of steps to resolve a given task.
-* **Command**: Represents a unitary step in the workflow. A command has a `name`, a `@type`, `ifs`, `inputs`,
-  `asserts` and `outputs`. `name` and `@type` are mandatory for being able to define a valid command.
+* **Command**: Represents a unitary step in the workflow. A command has a `name`, a `class`, `ifs`, `inputs`,
+  `asserts` and `outputs`. `name` and `class` are mandatory for being able to define a valid command.
 * **If**: Each command allows defining some running conditions. If at least one condition is not met, the command will
   be skipped.
 * **Input**: Each command allows input parameters to customize the running step.
@@ -82,7 +71,7 @@ Each workflow is scheduled to run inside a single thread, and all his commands a
 
 Each command has:
 
-* a `@type`
+* a `class`
 * `inputs` - defines the customization for current run
 * an `output` - defines the output returned
 * `asserts` - to assert different things when the output is present
@@ -157,39 +146,35 @@ By using them, you will be able to pass information between commands.
 Expressions are evaluated at runtime, and they can be used anywhere inside an `input`, `assert`, `output` or `if`
 structure.
 Inside this structure, the expression will always be encapsulated inside `value` field.
-Each expression is evaluated by a runtime evaluator specified by the user, after filling `@type` field.
+Each expression is evaluated by a runtime evaluator specified by the user, after filling `class` field.
 
 For the moment, there are **3 runtime evaluators** supported:
 
-1. Set `@type` to `groovy` if you want to enable Groovy runtime evaluator.
-2. Set `@type` to `java` if you want to enable Java runtime evaluator based on [Janino](https://www.janino.net/) runtime
+1. Set `class` to `groovy` if you want to enable Groovy runtime evaluator.
+2. Set `class` to `java` if you want to enable Java runtime evaluator based on [Janino](https://www.janino.net/) runtime
    compiler.
-3. Set `@type` to `spel` if you want to
+3. Set `class` to `spel` if you want to
    enable [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) runtime evaluator.
 
-If `@type` is not set, the default value for this field will be set to `plain` which means the value will be treated
+If `class` is not set, the default value for this field will be set to `plain` which means the value will be treated
 as it is.
 
 ##### Examples
 
 ###### Retrieve exit code after running `sshExec` command by using SpEL runtime evaluator
 
-```json
-{
-  "name": "Asserts output exitCode to be equal with 0",
-  "@type": "spel",
-  "value": "#output.getExitCode() == 0"
-}
+```yaml
+name: Asserts output exitCode to be equal with 0
+class: spel
+value: "#output.getExitCode() == 0"
 ```
 
 ###### Retrieve information from workflow run cache and save it to another variable (named `sleep.time`)
 
-```json
-{
-  "name": "sleep.time",
-  "@type": "groovy",
-  "value": "cache.get('sleepTime').toInteger()"
-}
+```yaml
+name: sleep.time
+class: groovy
+value: "cache.get('sleepTime').toInteger()"
 ```
 
 ##### Cache access patterns
@@ -203,22 +188,18 @@ This is why you can use a simplified version by using **the cache access pattern
 
 If we take one of the previous examples:
 
-```json
-{
-  "name": "sleep.time",
-  "@type": "groovy",
-  "value": "cache.get('sleepTime').toInteger()"
-}
+```yaml
+name: sleep.time
+class: groovy
+value: "cache.get('sleepTime').toInteger()"
 ```
 
 we can rewrite it like this:
 
-```json
-{
-  "name": "sleep.time",
-  "@type": "groovy",
-  "value": "$(sleepTime:Integer.class)"
-}
+```yaml
+name: sleep.time
+class: groovy
+value: "$(sleepTime:Integer.class)"
 ```
 
 The tool will be able to recognize every string pattern inside `value` which matches the following regex pattern:
@@ -249,11 +230,20 @@ my-workflows:
 
 #### Comments
 
-From a technical point of view, each workflow is defined in JSON format.
-If you are familiar with JSON, you probably know that comments are not allowed.
-Since comments are useful sometimes, there is a hack that can be implemented to have this wonderful feature: by using a
-dedicated field called `_comment.*`.
-This field can be used anywhere in the workflow definition.
+From a technical point of view, each workflow is defined in YAML format.
+If you are familiar with YAML format, you probably know that comments are allowed:
+
+```yaml
+# This is a simple comment
+name: sleep.time
+class: groovy
+value: "$(sleepTime:Integer.class)"
+```
+
+#### Anchors and aliases
+
+Relying on YAML format, give us the opportunity to use anchors and aliases to simplify workflow definition.
+More details about how to use them are described [here](https://www.educative.io/blog/advanced-yaml-syntax-cheatsheet#YAML-Anchors-and-Alias).
 
 #### Shortcuts
 
@@ -312,80 +302,57 @@ The following APIs are available for you:
 
 Provides an ability to interact with a relational database by running SQL queries.
 
-| `@type`    | Inputs                                                                                                                                                                                      | Output                         |
+| `class`    | Inputs                                                                                                                                                                                      | Output                         |
 |------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
 | `database` | <ul><li><strong>database.url</strong>: Mandatory. Represents the connection URL.</li><li><strong>database.query</strong>: Mandatory. Represents the query which will be executed.</li></ul> | Returns `Optional<ResultSet>`. |
 
 Example of a fake command:
 
-```json
-{
-  "name": "Run SELECT query",
-  "@type": "database",
-  "inputs": [
-    {
-      "name": "database.url",
-      "value": "jdbc:sqlite:database.db"
-    },
-    {
-      "name": "database.query",
-      "value": "SELECT * FROM test"
-    }
-  ]
-}
+```yaml
+commands:
+  - name: Run simple SELECT query
+    class: database
+    inputs:
+      - name: database.url
+        value: "jdbc:sqlite:database.db"
+      - name: database.query
+        value: "SELECT * FROM test"
 ```
 
 ### Email command
 
 This command allows sending emails using Jakarta Mail API.
 
-| `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Output |
+| `class` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Output |
 |---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
 | `email` | <ul><li><strong>email.from</strong>: Mandatory. Email address for the sender.</li><li><strong>email.to</strong>: Mandatory. Email address for the receiver.</li><li><strong>email.subject</strong>: Mandatory. The email subject.</li><li><strong>email.body</strong>: Mandatory. The email body.</li><li><strong>email.props</strong>: Mandatory. Email properties as map.</li><li><em>email.bodyType</em>: Optional. Defines the type of the body. Default value: `text/html; charset=utf-8`.</li><li><em>email.username</em>: Optional. The user name for authentication. Keep it blank to disable authentication.</li><li><em>email.password</em>: Optional. Password for the user.</li></ul> | N/A    |
 
 Example of a fake command:
 
-```json
-{
-  "name": "Send an email",
-  "@type": "email",
-  "inputs": [
-    {
-      "name": "email.from",
-      "value": "from@gmail.com"
-    },
-    {
-      "name": "email.to",
-      "value": "to@gmail.com"
-    },
-    {
-      "name": "email.subject",
-      "value": "Simple subject"
-    },
-    {
-      "name": "email.body",
-      "value": "Simple <strong>body</strong>"
-    },
-    {
-      "name": "email.props",
-      "value": {
-        "mail.smtp.auth": true,
-        "mail.smtp.starttls.enable": "true",
-        "mail.smtp.host": "sandbox.smtp.mailtrap.ip",
-        "mail.smtp.port": "25",
-        "mail.smtp.ssl.trust": "sandbox.smtp.mailtrap.io"
-      }
-    },
-    {
-      "name": "email.username",
-      "value": "user"
-    },
-    {
-      "name": "email.password",
-      "value": "pass"
-    }
-  ]
-}
+```yaml
+commands:
+  - name: Send a simple email
+    class: email
+    inputs:
+      - name: email.from
+        value: "from@gmail.com"
+      - name: email.to
+        value: "to@gmail.com"
+      - name: email.subject
+        value: Just a simple subject
+      - name: email.body
+        value: "Simple <strong>body</strong>"
+      - name: email.username
+        value: user
+      - name: email.password
+        value: pass
+      - name: email.props
+        value:
+          mail.smtp.auth: true
+          mail.smtp.starttls.enable: true
+          mail.smtp.host: sandbox.smtp.mailtrap.ip
+          mail.smtp.port: 25
+          mail.smtp.ssl.trust: sandbox.smtp.mailtrap.io
 ```
 
 ### Groovy command
@@ -393,53 +360,42 @@ Example of a fake command:
 Provides an ability to run Groovy code at runtime.
 As you probably already imagine, this command is very powerful.
 
-| `@type`  | Inputs                                                                                                                                                                                                                                                                        | Output                             |
-|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| `groovy` | <ul><li><strong>groovy.scriptLines</strong>: Mandatory. Represents source code which contains definition of a `groovy.method` (or `run`) method to be executed.</li><li><em>groovy.method</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
+| `class`  | Inputs                                                                                                                                                                                                                                                                   | Output                             |
+|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| `groovy` | <ul><li><strong>groovy.script</strong>: Mandatory. Represents source code which contains definition of a `groovy.method` (or `run`) method to be executed.</li><li><em>groovy.method</em>: Optional. Represents the method name invoked when code is executed.</li></ul> | Return of invoked method or `void` |
 
 Example of a fake command:
 
-```json
-{
-  "name": "Run empty method",
-  "@type": "groovy",
-  "inputs": [
-    {
-      "name": "groovy.scriptLines",
-      "value": [
-        "def run(workflowRunCache) {",
-        "}"
-      ]
-    },
-    {
-      "name": "groovy.method",
-      "value": "run"
-    }
-  ]
-}
+```yaml
+commands:
+  - name: Run empty method
+    class: groovy
+    inputs:
+      - name: groovy.script
+        value: |
+          def run(workflowRunCache) {
+          }
+      - name: groovy.method
+        value: run
 ```
 
 ### HTTP Request command
 
 This command provides a programmatic way to do HTTP requests.
 
-| `@type`       | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Output                   |
+| `class`       | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Output                   |
 |---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
 | `httpRequest` | <ul><li><strong>httpRequest.url</strong>: Mandatory. Represents request URL.</li><li><em>httpRequest.method</em>: Optional. Represents request method type. Default value: `GET`.</li><li><em>httpRequest.body</em>: Optional. Represents request body. No body is set by default.</li><li><em>httpRequest.headers</em>: Optional. Map with request headers.</li><li><em>httpRequest.timeout</em>: Optional. Defines connection and read timeout in millis. Default value: `60000`.</li></ul> | `ResponseEntity<String>` |
 
 Example of a fake command:
 
-```json
-{
-  "name": "Simple GET HTTP request",
-  "@type": "httpRequest",
-  "inputs": [
-    {
-      "name": "httpRequest.url",
-      "value": "https://myworkflows.org"
-    }
-  ]
-}
+```yaml
+commands:
+  - name: Simple GET HTTP Request
+    class: httpRequest
+    inputs:
+      - name: httpRequest.url
+        value: https://google.com
 ```
 
 ### Java command
@@ -447,38 +403,29 @@ Example of a fake command:
 Provides an ability to run Java code at runtime.
 Like for Groovy command, this command is also very powerful.
 
-| `@type` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Output                             |
-|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| `java`  | <ul><li><strong>java.scriptLines</strong>: Mandatory. Represents source code which contains definition of a `java.method` (or `run`) method inside a class `java.clazz` (or `DynamicClass`) which will be executed.</li><li><em>java.method</em>: Optional. Represents the method name invoked when code is executed.</li><li><em>java.clazz</em>: Optional. Represents the class name invoked when code is executed.</li><li><em>java.sourceVersion</em>: Optional. Before running the script, set source version for Java compilation.</li><li><em>java.targetVersion</em>: Optional. Before running the script, set target version for Java compilation.</li></ul> | Return of invoked method or `void` |
+| `class` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Output                             |
+|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| `java`  | <ul><li><strong>java.script</strong>: Mandatory. Represents source code which contains definition of a `java.method` (or `run`) method inside a class `java.clazz` (or `DynamicClass`) which will be executed.</li><li><em>java.method</em>: Optional. Represents the method name invoked when code is executed.</li><li><em>java.clazz</em>: Optional. Represents the class name invoked when code is executed.</li><li><em>java.sourceVersion</em>: Optional. Before running the script, set source version for Java compilation.</li><li><em>java.targetVersion</em>: Optional. Before running the script, set target version for Java compilation.</li></ul> | Return of invoked method or `void` |
 
 Example of a fake command:
 
-```json
-{
-  "name": "Run method which returns 0",
-  "@type": "java",
-  "inputs": [
-    {
-      "name": "java.scriptLines",
-      "value": [
-        "import org.myworkflows.domain.WorkflowRunCache;",
-        "public class DynamicClass {",
-        "  public int run(WorkflowRunCache cache) {",
-        "    return 0;",
-        "  }",
-        "}"
-      ]
-    },
-    {
-      "name": "java.method",
-      "value": "run"
-    },
-    {
-      "name": "java.clazz",
-      "value": "DynamicClass"
-    }
-  ]
-}
+```yaml
+commands:
+  - name: Run method which returns 0
+    class: java
+    inputs:
+      - name: java.script
+        value: |
+          import org.myworkflows.domain.WorkflowRunCache;
+          public class DynamicClass {
+            public int run(WorkflowRunCache cache) {
+              return 0;
+            }
+          }
+      - name: java.method
+        value: run
+      - name: java.clazz
+        value: DynamicClass
 ```
 
 ### Loop command
@@ -486,7 +433,7 @@ Example of a fake command:
 This command lets you iterate over a list of items and for each of them to run a list of subcommands.
 The command can be seen as a `for` instruction in Java.
 
-| `@type` | Inputs                                                                                                                                                                                           | Output                                                     |
+| `class` | Inputs                                                                                                                                                                                           | Output                                                     |
 |---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|
 | `loop`  | <ul><li><strong>loop.items</strong>: Mandatory. List of items.</li><li><em>loop.backoffPeriod</em>: Optional. Backoff period in millis between two iterations. Default value: 1000 ms.</li></ul> | Sets `loop.item` as current item and returns the item size |
 
@@ -495,48 +442,44 @@ The command can be seen as a `for` instruction in Java.
 This command is not doing anything.
 The purpose of this command is to allow inputs to be injected in the workflow pipeline.
 
-| `@type`   | Inputs | Output |
+| `class`   | Inputs | Output |
 |-----------|--------|--------|
 | `nothing` | N/A    | N/A    |
 
 Example of a fake command:
 
-```json
-{
-  "name": "Inject input parameters or process existing ones",
-  "@type": "nothing",
-  "inputs": [
-    {
-      "name": "test",
-      "value": "Just a simple test"
-    }
-  ]
-}
+```yaml
+commands:
+  - name: Inject input parameters or process existing ones
+    class: nothing
+    inputs:
+      - name: test
+        value: Just a simple test
 ```
 
 ### Print command
 
 Captures an input / output variable during workflow execution and shows the value to the UI.
 
-| `@type` | Inputs                                                                                                                | Output                                                                |
+| `class` | Inputs                                                                                                                | Output                                                                |
 |---------|-----------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
 | `print` | <ul><li><strong>print.keys</strong>: Mandatory. Represents a list of variable names that will be displayed.</li></ul> | Returns total number of keys affected by this operation. Type: `int`. |
 
 Example of a fake command:
 
-```json
-{
-  "name": "Print 'commandOutput' value",
-  "@type": "print",
-  "inputs": [
-    {
-      "name": "print.keys",
-      "value": [
-        "commandOutput"
-      ]
-    }
-  ]
-}
+```yaml
+commands:
+  - name: Inject input parameters or process existing ones
+    class: nothing
+    inputs:
+      - name: test
+        value: Just a simple test
+  - name: Print 'test' input
+    class: print
+    inputs:
+      - name: print.keys
+        value:
+          - test
 ```
 
 > [!IMPORTANT]  
@@ -547,23 +490,19 @@ Example of a fake command:
 Provides an ability to pause current workflow execution by a given time.
 Time unit is milliseconds.
 
-| `@type` | Inputs                                                                                               | Output                                       |
+| `class` | Inputs                                                                                               | Output                                       |
 |---------|------------------------------------------------------------------------------------------------------|----------------------------------------------|
 | `sleep` | <ul><li><strong>sleep.time</strong>: Mandatory. Represents number of millis used to sleep.</li></ul> | Returns the actual time slept. Type: `long`. |
 
 Example of a fake command:
 
-```json
-{
-  "name": "Sleep for one second",
-  "@type": "sleep",
-  "inputs": [
-    {
-      "name": "sleep.time",
-      "value": 1000
-    }
-  ]
-}
+```yaml
+commands:
+  - name: Sleep for 1 second
+    class: sleep
+    inputs:
+      - name: sleep.time
+        value: 1000
 ```
 
 ### Single SSH command
@@ -572,42 +511,29 @@ This command can be used to execute a single SSH operation, in a single SSH sess
 
 Equivalent SSH command: `ssh user@localhost ls -l`
 
-| `@type`   | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Output                                                                     |
+| `class`   | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Output                                                                     |
 |-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
 | `sshExec` | <ul><li><strong>sshExec.host</strong>: Mandatory. Represents the host.</li><li><strong>sshExec.command</strong>: Mandatory. Represents the command.</li><li><strong>sshExec.username</strong>: Mandatory. Represents the user name.</li><li><strong>sshExec.password</strong>: Mandatory. Represents the host.</li><li><em>sshExec.port</em>: Optional. The SSH port. Default value: `22`.</li><li><em>sshExec.timeout</em>: Optional. Defines timeout in millis for the operation to complete. Default value: `60000`.</li></ul> | `SshCommandOutput` - contains `exitCode` as integer and `output` as string |
 
 Example of a fake command:
 
-```json
-{
-  "name": "Run 'ls -l' command",
-  "@type": "sshExec",
-  "inputs": [
-    {
-      "name": "sshExec.host",
-      "value": "localhost"
-    },
-    {
-      "name": "sshExec.command",
-      "value": "ls -l"
-    },
-    {
-      "name": "sshExec.username",
-      "value": "user"
-    },
-    {
-      "name": "sshExec.password",
-      "value": "pass"
-    }
-  ],
-  "asserts": [
-    {
-      "name": "Command is successful",
-      "value": "#output.getExitCode() == 0",
-      "@type": "spel"
-    }
-  ]
-}
+```yaml
+commands:
+  - name: Run 'ls -l' command
+    class: sshExec
+    inputs:
+      - name: sshExec.host
+        value: localhost
+      - name: sshExec.command
+        value: ls -l
+      - name: sshExec.username
+        value: user
+      - name: sshExec.password
+        value: pass
+    asserts:
+      - name: Command is successful
+        class: spel
+        value: "#output.getExitCode() == 0"
 ```
 
 ### Multiple SSH commands
@@ -615,45 +541,31 @@ Example of a fake command:
 This command can be used to execute multiple SSH operations, in a single SSH session.
 The command will open a shell and will run all given commands in that shell.
 
-| `@type`    | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Output                                                                     |
+| `class`    | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Output                                                                     |
 |------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
 | `sshShell` | <ul><li><strong>sshExec.host</strong>: Mandatory. Represents the host.</li><li><strong>sshExec.commands</strong>: Mandatory. Represents the list of commands.</li><li><strong>sshExec.username</strong>: Mandatory. Represents the user name.</li><li><strong>sshExec.password</strong>: Mandatory. Represents the host.</li><li><em>sshShell.port</em>: Optional. The SSH port. Default value: `22`.</li><li><em>sshShell.timeout</em>: Optional. Defines timeout in millis for the operation to complete. Default value: `60000`.</li></ul> | `SshCommandOutput` - contains `exitCode` as integer and `output` as string |
 
 Example of a fake command:
 
-```json
-{
-  "name": "Run multiple commands",
-  "@type": "sshShell",
-  "inputs": [
-    {
-      "name": "sshShell.host",
-      "value": "localhost"
-    },
-    {
-      "name": "sshShell.commands",
-      "value": [
-        "ls -l",
-        "df -h"
-      ]
-    },
-    {
-      "name": "sshShell.username",
-      "value": "user"
-    },
-    {
-      "name": "sshShell.password",
-      "value": "pass"
-    }
-  ],
-  "asserts": [
-    {
-      "name": "Command is successful",
-      "value": "#output.getExitCode() == 0",
-      "@type": "spel"
-    }
-  ]
-}
+```yaml
+commands:
+  - name: Run multiple SSH commands
+    class: sshShell
+    inputs:
+      - name: sshShell.host
+        value: localhost
+      - name: sshShell.commands
+        value:
+          - ls -l
+          - df -h
+      - name: sshShell.username
+        value: user
+      - name: sshShell.password
+        value: pass
+    asserts:
+      - name: Command is successful
+        class: spel
+        value: "#output.getExitCode() == 0"
 ```
 
 ## Examples of workflow pipelines

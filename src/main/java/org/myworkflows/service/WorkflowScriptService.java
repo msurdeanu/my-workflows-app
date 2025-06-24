@@ -26,7 +26,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
-import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
+import static org.myworkflows.serializer.SerializerFactory.toObject;
 
 /**
  * @author Mihai Surdeanu
@@ -66,7 +66,7 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
                 applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(onSubmittedEventBuilder.build());
                 return;
             }
-            onSubmittedEventBuilder.workflowRun(submit(fromJsonToObject(workflowAsString, WorkflowDefinitionScript.class), onSubmitEvent));
+            onSubmittedEventBuilder.workflowRun(submit(toObject(workflowAsString, WorkflowDefinitionScript.class), onSubmitEvent));
         } else if (workflowDefScriptObject instanceof WorkflowDefinitionScript workflowDefinitionScript) {
             onSubmittedEventBuilder.workflowRun(submit(workflowDefinitionScript, onSubmitEvent));
         }

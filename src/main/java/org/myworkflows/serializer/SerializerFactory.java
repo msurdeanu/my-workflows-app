@@ -1,11 +1,11 @@
 package org.myworkflows.serializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.networknt.schema.JsonSchema;
 import lombok.AccessLevel;
@@ -24,9 +24,9 @@ import static com.networknt.schema.SpecVersionDetector.detect;
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class JsonFactory {
+public final class SerializerFactory {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final YAMLMapper MAPPER = new YAMLMapper();
 
     private static final DefaultPrettyPrinter PRETTY_PRINTER = new DefaultPrettyPrinter();
 
@@ -34,16 +34,17 @@ public final class JsonFactory {
         MAPPER.registerModule(new JavaTimeModule());
 
         MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
-        PRETTY_PRINTER.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
+        MAPPER.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
+        MAPPER.disable(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID);
+        MAPPER.enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
+        MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
-    public static <T> T fromJsonToObject(String content, Class<T> clazz) {
+    public static <T> T toObject(String content, Class<T> clazz) {
         return WorkflowRuntimeException.wrap(() -> MAPPER.readValue(content, clazz));
     }
 
-    public static JsonSchema fromJsonToSchema(JsonNode jsonNode) {
+    public static JsonSchema toSchema(JsonNode jsonNode) {
         return getInstance(detect(jsonNode)).getSchema(jsonNode);
     }
 

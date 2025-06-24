@@ -3,10 +3,10 @@ package org.myworkflows.converter;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import org.myworkflows.domain.WorkflowDefinitionScript;
-import org.myworkflows.serializer.JsonFactory;
+import org.myworkflows.serializer.SerializerFactory;
 
 import static java.util.Optional.ofNullable;
-import static org.myworkflows.serializer.JsonFactory.fromJsonToObject;
+import static org.myworkflows.serializer.SerializerFactory.toObject;
 
 /**
  * @author Mihai Surdeanu
@@ -18,14 +18,14 @@ public final class WorkflowDefinitionScriptToStringConverter implements Attribut
     @Override
     public String convertToDatabaseColumn(WorkflowDefinitionScript attribute) {
         return ofNullable(attribute)
-            .map(item -> JsonFactory.toString(attribute, null))
+            .map(item -> SerializerFactory.toString(attribute, null))
             .orElse(null);
     }
 
     @Override
     public WorkflowDefinitionScript convertToEntityAttribute(String data) {
         return ofNullable(data)
-            .map(item -> fromJsonToObject(item, WorkflowDefinitionScript.class))
+            .map(item -> toObject(item, WorkflowDefinitionScript.class))
             .orElse(null);
     }
 

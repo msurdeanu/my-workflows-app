@@ -6,7 +6,6 @@ import org.myworkflows.domain.RuntimeEvaluator;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.exception.WorkflowRuntimeException;
 
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -23,14 +22,14 @@ public final class JavaCommandTest {
     public void whenSimpleJavaCodeIsRunThenEverythingWorksAsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("java.scriptLines", List.of(
-            "import org.myworkflows.domain.WorkflowRunCache;",
-            "public class DynamicClass {",
-            "  public String run(WorkflowRunCache cache) {",
-            "    return \"Test\";",
-            "  }",
-            "}"
-        ));
+        workflowRun.getCache().put("java.script", """
+            import org.myworkflows.domain.WorkflowRunCache;
+            public class DynamicClass {
+              public String run(WorkflowRunCache cache) {
+                return "Test";
+              }
+            }
+            """);
 
         // when and then
         assertDoesNotThrow(() -> new JavaCommand("A", Set.of(), Set.of(), Set.of(),
@@ -42,14 +41,14 @@ public final class JavaCommandTest {
     public void whenSimpleJavaCodeIsRunWithOptionalParamsThenEverythingWorksAsExpected() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("java.scriptLines", List.of(
-            "import org.myworkflows.domain.WorkflowRunCache;",
-            "public class MyClass {",
-            "  public int myRun(WorkflowRunCache cache) {",
-            "    return 1;",
-            "  }",
-            "}"
-        ));
+        workflowRun.getCache().put("java.script", """
+            import org.myworkflows.domain.WorkflowRunCache;
+            public class MyClass {
+              public int myRun(WorkflowRunCache cache) {
+                return 1;
+              }
+            }
+            """);
         workflowRun.getCache().put("java.method", "myRun");
         workflowRun.getCache().put("java.clazz", "MyClass");
 
@@ -63,14 +62,14 @@ public final class JavaCommandTest {
     public void whenSimpleJavaCodeIsRunWithSyntaxIssueThenAProperExceptionIsRaised() {
         // given
         final var workflowRun = new WorkflowRun();
-        workflowRun.getCache().put("java.scriptLines", List.of(
-            "import org.myworkflows.domain.WorkflowRunCache;",
-            "public class MyClass {",
-            "  public int myRun(WorkflowRunCache cache) {",
-            "    return 1", // we forgot ";"
-            "  }",
-            "}"
-        ));
+        workflowRun.getCache().put("java.script", """
+            import org.myworkflows.domain.WorkflowRunCache;
+            public class MyClass {
+              public int myRun(WorkflowRunCache cache) {
+                return 1
+              }
+            }
+            """);
         workflowRun.getCache().put("java.method", "myRun");
         workflowRun.getCache().put("java.clazz", "MyClass");
 
