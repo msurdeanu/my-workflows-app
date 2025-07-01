@@ -3,6 +3,8 @@ package org.myworkflows.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.util.Arrays;
+
 /**
  * @author Mihai Surdeanu
  * @since 1.0.0
@@ -12,9 +14,7 @@ public final class ByteArrayUtil {
 
     public static Byte[] toObject(byte[] byteArray) {
         final var byteObjects = new Byte[byteArray.length];
-        for (int i = 0; i < byteArray.length; i++) {
-            byteObjects[i] = byteArray[i];
-        }
+        Arrays.setAll(byteObjects, index -> byteArray[index]);
         return byteObjects;
     }
 

@@ -31,8 +31,8 @@ All workflows are defined in YAML format, and the tool provides an intuitive UI 
     * Run the script and view its output.
     * Benefit from an editor with auto-complete functionality to simplify your workflow scripting.
     * Share the script made together with the params
-* Dedicated web pages for managing **workflow placeholders**, **workflow definitions**, **workflow templates**, and *
-  *workflow runs**.
+* Dedicated web pages for managing **workflow placeholders**, **workflow definitions**, **workflow templates**, and
+  **workflow runs**.
 * A dedicated web page for managing **Java libraries** at runtime.
 * A dedicated web page for writing **markdown documentation** with ease.
 * A dedicated web page for viewing and analyzing **statistics**.
@@ -40,7 +40,6 @@ All workflows are defined in YAML format, and the tool provides an intuitive UI 
 ## TODOs
 
 - [ ] **Checkpoints**. Introduce the ability to reschedule a failing workflow from a specific moment in time.
-- [ ] **Debug mode**. Improve debugging experience for failing workflows to easily find the root cause of their failure.
 
 ## How does it work?
 
@@ -211,6 +210,11 @@ the value that we are looking for.
 
 If there is no variable named `sleepTime` of type `Integer` in the workflow run cache, during workflow execution phase,
 you are going to receive a runtime exception.
+
+#### How to debug workflow runs?
+
+In order to debug workflow runs, you just have to inject a parameter called `debug` and set it to `true` as `boolean` type.
+Once this is done, your workflow run will have debug flag activated, and you are going to see by default more prints.
 
 #### Load Java libraries at runtime
 
