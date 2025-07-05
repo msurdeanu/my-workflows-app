@@ -39,7 +39,7 @@ import static java.util.stream.IntStream.range;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "class")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = DatabaseCommand.class, name = DatabaseCommand.PREFIX),
-    @JsonSubTypes.Type(value = EmailCommand.class, name = EmailCommand.PREFIX),
+    @JsonSubTypes.Type(value = MailCommand.class, name = MailCommand.PREFIX),
     @JsonSubTypes.Type(value = GroovyCommand.class, name = GroovyCommand.PREFIX),
     @JsonSubTypes.Type(value = HttpRequestCommand.class, name = HttpRequestCommand.PREFIX),
     @JsonSubTypes.Type(value = JavaCommand.class, name = JavaCommand.PREFIX),

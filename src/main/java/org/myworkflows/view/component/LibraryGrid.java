@@ -2,14 +2,17 @@ package org.myworkflows.view.component;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
-import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.server.streams.DownloadHandler;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.Library;
 import org.myworkflows.view.component.html.SpanBadge;
 import org.myworkflows.view.component.html.StandardPaginatedGrid;
+
+import java.io.File;
 
 /**
  * @author Mihai Surdeanu
@@ -45,7 +48,7 @@ public final class LibraryGrid extends Composite<VerticalLayout> {
     }
 
     private Component renderFilePath(Library library) {
-        return new Span(library.filePath());
+        return new Anchor(DownloadHandler.forFile(new File(library.filePath())), library.filePath());
     }
 
     private Component renderStatus(Library library) {

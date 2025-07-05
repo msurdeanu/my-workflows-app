@@ -2,6 +2,7 @@ package org.myworkflows.domain.command;
 
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
 import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
 import jakarta.mail.Transport;
@@ -26,27 +27,29 @@ import static com.networknt.schema.utils.StringUtils.isBlank;
  * @since 1.0.0
  */
 @NoArgsConstructor
-public final class EmailCommand extends AbstractCommand {
+public final class MailCommand extends AbstractCommand {
 
-    public static final String PREFIX = "email";
+    public static final String PREFIX = "mail";
 
-    public EmailCommand(String name,
-                        Set<ExpressionNameValue> ifs,
-                        Set<ExpressionNameValue> inputs,
-                        Set<ExpressionNameValue> asserts,
-                        Set<ExpressionNameValue> outputs) {
+    public MailCommand(String name,
+                       Set<ExpressionNameValue> ifs,
+                       Set<ExpressionNameValue> inputs,
+                       Set<ExpressionNameValue> asserts,
+                       Set<ExpressionNameValue> outputs) {
         super(name, ifs, inputs, asserts, outputs);
     }
 
     @ExecutionMethod(prefix = PREFIX)
-    public void email(@ExecutionParam String from,
-                      @ExecutionParam String to,
-                      @ExecutionParam String subject,
-                      @ExecutionParam String body,
-                      @ExecutionParam Map<String, Object> props,
-                      @ExecutionParam(required = false, defaultValue = "text/html; charset=utf-8") String bodyType,
-                      @ExecutionParam(required = false) String username,
-                      @ExecutionParam(required = false) String password) {
+    public void mail(@ExecutionParam String from,
+                     @ExecutionParam String to,
+                     @ExecutionParam String subject,
+                     @ExecutionParam String body,
+                     @ExecutionParam Map<String, Object> props,
+                     @ExecutionParam(required = false, defaultValue = "text/html; charset=utf-8") String bodyType,
+                     @ExecutionParam(required = false) String cc,
+                     @ExecutionParam(required = false) String bcc,
+                     @ExecutionParam(required = false) String username,
+                     @ExecutionParam(required = false) String password) {
         final var properties = new Properties();
         properties.putAll(props);
         final var session = Session.getInstance(properties, isBlank(username) ? null : new Authenticator() {
@@ -60,6 +63,8 @@ public final class EmailCommand extends AbstractCommand {
             final var message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+            setMessageRecipientsIfNotNull(message, Message.RecipientType.CC, cc);
+            setMessageRecipientsIfNotNull(message, Message.RecipientType.BCC, bcc);
             message.setSubject(subject);
 
             final var mimeBodyPart = new MimeBodyPart();
@@ -72,6 +77,12 @@ public final class EmailCommand extends AbstractCommand {
             Transport.send(message);
             return null;
         });
+    }
+
+    private void setMessageRecipientsIfNotNull(MimeMessage message, Message.RecipientType recipientType, String recipient) throws MessagingException {
+        if (recipient != null) {
+            message.setRecipients(recipientType, InternetAddress.parse(recipient));
+        }
     }
 
 }

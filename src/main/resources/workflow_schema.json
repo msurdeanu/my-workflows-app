@@ -35,7 +35,7 @@
         "class": {
           "enum": [
             "database",
-            "email",
+            "mail",
             "groovy",
             "httpRequest",
             "java",

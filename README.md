@@ -213,7 +213,8 @@ you are going to receive a runtime exception.
 
 #### How to debug workflow runs?
 
-In order to debug workflow runs, you just have to inject a parameter called `debug` and set it to `true` as `boolean` type.
+In order to debug workflow runs, you just have to inject a parameter called `debug` and set it to `true` as `boolean`
+type.
 Once this is done, your workflow run will have debug flag activated, and you are going to see by default more prints.
 
 #### Load Java libraries at runtime
@@ -247,7 +248,8 @@ value: "$(sleepTime:Integer.class)"
 #### Anchors and aliases
 
 Relying on YAML format, give us the opportunity to use anchors and aliases to simplify workflow definition.
-More details about how to use them are described [here](https://www.educative.io/blog/advanced-yaml-syntax-cheatsheet#YAML-Anchors-and-Alias).
+More details about how to use them are
+described [here](https://www.educative.io/blog/advanced-yaml-syntax-cheatsheet#YAML-Anchors-and-Alias).
 
 #### Shortcuts
 
@@ -323,34 +325,38 @@ commands:
         value: "SELECT * FROM test"
 ```
 
-### Email command
+### Mail command
 
 This command allows sending emails using Jakarta Mail API.
 
-| `class` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Output |
-|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
-| `email` | <ul><li><strong>email.from</strong>: Mandatory. Email address for the sender.</li><li><strong>email.to</strong>: Mandatory. Email address for the receiver.</li><li><strong>email.subject</strong>: Mandatory. The email subject.</li><li><strong>email.body</strong>: Mandatory. The email body.</li><li><strong>email.props</strong>: Mandatory. Email properties as map.</li><li><em>email.bodyType</em>: Optional. Defines the type of the body. Default value: `text/html; charset=utf-8`.</li><li><em>email.username</em>: Optional. The user name for authentication. Keep it blank to disable authentication.</li><li><em>email.password</em>: Optional. Password for the user.</li></ul> | N/A    |
+| `class` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Output |
+|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
+| `mail`  | <ul><li><strong>mail.from</strong>: Mandatory. Email address for the sender.</li><li><strong>mail.to</strong>: Mandatory. Email address for the receiver.</li><li><em>mail.cc</em>: Optional. CC email address.</li><li><em>mail.bcc</em>: Optional. BCC email address.</li><li><strong>mail.subject</strong>: Mandatory. The email subject.</li><li><strong>mail.body</strong>: Mandatory. The email body.</li><li><strong>mail.props</strong>: Mandatory. Email properties as map.</li><li><em>mail.bodyType</em>: Optional. Defines the type of the body. Default value: `text/html; charset=utf-8`.</li><li><em>mail.username</em>: Optional. The user name for authentication. Keep it blank to disable authentication.</li><li><em>mail.password</em>: Optional. Password for the user.</li></ul> | N/A    |
 
 Example of a fake command:
 
 ```yaml
 commands:
-  - name: Send a simple email
-    class: email
+  - name: Send a simple mail
+    class: mail
     inputs:
-      - name: email.from
+      - name: mail.from
         value: "from@gmail.com"
-      - name: email.to
+      - name: mail.to
         value: "to@gmail.com"
-      - name: email.subject
+      - name: mail.cc
+        value: "cc@gmail.com"
+      - name: mail.bcc
+        value: "bcc@gmail.com"
+      - name: mail.subject
         value: Just a simple subject
-      - name: email.body
+      - name: mail.body
         value: "Simple <strong>body</strong>"
-      - name: email.username
+      - name: mail.username
         value: user
-      - name: email.password
+      - name: mail.password
         value: pass
-      - name: email.props
+      - name: mail.props
         value:
           mail.smtp.auth: true
           mail.smtp.starttls.enable: true

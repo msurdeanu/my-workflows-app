@@ -24,7 +24,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <vaadin.version>24.8.2</vaadin.version>
-        <flyway-core.version>11.9.1</flyway-core.version>
+        <flyway-core.version>11.10.1</flyway-core.version>
         <markdown-editor-addon.version>1.1.0</markdown-editor-addon.version>
         <grid-pagination.version>4.0.1</grid-pagination.version>
         <ace.version>3.4.2</ace.version>
@@ -33,8 +33,8 @@
         <janino.version>3.1.12</janino.version>
         <maverick-synergy-client.version>3.1.2</maverick-synergy-client.version>
         <angus-mail.version>2.0.3</angus-mail.version>
-        <json-schema-validator.version>1.5.7</json-schema-validator.version>
-        <junit-jupiter.version>5.13.1</junit-jupiter.version>
+        <json-schema-validator.version>1.5.8</json-schema-validator.version>
+        <junit-jupiter.version>5.13.3</junit-jupiter.version>
         <mockito-junit-jupiter.version>5.18.0</mockito-junit-jupiter.version>
     </properties>
 

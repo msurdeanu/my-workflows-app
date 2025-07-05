@@ -4,7 +4,7 @@ import de.f0rce.ace.AceEditor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.myworkflows.domain.command.DatabaseCommand;
-import org.myworkflows.domain.command.EmailCommand;
+import org.myworkflows.domain.command.MailCommand;
 import org.myworkflows.domain.command.GroovyCommand;
 import org.myworkflows.domain.command.HttpRequestCommand;
 import org.myworkflows.domain.command.JavaCommand;
@@ -34,11 +34,11 @@ public final class EditorAutoCompleteUtil {
 
     static {
         WORKFLOW_KEYWORDS.addAll(List.of("class", "name", "value", "ifs", "inputs", "asserts", "outputs", "commands", "subcommands", "finallyCommands"));
-        COMMAND_TYPES.addAll(List.of(DatabaseCommand.PREFIX, EmailCommand.PREFIX, GroovyCommand.PREFIX, HttpRequestCommand.PREFIX, JavaCommand.PREFIX,
+        COMMAND_TYPES.addAll(List.of(DatabaseCommand.PREFIX, MailCommand.PREFIX, GroovyCommand.PREFIX, HttpRequestCommand.PREFIX, JavaCommand.PREFIX,
             NothingCommand.PREFIX, LoopCommand.PREFIX, PrintCommand.PREFIX, SleepCommand.PREFIX,
             SshExecCommand.PREFIX, SshShellCommand.PREFIX, WaitUntilSubPassesCommand.PREFIX));
         COMMAND_INPUTS_COMPLETER.put(DatabaseCommand.PREFIX, List.of("url", "query"));
-        COMMAND_INPUTS_COMPLETER.put(EmailCommand.PREFIX, List.of("from", "to", "subject", "body", "props", "bodyType", "username", "password"));
+        COMMAND_INPUTS_COMPLETER.put(MailCommand.PREFIX, List.of("from", "to", "cc", "bcc", "subject", "body", "props", "bodyType", "username", "password"));
         COMMAND_INPUTS_COMPLETER.put(GroovyCommand.PREFIX, List.of("script", "method"));
         COMMAND_INPUTS_COMPLETER.put(HttpRequestCommand.PREFIX, List.of("url", "method", "body", "headers", "timeout"));
         COMMAND_INPUTS_COMPLETER.put(JavaCommand.PREFIX, List.of("script", "method", "clazz", "sourceVersion", "targetVersion"));
