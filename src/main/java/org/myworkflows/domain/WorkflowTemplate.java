@@ -74,10 +74,6 @@ public class WorkflowTemplate {
     @Transient
     private boolean editable = false;
 
-    public static WorkflowTemplate of(String name) {
-        return of(name, List.of(), List.of());
-    }
-
     public static WorkflowTemplate of(String name, List<WorkflowDefinition> workflowDefinitions, List<WorkflowParameter> workflowParameters) {
         final var workflowTemplate = new WorkflowTemplate();
         workflowTemplate.name = name;

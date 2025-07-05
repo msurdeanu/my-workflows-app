@@ -25,6 +25,7 @@ import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowTemplateGrid;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -87,7 +88,7 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
 
     @Override
     public void onCreate(String name) {
-        workflowTemplateService.create(WorkflowTemplate.of(name), true);
+        workflowTemplateService.create(WorkflowTemplate.of(name, new ArrayList<>(), new ArrayList<>()), true);
         workflowDefinitionGrid.refreshPage();
     }
 
