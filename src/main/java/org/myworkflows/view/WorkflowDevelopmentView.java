@@ -106,6 +106,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
 
         editor.setMode(AceMode.yaml);
         editor.setSofttabs(true);
+        editor.setShowInvisibles(true);
         editor.setTabSize(2);
         editor.addFocusShortcut(Key.KEY_E, KeyModifier.ALT);
         editor.setAutoComplete(true);
