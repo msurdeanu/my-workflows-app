@@ -29,8 +29,6 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteConfiguration;
 import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import de.f0rce.ace.AceEditor;
-import de.f0rce.ace.enums.AceMode;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +50,7 @@ import org.myworkflows.view.component.HasResizeableWidth;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowDevParamGrid;
 import org.myworkflows.view.component.WorkflowPrintGrid;
+import org.myworkflows.view.component.editor.AceEditor;
 import org.myworkflows.view.util.ClipboardUtil;
 import org.myworkflows.view.util.EditorAutoCompleteUtil;
 import org.myworkflows.view.util.RequestUtil;
@@ -67,8 +66,8 @@ import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.serializer.SerializerFactory.toPrettyString;
-import static org.myworkflows.util.ListUtil.getValueAtIndex;
 import static org.myworkflows.util.Base64Util.base64Decode;
+import static org.myworkflows.util.ListUtil.getValueAtIndex;
 
 /**
  * @author Mihai Surdeanu
@@ -104,12 +103,13 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     public WorkflowDevelopmentView(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
 
-        editor.setMode(AceMode.yaml);
         editor.setSofttabs(true);
         editor.setShowInvisibles(true);
         editor.setTabSize(2);
         editor.addFocusShortcut(Key.KEY_E, KeyModifier.ALT);
         editor.setAutoComplete(true);
+        editor.setEnableSnippets(true);
+        editor.setUseWorker(true);
         editor.setLiveAutocompletion(true);
         EditorAutoCompleteUtil.apply(editor);
         attachShortcutsToEditor();
@@ -189,7 +189,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         addShortcutListener(this, () -> {
             final var currentValue = editor.getValue();
             editor.setValue(toPrettyString(currentValue, currentValue));
-        }, Key.KEY_F, KeyModifier.CONTROL, KeyModifier.ALT).listenOn(editor).resetFocusOnActiveElement();
+        }, Key.KEY_L, KeyModifier.CONTROL, KeyModifier.ALT).listenOn(editor).resetFocusOnActiveElement();
     }
 
     private Select<WorkflowDefinition> createFilterByDefinition() {

@@ -1,0 +1,30 @@
+{
+  "name": "@f0rce/lit-ace",
+  "version": "1.11.1",
+  "description": "Lit-Element Wrapper around the Ace Editor (https://ace.c9.io/)",
+  "main": "lit-ace.js",
+  "scripts": {
+    "release:minor": "standard-version --release-as minor --sign",
+    "release:patch": "standard-version --release-as patch --sign",
+    "release:major": "standard-version --release-as major --sign"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f0rce/lit-ace.git"
+  },
+  "author": "David Dodlek <david@dodlek.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/f0rce/lit-ace/issues"
+  },
+  "homepage": "https://github.com/f0rce/lit-ace#readme",
+  "dependencies": {
+    "@f0rce/ace-builds": "^1.9.6",
+    "lit": "^2.3.1"
+  },
+  "devDependencies": {
+    "@types/ace": "^0.0.47",
+    "@webcomponents/webcomponentsjs": "^2.6.0",
+    "standard-version": "^9.5.0"
+  }
+}

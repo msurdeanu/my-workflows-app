@@ -1,7 +1,7 @@
 package org.myworkflows.view.util;
 
-import de.f0rce.ace.AceEditor;
 import org.junit.jupiter.api.Test;
+import org.myworkflows.view.component.editor.AceEditor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

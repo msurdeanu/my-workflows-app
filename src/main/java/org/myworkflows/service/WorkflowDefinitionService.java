@@ -54,21 +54,25 @@ public class WorkflowDefinitionService extends CacheableDataService<WorkflowDefi
         }
     }
 
+    @Transactional
     public void updateDefinition(WorkflowDefinition workflowDefinition, String newScript) {
         lock.lock();
         try {
             workflowDefinition.setScript(toObject(newScript, WorkflowDefinitionScript.class));
             applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).save(workflowDefinition);
+            applicationManager.getBeanOfType(WorkflowTemplateService.class).propagateInternalUpdate(workflowDefinition);
         } finally {
             lock.unlock();
         }
     }
 
+    @Transactional
     public void updateName(WorkflowDefinition workflowDefinition, String newName) {
         lock.lock();
         try {
             workflowDefinition.setName(newName);
             applicationManager.getBeanOfType(WorkflowDefinitionRepository.class).save(workflowDefinition);
+            applicationManager.getBeanOfType(WorkflowTemplateService.class).propagateInternalUpdate(workflowDefinition);
         } finally {
             lock.unlock();
         }

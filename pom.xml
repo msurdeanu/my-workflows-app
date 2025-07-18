@@ -27,7 +27,6 @@
         <flyway-core.version>11.10.2</flyway-core.version>
         <markdown-editor-addon.version>1.1.0</markdown-editor-addon.version>
         <grid-pagination.version>4.0.1</grid-pagination.version>
-        <ace.version>3.4.2</ace.version>
         <lombok.version>1.18.38</lombok.version>
         <groovy.version>4.0.27</groovy.version>
         <janino.version>3.1.12</janino.version>
@@ -123,11 +122,6 @@
             <groupId>org.vaadin.klaudeta</groupId>
             <artifactId>grid-pagination</artifactId>
             <version>${grid-pagination.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.f0rce</groupId>
-            <artifactId>ace</artifactId>
-            <version>${ace.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -244,6 +238,11 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
+                <configuration>
+                    <excludes>
+                        <exclude>org/myworkflows/view/**/*</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

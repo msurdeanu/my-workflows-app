@@ -54,4 +54,9 @@ public class WorkflowDefinition {
         editable = !editable;
     }
 
+    public void setNameAndScript(WorkflowDefinition workflowDefinition) {
+        this.name = workflowDefinition.getName();
+        this.script = workflowDefinition.getScript();
+    }
+
 }

@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -25,6 +26,7 @@ import static java.util.Optional.ofNullable;
  * @author Mihai Surdeanu
  * @since 1.0.0
  */
+@Slf4j
 @Entity
 @Table(name = "workflow_templates")
 public class WorkflowTemplate {
@@ -84,6 +86,20 @@ public class WorkflowTemplate {
 
     public boolean isEnabledForScheduling() {
         return enabled && !StringUtils.isEmpty(cron);
+    }
+
+    public void applyUpdateOnWorkflowDefinitionIfNeeded(WorkflowDefinition workflowDefinition) {
+        ofNullable(workflowDefinitions).orElse(List.of()).stream()
+            .filter(item -> item.getId().equals(workflowDefinition.getId()))
+            .findFirst()
+            .ifPresent(item -> item.setNameAndScript(workflowDefinition));
+    }
+
+    public void applyUpdateOnWorkflowParameterIfNeeded(WorkflowParameter workflowParameter) {
+        ofNullable(workflowParameters).orElse(List.of()).stream()
+            .filter(item -> item.getName().equals(workflowParameter.getName()))
+            .findFirst()
+            .ifPresent(item -> item.setTypeAndValue(workflowParameter));
     }
 
     public Map<String, Object> getWorkflowDefinitionParameters() {

@@ -54,4 +54,8 @@ public class WorkflowParameter {
         return type.getComputedValue(value);
     }
 
+    public void setTypeAndValue(WorkflowParameter workflowParameter) {
+        this.type = workflowParameter.type;
+        this.value = workflowParameter.value;
+    }
 }

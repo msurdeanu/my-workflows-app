@@ -33,6 +33,7 @@ public class WorkflowTemplateService extends CacheableDataService<WorkflowTempla
     public WorkflowTemplate create(WorkflowTemplate workflowTemplate, boolean requiresPersistence) {
         lock.lock();
         try {
+            assert cache != null;
             ofNullable(cache.get(workflowTemplate.getId(), WorkflowTemplate.class))
                 .filter(WorkflowTemplate::isEnabledForScheduling)
                 .ifPresent(oldItem -> applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class)
@@ -124,6 +125,22 @@ public class WorkflowTemplateService extends CacheableDataService<WorkflowTempla
         } finally {
             lock.unlock();
         }
+    }
+
+    public void propagateInternalUpdate(WorkflowDefinition workflowDefinition) {
+        assert cache != null;
+        cache.getAllValues().stream()
+            .filter(object -> object instanceof WorkflowTemplate)
+            .map(WorkflowTemplate.class::cast)
+            .forEach(workflowTemplate -> workflowTemplate.applyUpdateOnWorkflowDefinitionIfNeeded(workflowDefinition));
+    }
+
+    public void propagateInternalUpdate(WorkflowParameter workflowParameter) {
+        assert cache != null;
+        cache.getAllValues().stream()
+            .filter(object -> object instanceof WorkflowTemplate)
+            .map(WorkflowTemplate.class::cast)
+            .forEach(workflowTemplate -> workflowTemplate.applyUpdateOnWorkflowParameterIfNeeded(workflowParameter));
     }
 
     @Override

@@ -1,20 +1,20 @@
 package org.myworkflows.view.util;
 
-import de.f0rce.ace.AceEditor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.myworkflows.domain.command.DatabaseCommand;
-import org.myworkflows.domain.command.MailCommand;
 import org.myworkflows.domain.command.GroovyCommand;
 import org.myworkflows.domain.command.HttpRequestCommand;
 import org.myworkflows.domain.command.JavaCommand;
 import org.myworkflows.domain.command.LoopCommand;
+import org.myworkflows.domain.command.MailCommand;
 import org.myworkflows.domain.command.NothingCommand;
 import org.myworkflows.domain.command.PrintCommand;
 import org.myworkflows.domain.command.SleepCommand;
 import org.myworkflows.domain.command.SshExecCommand;
 import org.myworkflows.domain.command.SshShellCommand;
 import org.myworkflows.domain.command.WaitUntilSubPassesCommand;
+import org.myworkflows.view.component.editor.AceEditor;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,13 +29,13 @@ import java.util.Map;
 public final class EditorAutoCompleteUtil {
 
     private static final List<String> WORKFLOW_KEYWORDS = new ArrayList<>();
-    private static final List<String> COMMAND_TYPES = new ArrayList<>();
+    private static final List<String> COMMAND_CLASSES = new ArrayList<>();
     private static final Map<String, List<String>> COMMAND_INPUTS_COMPLETER = new LinkedHashMap<>();
 
     static {
         WORKFLOW_KEYWORDS.addAll(List.of("class", "name", "value", "ifs", "inputs", "asserts", "outputs", "commands", "subcommands", "finallyCommands"));
-        COMMAND_TYPES.addAll(List.of(DatabaseCommand.PREFIX, MailCommand.PREFIX, GroovyCommand.PREFIX, HttpRequestCommand.PREFIX, JavaCommand.PREFIX,
-            NothingCommand.PREFIX, LoopCommand.PREFIX, PrintCommand.PREFIX, SleepCommand.PREFIX,
+        COMMAND_CLASSES.addAll(List.of(DatabaseCommand.PREFIX, GroovyCommand.PREFIX, HttpRequestCommand.PREFIX, JavaCommand.PREFIX,
+            LoopCommand.PREFIX, MailCommand.PREFIX, NothingCommand.PREFIX, PrintCommand.PREFIX, SleepCommand.PREFIX,
             SshExecCommand.PREFIX, SshShellCommand.PREFIX, WaitUntilSubPassesCommand.PREFIX));
         COMMAND_INPUTS_COMPLETER.put(DatabaseCommand.PREFIX, List.of("url", "query"));
         COMMAND_INPUTS_COMPLETER.put(MailCommand.PREFIX, List.of("from", "to", "cc", "bcc", "subject", "body", "props", "bodyType", "username", "password"));
@@ -52,7 +52,7 @@ public final class EditorAutoCompleteUtil {
 
     public static void apply(AceEditor editor) {
         editor.addStaticWordCompleter(WORKFLOW_KEYWORDS, editor.getTranslation("workflow-development.auto-complete.workflow-keyword"), true);
-        editor.addStaticWordCompleter(COMMAND_TYPES, editor.getTranslation("workflow-development.auto-complete.command-type"), true);
+        editor.addStaticWordCompleter(COMMAND_CLASSES, editor.getTranslation("workflow-development.auto-complete.command-class"), true);
         editor.addDynamicWordCompleter(COMMAND_INPUTS_COMPLETER, ".", editor.getTranslation("workflow-development.auto-complete.command-input"), true);
     }
 

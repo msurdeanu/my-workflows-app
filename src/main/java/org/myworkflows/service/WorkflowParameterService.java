@@ -42,6 +42,7 @@ public class WorkflowParameterService extends CacheableDataService<WorkflowParam
         lock.lock();
         try {
             applicationManager.getBeanOfType(WorkflowParameterRepository.class).save(workflowParameter);
+            applicationManager.getBeanOfType(WorkflowTemplateService.class).propagateInternalUpdate(workflowParameter);
         } finally {
             lock.unlock();
         }

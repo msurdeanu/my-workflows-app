@@ -11,7 +11,7 @@ All workflows are defined in YAML format, and the tool provides an intuitive UI 
 ## Technology stack
 
 * Java 21 as a programming language.
-* Spring Boot 3.x as a DI framework.
+* Spring Boot 3 as a DI framework.
 * [Vaadin 24](https://vaadin.com) as a UI framework.
 * [SQLite](https://www.sqlite.org/) as relational database for persisting data.
 * [YAML Schema Validator](https://github.com/networknt/json-schema-validator) as schema validator for workflow scripts.
@@ -105,6 +105,32 @@ stateDiagram-v2
 ```
 
 ### Features
+
+#### `Ace` editor
+
+This tool uses [Ace](https://ace.c9.io/) as code editor for your workflow definition scripts.
+The editor is present in `Workflow Development` page.
+
+The editor provides:
+* **Syntax highlighting**
+* **Live autocompletion**
+* **Snippets**
+  * type `input` to activate the snippet for creating a quick input expression with `name`, `class` and `value`.
+  * type `assert` to activate the snippet for creating a quick assert expression with `name`, `class` and `value`.
+  * type `output` to activate the snippet for creating a quick output expression with `name`, `class` and `value`.
+* **Key bindings**
+  * <kbd>Ctrl</kbd> + <kbd>A</kbd> = Select the entire code. Editor focus is required.
+  * <kbd>Ctrl</kbd> + <kbd>F</kbd> = Search inside the code. Editor focus is required.
+  * <kbd>Ctrl</kbd> + <kbd>L</kbd> = Go to a specific line in the code. Editor focus is required.
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>L</kbd> = Reformat code. Editor focus is required.
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>W</kbd> = Wrap / unwrap code. Editor focus is required.
+* **Search and replace with regular expressions**
+* **Displays hidden characters**
+* **Code folding**
+* **Multiple cursors and selections**
+* **Live syntax checker (for YAML syntax)**
+* **Cut, copy, and paste functionality**
+* and much more
 
 #### `Finally` commands
 
@@ -256,13 +282,9 @@ described [here](https://www.educative.io/blog/advanced-yaml-syntax-cheatsheet#Y
 Shortcuts are present for multiple views, and they are here to improve your experience.
 
 * **Workflow Development** view:
-    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> = runs the workflow
-    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>U</kbd> = updates the workflow
-    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd> = shares the workflow
-    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd> = reformats the code present inside the editor. Needs editor
-      focus.
-    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>W</kbd> = wraps / unwraps the code present inside the editor. Needs editor
-      focus.
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> = Run workflow
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>U</kbd> = Update workflow definition
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd> = Share workflow
 
 #### REST API interface
 
