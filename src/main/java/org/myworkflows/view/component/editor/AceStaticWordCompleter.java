@@ -1,7 +1,9 @@
 package org.myworkflows.view.component.editor;
 
-import com.nimbusds.jose.shaded.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
+import org.myworkflows.exception.WorkflowRuntimeException;
 
 import java.util.List;
 
@@ -32,7 +34,11 @@ public class AceStaticWordCompleter implements IAceWordCompleter {
 
     @Override
     public String toJson() {
-        return new Gson().toJson(this);
+        try {
+            return new ObjectMapper().writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            throw new WorkflowRuntimeException(e);
+        }
     }
 
 }
