@@ -40,9 +40,11 @@ import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
 import org.myworkflows.domain.WorkflowRun;
+import org.myworkflows.domain.event.EventType;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
+import org.myworkflows.domain.event.EditorTipOnSubmitEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.view.component.BaseLayout;
@@ -55,6 +57,7 @@ import org.myworkflows.view.util.ClipboardUtil;
 import org.myworkflows.view.util.EditorAutoCompleteUtil;
 import org.myworkflows.view.util.RequestUtil;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -82,6 +85,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private static final String READ_ONLY = "ro";
 
     private final AceEditor editor = new AceEditor();
+    private final Span editorHelper = new Span();
     private final Div currentWorkflowStatus = new Div();
     private final WorkflowDevParamGrid workflowDevParamGrid = new WorkflowDevParamGrid();
     private final WorkflowPrintGrid workflowPrintGrid = new WorkflowPrintGrid();
@@ -96,8 +100,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private final Button shareWorkflowButton;
     private final Select<WorkflowDefinition> filterByDefinition;
 
-    private Registration onSubmittedRegistration;
-    private Registration onProgressRegistration;
+    private Map<EventType, Registration> registrations = new EnumMap<EventType, Registration>(EventType.class);
     private UUID lastSubmittedUuid;
 
     public WorkflowDevelopmentView(ApplicationManager applicationManager) {
@@ -114,7 +117,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         EditorAutoCompleteUtil.apply(editor);
         attachShortcutsToEditor();
 
-        currentWorkflowStatus.addClassNames(LumoUtility.BorderRadius.LARGE, LumoUtility.Padding.SMALL, LumoUtility.FontSize.SMALL);
+        currentWorkflowStatus.addClassNames(LumoUtility.Padding.SMALL, LumoUtility.FontSize.SMALL);
         currentWorkflowStatus.setVisible(false);
 
         filterByDefinition = createFilterByDefinition();
@@ -158,14 +161,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         final var ui = attachEvent.getUI();
-        onSubmittedRegistration = applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
+        registrations.put(EventType.ON_SUBMITTED_WORKFLOW_DEFINITION, applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
             final var workflowResultEvent = (WorkflowDefinitionOnSubmittedEvent) event;
             if (workflowResultEvent.getToken().equals(lastSubmittedUuid)
                 && !workflowResultEvent.getValidationMessages().isEmpty()) {
                 ui.access(() -> updateWorkflowProgress(workflowResultEvent.getValidationMessages()));
             }
-        }, WorkflowDefinitionOnSubmittedEvent.class);
-        onProgressRegistration = applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
+        }, WorkflowDefinitionOnSubmittedEvent.class));
+        registrations.put(EventType.ON_PROGRESS_WORKFLOW_DEFINITION, applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
             final var workflowResultEvent = (WorkflowDefinitionOnProgressEvent) event;
             if (workflowResultEvent.getToken().equals(lastSubmittedUuid)) {
                 ui.access(() -> {
@@ -173,13 +176,16 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
                     workflowPrintGrid.setItems(workflowResultEvent.getWorkflowRun().getAllPrints());
                 });
             }
-        }, WorkflowDefinitionOnProgressEvent.class);
+        }, WorkflowDefinitionOnProgressEvent.class));
+        registrations.put(EventType.ON_SUBMIT_EDITOR_TIP, applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
+            final var editorTipOnSubmitEvent = (EditorTipOnSubmitEvent) event;
+            ui.access(() -> editorHelper.getElement().setProperty("innerHTML", getTranslation("editor.tip." + editorTipOnSubmitEvent.getTipId())));
+        }, EditorTipOnSubmitEvent.class));
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
-        onProgressRegistration.remove();
-        onSubmittedRegistration.remove();
+        registrations.values().forEach(Registration::remove);
         super.onDetach(detachEvent);
     }
 
@@ -189,7 +195,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         addShortcutListener(this, () -> {
             final var currentValue = editor.getValue();
             editor.setValue(toPrettyString(currentValue, currentValue));
-        }, Key.KEY_L, KeyModifier.CONTROL, KeyModifier.ALT).listenOn(editor).resetFocusOnActiveElement();
+        }, Key.KEY_F, KeyModifier.CONTROL, KeyModifier.ALT).listenOn(editor).resetFocusOnActiveElement();
     }
 
     private Select<WorkflowDefinition> createFilterByDefinition() {
@@ -256,6 +262,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
 
     private Component createLeft() {
         final var layout = new VerticalLayout();
+        layout.setSpacing(false);
         layout.setSizeFull();
         editor.setSizeFull();
 
@@ -275,7 +282,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         }
         runWorkflowButton.setWidthFull();
 
-        layout.add(currentWorkflowStatus, editor, new Hr(), runWorkflowButton);
+        editorHelper.addClassNames(LumoUtility.FontSize.XSMALL);
+        layout.add(currentWorkflowStatus, editor, editorHelper, new Hr(), runWorkflowButton);
         layout.setFlexGrow(1, editor);
         return layout;
     }

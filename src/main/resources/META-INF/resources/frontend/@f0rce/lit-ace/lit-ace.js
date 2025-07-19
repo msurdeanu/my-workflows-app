@@ -38,9 +38,9 @@ class LitAce extends LitElement {
       displayIndentGuides: { type: Boolean },
       highlightSelectedWord: { type: Boolean },
       useWorker: { type: Boolean },
-      marker: { type: String }, // TODO: remove this, use markerList instead
-      markerList: { type: Array }, // TODO: kepp this, backend should create a json with all markers
-      rmMarker: { type: String }, // TODO: use method
+      marker: { type: String },
+      markerList: { type: Array },
+      rmMarker: { type: String },
       statusbarEnabled: { type: Boolean },
       enableSnippets: { type: Boolean },
     };

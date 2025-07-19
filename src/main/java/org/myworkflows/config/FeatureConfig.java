@@ -16,5 +16,6 @@ import org.springframework.context.annotation.Configuration;
 public class FeatureConfig {
 
     private boolean restApiEnabled = false;
+    private boolean editorTipSchedulerEnabled = true;
 
 }

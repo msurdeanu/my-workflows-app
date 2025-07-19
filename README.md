@@ -122,7 +122,7 @@ The editor provides:
   * <kbd>Ctrl</kbd> + <kbd>A</kbd> = Select the entire code. Editor focus is required.
   * <kbd>Ctrl</kbd> + <kbd>F</kbd> = Search inside the code. Editor focus is required.
   * <kbd>Ctrl</kbd> + <kbd>L</kbd> = Go to a specific line in the code. Editor focus is required.
-  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>L</kbd> = Reformat code. Editor focus is required.
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd> = Reformat code. Editor focus is required.
   * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>W</kbd> = Wrap / unwrap code. Editor focus is required.
 * **Search and replace with regular expressions**
 * **Displays hidden characters**
