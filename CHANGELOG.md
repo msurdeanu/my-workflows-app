@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.8 (2025-07-26)
+
+### Dependencies
+
+* Upgrade Vaadin to 24.8.4.
+* Upgrade Flyway Core to 11.10.4.
+* Upgrade Groovy to 4.0.28.
+* Upgrade JUnit to 5.13.4.
+
 ## 1.0.7 (2025-07-19)
 
 ### Features
