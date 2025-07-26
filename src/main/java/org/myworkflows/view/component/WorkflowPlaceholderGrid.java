@@ -76,7 +76,7 @@ public final class WorkflowPlaceholderGrid extends Composite<VerticalLayout> {
 
         paginatedGrid.addComponentColumn(placeholder -> createActionComponent(placeholder, editor))
             .setHeader(new TextFieldWithEnterShortcut(item -> paginatedGrid.getEditor().editItem(workflowPlaceholderEventHandler.onCreate(item)))
-                .allowedCharPatternAndPlaceholder(PlaceholderUtil.PLACEHOLDER_NAME_PATTERN).small())
+                .allowedCharPatternAndPlaceholder(PlaceholderUtil.ALLOWED_CHARS_FOR_PLACEHOLDER_NAME).small())
             .setEditorComponent(actions);
 
         layout.add(paginatedGrid);

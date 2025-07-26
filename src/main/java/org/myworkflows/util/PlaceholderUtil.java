@@ -19,6 +19,8 @@ public class PlaceholderUtil {
 
     public static final String PLACEHOLDER_NAME_PATTERN = "[A-Z0-9_.]+";
 
+    public static final String ALLOWED_CHARS_FOR_PLACEHOLDER_NAME = "[A-Z0-9_.]";
+
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\$\\((" + PLACEHOLDER_NAME_PATTERN + ")\\)");
 
     public static String resolvePlaceholders(String value, Map<String, String> placeholders) {

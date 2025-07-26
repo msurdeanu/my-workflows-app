@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.9 (2025-07-26)
+
+### Bug fixes
+
+* Fix bug with allowedCharsPattern in Vaadin TextField.
+
+### Features
+
+* Activate Dependabot checks every week.
+
 ## 1.0.8 (2025-07-26)
 
 ### Dependencies
