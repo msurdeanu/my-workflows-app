@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.10 (2025-08-06)
+
+### Dependencies
+
+* Upgrade Spring Boot to 3.5.4.
+* Upgrade Vaadin to 24.8.5.
+* Upgrade Flyway Core to 11.10.5.
+
 ## 1.0.9 (2025-07-26)
 
 ### Bug fixes
