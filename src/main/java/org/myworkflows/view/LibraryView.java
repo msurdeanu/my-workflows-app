@@ -1,11 +1,8 @@
 package org.myworkflows.view;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -71,19 +68,10 @@ public class LibraryView extends ResponsiveLayout implements HasDynamicTitle, Li
     }
 
     private Component createUpload() {
-        final var buffer = new MultiFileMemoryBuffer();
-        final var upload = new Upload(buffer);
+        final var upload = new Upload(event -> onUpload(event.getFileName(), event.getInputStream()));
         upload.setAcceptedFileTypes("application/java-archive", LibraryConfig.JAR_EXTENSION);
         upload.setMaxFiles(1);
         upload.setDropAllowed(false);
-        upload.addSucceededListener(event -> {
-            final var fileName = event.getFileName();
-            onUpload(fileName, buffer.getInputStream(fileName));
-        });
-        upload.addFileRejectedListener(event -> {
-            final var notification = Notification.show(event.getErrorMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        });
         return upload;
     }
 

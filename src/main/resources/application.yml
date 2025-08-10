@@ -28,6 +28,10 @@ spring:
     driver-class-name: org.sqlite.JDBC
   mustache:
     check-template-location: false
+  servlet:
+    multipart:
+      max-file-size: 128MB
+      max-request-size: 128MB
   threads:
     virtual:
       enabled: true

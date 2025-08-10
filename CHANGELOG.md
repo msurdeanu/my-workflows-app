@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.11 (2025-08-10)
+
+### Features
+
+* Remove deprecated API regarding UploadHandler from Vaadin 24.8.
+* Set default maximum file size for uploaded libraries to 128MB.
+
 ## 1.0.10 (2025-08-06)
 
 ### Dependencies
