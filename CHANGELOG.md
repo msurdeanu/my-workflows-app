@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.12 (2025-08-10)
+
+### Dependencies
+
+* Upgrade Flyway Core to 11.11.0.
+* Upgrade Markdown Editor to 2.0.0.
+
 ## 1.0.11 (2025-08-10)
 
 ### Features

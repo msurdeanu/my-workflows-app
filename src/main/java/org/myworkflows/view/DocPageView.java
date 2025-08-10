@@ -1,6 +1,5 @@
 package org.myworkflows.view;
 
-import com.flowingcode.vaadin.addons.markdown.BaseMarkdownComponent;
 import com.flowingcode.vaadin.addons.markdown.MarkdownEditor;
 import com.flowingcode.vaadin.addons.markdown.MarkdownViewer;
 import com.vaadin.flow.component.Component;
@@ -143,8 +142,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
         markdownEditor.setWidthFull();
         markdownEditor.setHeight("400px");
         markdownEditor.setMaxLength(32768);
-        markdownEditor.setDataColorMode(BaseMarkdownComponent.DataColorMode.LIGHT);
-        markdownEditor.setContent(docPage.getValue());
+        markdownEditor.setValue(docPage.getValue());
         layout.add(markdownEditor);
         if (isLoggedAsAdmin) {
             final var horizontalLayout = new HorizontalLayout();
@@ -154,7 +152,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
             final var updateDocPageButton = new Button(getTranslation("doc-pages.update.button"), VaadinIcon.EDIT.create());
             updateDocPageButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
             updateDocPageButton.getStyle().set("flex", "1 1 50%");
-            updateDocPageButton.addClickListener(event -> onUpdate(docPage, markdownEditor.getContent()));
+            updateDocPageButton.addClickListener(event -> onUpdate(docPage, markdownEditor.getValue()));
             final var deleteDocPageButton = new Button(getTranslation("doc-pages.delete.button"), VaadinIcon.TRASH.create());
             deleteDocPageButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
             deleteDocPageButton.getStyle().set("flex", "1 1 50%");
@@ -169,7 +167,6 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
     private Component createMarkdownViewer(DocPage docPage) {
         final var markdownViewer = new MarkdownViewer();
         markdownViewer.setSizeFull();
-        markdownViewer.setDataColorMode(BaseMarkdownComponent.DataColorMode.LIGHT);
         markdownViewer.setContent(docPage.getValue());
         return markdownViewer;
     }
