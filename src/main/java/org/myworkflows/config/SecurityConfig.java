@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * @author Mihai Surdeanu
@@ -37,9 +36,9 @@ public class SecurityConfig extends VaadinWebSecurity {
                 .tokenValiditySeconds(baseConfig.getRememberMeCookieDays() * 86400)
                 .rememberMeCookieName(baseConfig.getRememberMeCookieName()));
         http.authorizeHttpRequests(config -> {
-            config.requestMatchers(new AntPathRequestMatcher("/logo.png")).permitAll();
+            config.requestMatchers("/logo.png").permitAll();
             if (featureConfig.isRestApiEnabled()) {
-                config.requestMatchers(new AntPathRequestMatcher("/api/**")).permitAll();
+                config.requestMatchers("/api/**").permitAll();
             }
         });
         if (featureConfig.isRestApiEnabled()) {

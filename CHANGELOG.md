@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.13 (2025-08-11)
+
+### Dependencies
+
+* Upgrade Vaadin to 24.8.6.
+
+### Features
+
+* Remove deprecated API regarding AntPathRequestMatcher class from Spring Framework.
+
 ## 1.0.12 (2025-08-10)
 
 ### Dependencies
