@@ -4,7 +4,6 @@ import elemental.json.JsonObject;
 import lombok.Getter;
 
 @Getter
-
 public class AceCursorPosition {
 
     private final int row;

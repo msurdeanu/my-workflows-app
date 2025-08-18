@@ -14,10 +14,10 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
-import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.filter.WorkflowRunFilter;
+import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.WorkflowRunService;
 import org.myworkflows.service.WorkflowTemplateService;
 import org.myworkflows.view.component.BaseLayout;
@@ -30,7 +30,7 @@ import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Slf4j
 @PermitAll
@@ -60,7 +60,7 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
 
         add(createHeader(getTranslation("workflow-runs.page.title"), createFilterByTemplate(), createFilterByRunId()));
         add(createContent(workflowRunGrid));
-        add(createFooter(applicationManager.getBeanOfType(BaseConfig.class)));
+        add(createFooter(applicationManager.getBeanOfType(SettingProvider.class)));
     }
 
     @Override

@@ -14,7 +14,7 @@ import static org.myworkflows.util.ByteArrayCompressUtil.compress;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Base64Util {

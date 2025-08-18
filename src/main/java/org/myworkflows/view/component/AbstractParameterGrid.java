@@ -33,7 +33,7 @@ import static org.myworkflows.view.util.KeyboardUtil.addKeydownEventListener;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
 

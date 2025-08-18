@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
-import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowParameter;
@@ -46,6 +45,7 @@ import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
 import org.myworkflows.domain.event.EditorTipOnSubmitEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
+import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.HasResizeableWidth;
@@ -74,7 +74,7 @@ import static org.myworkflows.util.ListUtil.getValueAtIndex;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Slf4j
 @PermitAll
@@ -100,7 +100,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private final Button shareWorkflowButton;
     private final Select<WorkflowDefinition> filterByDefinition;
 
-    private Map<EventType, Registration> registrations = new EnumMap<EventType, Registration>(EventType.class);
+    private final Map<EventType, Registration> registrations = new EnumMap<EventType, Registration>(EventType.class);
     private UUID lastSubmittedUuid;
 
     public WorkflowDevelopmentView(ApplicationManager applicationManager) {
@@ -126,7 +126,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         splitLayout = createSplitLayout();
         add(createHeader(getTranslation("workflow-development.page.title"), shareWorkflowButton, updateWorkflowButton, filterByDefinition),
             createContent(splitLayout),
-            createFooter(applicationManager.getBeanOfType(BaseConfig.class)));
+            createFooter(applicationManager.getBeanOfType(SettingProvider.class)));
     }
 
     @Override
@@ -163,23 +163,23 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         final var ui = attachEvent.getUI();
         registrations.put(EventType.ON_SUBMITTED_WORKFLOW_DEFINITION, applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
             final var workflowResultEvent = (WorkflowDefinitionOnSubmittedEvent) event;
-            if (workflowResultEvent.getToken().equals(lastSubmittedUuid)
-                && !workflowResultEvent.getValidationMessages().isEmpty()) {
-                ui.access(() -> updateWorkflowProgress(workflowResultEvent.getValidationMessages()));
+            if (workflowResultEvent.token().equals(lastSubmittedUuid)
+                && !workflowResultEvent.validationMessages().isEmpty()) {
+                ui.access(() -> updateWorkflowProgress(workflowResultEvent.validationMessages()));
             }
         }, WorkflowDefinitionOnSubmittedEvent.class));
         registrations.put(EventType.ON_PROGRESS_WORKFLOW_DEFINITION, applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
             final var workflowResultEvent = (WorkflowDefinitionOnProgressEvent) event;
-            if (workflowResultEvent.getToken().equals(lastSubmittedUuid)) {
+            if (workflowResultEvent.token().equals(lastSubmittedUuid)) {
                 ui.access(() -> {
-                    updateWorkflowProgress(workflowResultEvent.getWorkflowRun());
-                    workflowPrintGrid.setItems(workflowResultEvent.getWorkflowRun().getAllPrints());
+                    updateWorkflowProgress(workflowResultEvent.workflowRun());
+                    workflowPrintGrid.setItems(workflowResultEvent.workflowRun().getAllPrints());
                 });
             }
         }, WorkflowDefinitionOnProgressEvent.class));
         registrations.put(EventType.ON_SUBMIT_EDITOR_TIP, applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
             final var editorTipOnSubmitEvent = (EditorTipOnSubmitEvent) event;
-            ui.access(() -> editorHelper.getElement().setProperty("innerHTML", getTranslation("editor.tip." + editorTipOnSubmitEvent.getTipId())));
+            ui.access(() -> editorHelper.getElement().setProperty("innerHTML", getTranslation("editor.tip." + editorTipOnSubmitEvent.tipId())));
         }, EditorTipOnSubmitEvent.class));
     }
 

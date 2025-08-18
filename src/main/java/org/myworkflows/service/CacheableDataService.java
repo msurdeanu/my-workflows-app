@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 public abstract class CacheableDataService<T, F extends Filter<T>> {
 

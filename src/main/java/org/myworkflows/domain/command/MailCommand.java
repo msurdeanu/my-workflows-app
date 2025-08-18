@@ -24,7 +24,7 @@ import static com.networknt.schema.utils.StringUtils.isBlank;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @NoArgsConstructor
 public final class MailCommand extends AbstractCommand {

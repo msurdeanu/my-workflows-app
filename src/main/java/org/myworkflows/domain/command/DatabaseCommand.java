@@ -17,7 +17,7 @@ import static org.myworkflows.util.SqlUtil.escape;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @NoArgsConstructor
 public final class DatabaseCommand extends AbstractCommand {

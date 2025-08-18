@@ -26,7 +26,7 @@ import static org.myworkflows.util.StringReplacer.replace;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Slf4j
 @Getter

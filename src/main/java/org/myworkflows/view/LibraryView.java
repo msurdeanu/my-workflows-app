@@ -10,11 +10,11 @@ import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
-import org.myworkflows.config.BaseConfig;
 import org.myworkflows.config.LibraryConfig;
 import org.myworkflows.domain.Library;
 import org.myworkflows.domain.filter.LibraryFilter;
 import org.myworkflows.domain.handler.LibraryEventHandler;
+import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.LibraryService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.LibraryGrid;
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Slf4j
 @PermitAll
@@ -40,7 +40,7 @@ public class LibraryView extends ResponsiveLayout implements HasDynamicTitle, Li
 
     private final LibraryService libraryService;
 
-    public LibraryView(BaseConfig baseConfig, LibraryService libraryService) {
+    public LibraryView(SettingProvider settingProvider, LibraryService libraryService) {
         super();
         this.libraryService = libraryService;
 
@@ -54,7 +54,7 @@ public class LibraryView extends ResponsiveLayout implements HasDynamicTitle, Li
 
         add(createHeader(getTranslation("libs.page.title"), createUpload(), createFilterByFilePath()));
         add(createContent(libraryGrid));
-        add(createFooter(baseConfig));
+        add(createFooter(settingProvider));
     }
 
     @Override

@@ -10,7 +10,7 @@ import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Converter
 public final class MenuItemPathToStringConverter implements AttributeConverter<MenuItemPath<?>, String> {

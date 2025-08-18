@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.1.0 (2025-08-18)
+
+### Bug fixes
+
+* Avoid NullPointerException when no documentation page is available.
+
+### Dependencies
+
+* Upgrade Flyway Core to 11.11.1.
+
+### Features
+
+* New page for settings.
+* Avoid to display bigger text prints directly in the UI. Provide the ability to download the content as a file.
+* Rely more and more on Java records.
+* Remove deprecated API regarding ResourceStream from Vaadin Framework and rely on DownloadHandler.
+
 ## 1.0.13 (2025-08-11)
 
 ### Dependencies

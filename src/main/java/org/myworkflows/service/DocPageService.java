@@ -19,7 +19,7 @@ import static org.myworkflows.cache.CacheNameEnum.DOC_PAGE_NAME;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Service
 public class DocPageService implements ServiceCreator<DocPage> {

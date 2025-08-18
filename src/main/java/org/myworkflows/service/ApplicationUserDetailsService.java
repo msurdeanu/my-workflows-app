@@ -1,6 +1,5 @@
 package org.myworkflows.service;
 
-import lombok.RequiredArgsConstructor;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.domain.UserAccountDetails;
 import org.myworkflows.repository.UserRepository;
@@ -10,12 +9,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
-@RequiredArgsConstructor
-public final class ApplicationUserDetailsService implements UserDetailsService {
-
-    private final ApplicationManager applicationManager;
+public record ApplicationUserDetailsService(ApplicationManager applicationManager) implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

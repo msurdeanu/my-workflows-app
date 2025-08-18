@@ -14,34 +14,34 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
-import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.streams.DownloadHandler;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import lombok.extern.slf4j.Slf4j;
-import org.myworkflows.config.BaseConfig;
+import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.repository.MenuItemRepository;
 import org.myworkflows.view.transformer.MenuItemsToSideNavItemsTransformer;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.FileInputStream;
+import java.io.File;
 import java.util.List;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Slf4j
 public class BaseLayout extends AppLayout {
 
-    public BaseLayout(AuthenticationContext authContext, BaseConfig baseConfig, MenuItemRepository menuItemRepository) {
-        createHeader(authContext, baseConfig);
+    public BaseLayout(AuthenticationContext authContext, SettingProvider settingProvider, MenuItemRepository menuItemRepository) {
+        createHeader(authContext, settingProvider);
 
-        addDrawerContent(new MenuItemsToSideNavItemsTransformer().transform(menuItemRepository.findByOrderByPosition()), baseConfig);
+        addDrawerContent(new MenuItemsToSideNavItemsTransformer().transform(menuItemRepository.findByOrderByPosition()), settingProvider);
     }
 
-    private void createHeader(AuthenticationContext authContext, BaseConfig baseConfig) {
+    private void createHeader(AuthenticationContext authContext, SettingProvider settingProvider) {
         final var logoLayout = new HorizontalLayout();
-        final var logo = loadLogoImage(baseConfig);
+        final var logo = loadLogoImage(settingProvider);
         logo.setHeight("44px");
         logoLayout.add(logo);
 
@@ -63,12 +63,12 @@ public class BaseLayout extends AppLayout {
         addToNavbar(header);
     }
 
-    private void addDrawerContent(List<SideNavItem> routerLinks, BaseConfig baseConfig) {
+    private void addDrawerContent(List<SideNavItem> routerLinks, SettingProvider settingProvider) {
         final var appName = new H1(getTranslation("app.name"));
         appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
         final var header = new Header(appName);
         final var scroller = new Scroller(createNavigation(routerLinks));
-        addToDrawer(header, scroller, createFooter(baseConfig));
+        addToDrawer(header, scroller, createFooter(settingProvider));
     }
 
     private SideNav createNavigation(List<SideNavItem> routerLinks) {
@@ -77,25 +77,19 @@ public class BaseLayout extends AppLayout {
         return appNav;
     }
 
-    private Footer createFooter(BaseConfig baseConfig) {
+    private Footer createFooter(SettingProvider settingProvider) {
         final var layout = new Footer();
         layout.addClassNames("flex", "items-center", "my-s", "px-m", "py-xs");
-        layout.add(new Span("v" + baseConfig.getVersion()));
+        layout.add(new Span("v" + settingProvider.getOrDefault("version", "")));
         return layout;
     }
 
-    private Image loadLogoImage(BaseConfig baseConfig) {
-        final var logoSrc = baseConfig.getLogoSrc();
-        final var resource = new StreamResource("logo.png", () -> {
-            try {
-                log.debug("The app is trying to load logo image from file.");
-                return new FileInputStream(logoSrc);
-            } catch (Exception notUsed) {
-                log.debug("The app didn't succeed to load logo image from file, as fallback, it will load it from classpath.");
-                return getClass().getResourceAsStream(logoSrc);
-            }
-        });
-        return new Image(resource, baseConfig.getName());
+    private Image loadLogoImage(SettingProvider settingProvider) {
+        final var logo = settingProvider.getOrDefault("logo", "/logo.png");
+        final var downloadHandler = "/logo.png".equals(logo)
+            ? DownloadHandler.forClassResource(getClass(), "/logo.png")
+            : DownloadHandler.forFile(new File(logo));
+        return new Image(downloadHandler, settingProvider.getOrDefault("name", "My Workflows"));
     }
 
 }

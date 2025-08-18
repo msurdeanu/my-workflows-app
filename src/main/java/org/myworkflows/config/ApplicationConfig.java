@@ -1,32 +1,36 @@
 package org.myworkflows.config;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.myworkflows.cache.CacheNameEnum;
 import org.myworkflows.cache.InternalCache;
 import org.myworkflows.cache.InternalCacheManager;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.myworkflows.provider.DatabaseSettingProvider;
+import org.myworkflows.provider.DefaultSettingProvider;
+import org.myworkflows.provider.SettingProvider;
+import org.myworkflows.repository.SettingRepository;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.lang.reflect.Proxy;
+
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
-@Getter
-@Setter
-@Configuration("cacheConfig")
-@ConfigurationProperties(prefix = "my-workflows.config.cache")
 @EnableCaching
-public class CacheConfig {
-
-    private int workflowRunMaxSize = 250;
+@Configuration("applicationConfig")
+public class ApplicationConfig {
 
     @Bean
-    public InternalCacheManager cacheManager() {
+    public SettingProvider settingProvider(SettingRepository settingRepository) {
+        return (SettingProvider) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{SettingProvider.class},
+            new DatabaseSettingProvider(new DefaultSettingProvider(), settingRepository));
+    }
+
+    @Bean
+    public InternalCacheManager cacheManager(SettingProvider settingProvider) {
         final var cacheManager = new InternalCacheManager();
-        cacheManager.addCache(CacheNameEnum.WORKFLOW_RUN, workflowRunMaxSize, InternalCache.InternalCacheOrder.LIFO);
+        cacheManager.addCache(CacheNameEnum.WORKFLOW_RUN, settingProvider.getOrDefault("workflowRunMaxSize", 250), InternalCache.InternalCacheOrder.LIFO);
         cacheManager.addCache(CacheNameEnum.WORKFLOW_TEMPLATE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
         cacheManager.addCache(CacheNameEnum.WORKFLOW_DEFINITION, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
         cacheManager.addCache(CacheNameEnum.WORKFLOW_PARAMETER, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
@@ -38,3 +42,4 @@ public class CacheConfig {
     }
 
 }
+

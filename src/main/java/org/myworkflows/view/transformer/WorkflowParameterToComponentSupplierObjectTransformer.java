@@ -41,7 +41,7 @@ import static org.myworkflows.util.CookieUtil.findDecryptedCookieValue;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 public final class WorkflowParameterToComponentSupplierObjectTransformer
     implements Transformer<WorkflowParameter, WorkflowParameterToComponentSupplierObjectTransformer.ComponentSupplierObject> {

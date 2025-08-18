@@ -9,11 +9,11 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.shared.Registration;
-import org.myworkflows.config.BaseConfig;
+import org.myworkflows.provider.SettingProvider;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 public abstract class ResponsiveLayout extends FlexLayout implements HasResizeableWidth {
 
@@ -69,10 +69,12 @@ public abstract class ResponsiveLayout extends FlexLayout implements HasResizeab
         return contentDiv;
     }
 
-    protected Component createFooter(BaseConfig baseConfig) {
+    protected Component createFooter(SettingProvider settingProvider) {
         final var footerDiv = new Div();
         footerDiv.addClassName("footer");
-        footerDiv.add(new Html(getTranslation("footer.copyright", baseConfig.getUrl(), baseConfig.getName())));
+        footerDiv.add(new Html(getTranslation("footer.copyright",
+            settingProvider.getOrDefault("url", "https://myworkflows.org"),
+            settingProvider.getOrDefault("name", "My Workflows"))));
         return footerDiv;
     }
 

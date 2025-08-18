@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Service
 @RequiredArgsConstructor
@@ -21,8 +21,8 @@ public class WorkflowRunProgressService implements EventListener<WorkflowDefinit
     @Override
     public void onEventReceived(WorkflowDefinitionOnProgressEvent event) {
         final var service = applicationManager.getBeanOfType(WorkflowRunService.class);
-        service.create(event.getWorkflowRun(), event.isPersisted());
-        if (event.isPersisted()) {
+        service.create(event.workflowRun(), event.persisted());
+        if (event.persisted()) {
             service.deleteOldEntriesIfNeeded(false);
         }
     }

@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 public interface WorkflowDefinitionRepository extends JpaRepository<WorkflowDefinition, Integer> {
 

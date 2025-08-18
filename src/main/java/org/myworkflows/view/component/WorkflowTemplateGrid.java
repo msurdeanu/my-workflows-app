@@ -36,7 +36,7 @@ import static org.myworkflows.util.ListUtil.substract;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @RequiredArgsConstructor
 public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {

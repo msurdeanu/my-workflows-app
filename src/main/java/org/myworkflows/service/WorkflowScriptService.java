@@ -48,10 +48,10 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
 
     @Override
     public void onEventReceived(WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
-        final var workflowDefScriptObject = onSubmitEvent.getWorkflowDefinitionScript();
+        final var workflowDefScriptObject = onSubmitEvent.workflowDefinitionScript();
 
         final var onSubmittedEventBuilder = WorkflowDefinitionOnSubmittedEvent.builder();
-        onSubmittedEventBuilder.token(onSubmitEvent.getToken());
+        onSubmittedEventBuilder.token(onSubmitEvent.token());
 
         if (workflowDefScriptObject instanceof String workflowAsString) {
             Set<ValidationMessage> validationMessages;
@@ -81,8 +81,8 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
 
     private WorkflowRun submit(WorkflowDefinitionScript workflowDefinitionScript,
                                WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
-        final var workflowRun = onSubmitEvent.getWorkflowRun();
-        final var future = executorService.submit(() -> runSynchronously(workflowDefinitionScript, workflowRun, onSubmitEvent.getToken()));
+        final var workflowRun = onSubmitEvent.workflowRun();
+        final var future = executorService.submit(() -> runSynchronously(workflowDefinitionScript, workflowRun, onSubmitEvent.token()));
         workflowRun.setFuture(future);
         return workflowRun;
     }

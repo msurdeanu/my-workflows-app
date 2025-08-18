@@ -17,7 +17,7 @@ import java.util.Collections;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Component
 @RequiredArgsConstructor

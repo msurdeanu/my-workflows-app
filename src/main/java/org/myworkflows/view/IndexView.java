@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @AnonymousAllowed
 @Route(value = IndexView.ROUTE)

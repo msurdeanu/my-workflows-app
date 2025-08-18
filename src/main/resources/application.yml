@@ -55,16 +55,6 @@ logging:
 
 my-workflows:
   config:
-    base:
-      logo-src: "src/main/resources/META-INF/resources/logo.png"
-      name: "My Workflows"
-      url: "https://myworkflows.org"
-      version: "1.0"
-    encryption:
-      # Algorithm used to encrypt cookies for storing sensitive data
-      algorithm: "AES"
-      # Secret key used to encrypt cookies internally for storing sensitive data
-      secret-key: "$2a$10$2KfdoXL0u.t4WnK7h9PZjOLnJZir7yvD3i84SlPI4k3oChci0ZR2"
     library:
       base-directory: "libs"
     file-source:

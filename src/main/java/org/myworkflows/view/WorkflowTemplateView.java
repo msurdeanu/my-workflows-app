@@ -12,12 +12,12 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.handler.WorkflowTemplateEventHandler;
 import org.myworkflows.domain.filter.WorkflowTemplateFilter;
+import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.repository.WorkflowParameterRepository;
 import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.service.WorkflowTemplateService;
@@ -34,7 +34,7 @@ import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Slf4j
 @PermitAll
@@ -49,7 +49,7 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
 
     private final WorkflowTemplateGrid workflowDefinitionGrid;
 
-    public WorkflowTemplateView(BaseConfig baseConfig,
+    public WorkflowTemplateView(SettingProvider settingProvider,
                                 WorkflowTemplateService workflowTemplateService,
                                 WorkflowDefinitionService workflowDefinitionService,
                                 WorkflowParameterRepository workflowParameterRepository) {
@@ -67,7 +67,7 @@ public class WorkflowTemplateView extends ResponsiveLayout implements HasDynamic
 
         add(createHeader(getTranslation("workflow-templates.page.title"), createFilterByName()));
         add(createContent(workflowDefinitionGrid));
-        add(createFooter(baseConfig));
+        add(createFooter(settingProvider));
     }
 
     @Override

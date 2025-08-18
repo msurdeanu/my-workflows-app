@@ -5,7 +5,7 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 public final class DeleteConfirmDialog extends ConfirmDialog {
 

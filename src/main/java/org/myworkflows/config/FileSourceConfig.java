@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Configuration("fileSourceConfig")
 @ConfigurationProperties(prefix = "my-workflows.config.file-source")

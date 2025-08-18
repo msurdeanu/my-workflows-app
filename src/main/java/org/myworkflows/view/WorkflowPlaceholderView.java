@@ -9,10 +9,10 @@ import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
-import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.WorkflowPlaceholder;
 import org.myworkflows.domain.filter.WorkflowPlaceholderFilter;
 import org.myworkflows.domain.handler.WorkflowPlaceholderEventHandler;
+import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.WorkflowPlaceholderService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Slf4j
 @RolesAllowed("ROLE_ADMIN")
@@ -37,7 +37,7 @@ public class WorkflowPlaceholderView extends ResponsiveLayout implements HasDyna
 
     private final WorkflowPlaceholderService workflowPlaceholderService;
 
-    public WorkflowPlaceholderView(BaseConfig baseConfig, WorkflowPlaceholderService workflowPlaceholderService) {
+    public WorkflowPlaceholderView(SettingProvider settingProvider, WorkflowPlaceholderService workflowPlaceholderService) {
         super();
         this.workflowPlaceholderService = workflowPlaceholderService;
 
@@ -51,7 +51,7 @@ public class WorkflowPlaceholderView extends ResponsiveLayout implements HasDyna
 
         add(createHeader(getTranslation("workflow-placeholders.page.title"), createFilterByName()));
         add(createContent(workflowPlaceholderGrid));
-        add(createFooter(baseConfig));
+        add(createFooter(settingProvider));
     }
 
     @Override

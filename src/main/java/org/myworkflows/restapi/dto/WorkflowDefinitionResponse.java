@@ -5,13 +5,10 @@ import org.myworkflows.domain.WorkflowDefinition;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Builder
-public class WorkflowDefinitionResponse {
-
-    private final int id;
-    private final String name;
+public record WorkflowDefinitionResponse(int id, String name) {
 
     public static WorkflowDefinitionResponse of(WorkflowDefinition workflowDefinition) {
         return WorkflowDefinitionResponse.builder()

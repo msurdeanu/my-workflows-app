@@ -10,7 +10,7 @@ import com.vaadin.flow.router.Route;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Route(value = LoginView.ROUTE)
 public class LoginView extends Composite<VerticalLayout> implements BeforeEnterObserver {

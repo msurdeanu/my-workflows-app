@@ -9,7 +9,7 @@ import java.util.UUID;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Converter
 public final class UuidToByteArrayConverter implements AttributeConverter<UUID, Byte[]> {

@@ -1,6 +1,5 @@
 package org.myworkflows.domain;
 
-import lombok.RequiredArgsConstructor;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
@@ -11,14 +10,9 @@ import static org.myworkflows.domain.WorkflowDefinitionScript.of;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
-@RequiredArgsConstructor
-public final class WorkflowDefinitionScriptRunnable implements Runnable {
-
-    private final ApplicationManager applicationManager;
-
-    private final WorkflowTemplate workflowTemplate;
+public record WorkflowDefinitionScriptRunnable(ApplicationManager applicationManager, WorkflowTemplate workflowTemplate) implements Runnable {
 
     @Override
     public void run() {

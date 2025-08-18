@@ -10,7 +10,7 @@ import static org.myworkflows.serializer.SerializerFactory.toObject;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Converter
 public final class WorkflowDefinitionScriptToStringConverter implements AttributeConverter<WorkflowDefinitionScript, String> {

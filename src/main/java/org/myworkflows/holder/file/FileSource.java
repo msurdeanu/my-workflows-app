@@ -5,13 +5,13 @@ import java.nio.file.Path;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 public interface FileSource<T> {
 
-    String getFileName();
+    String fileName();
 
-    String getFileExtension();
+    String fileExtension();
 
     T readFrom(Path filePath) throws IOException;
 

@@ -17,7 +17,7 @@ import static com.sshtools.client.tasks.ShellTask.ShellTaskBuilder.create;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @NoArgsConstructor
 public final class SshShellCommand extends AbstractCommand {

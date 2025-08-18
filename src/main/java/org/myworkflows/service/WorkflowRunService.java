@@ -5,10 +5,10 @@ import org.myworkflows.ApplicationManager;
 import org.myworkflows.cache.CacheNameEnum;
 import org.myworkflows.cache.InternalCache;
 import org.myworkflows.cache.InternalCacheManager;
-import org.myworkflows.config.CacheConfig;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.filter.WorkflowRunFilter;
+import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.repository.WorkflowRunRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -28,12 +28,12 @@ import static org.springframework.data.domain.PageRequest.of;
 @Service
 public class WorkflowRunService extends CacheableDataService<WorkflowRun, WorkflowRunFilter> implements ServiceCreator<WorkflowRun> {
 
-    private final CacheConfig cacheConfig;
+    private final SettingProvider settingProvider;
     private final InternalCache templateCache;
 
     public WorkflowRunService(ApplicationManager applicationManager) {
         super(applicationManager, CacheNameEnum.WORKFLOW_RUN);
-        cacheConfig = applicationManager.getBeanOfType(CacheConfig.class);
+        settingProvider = applicationManager.getBeanOfType(SettingProvider.class);
         templateCache = (InternalCache) applicationManager.getBeanOfType(InternalCacheManager.class)
             .getCache(CacheNameEnum.WORKFLOW_TEMPLATE.getName());
     }
@@ -69,12 +69,13 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
     }
 
     public void deleteOldEntriesIfNeeded(boolean force) {
-        if (!force && cache.size() < cacheConfig.getWorkflowRunMaxSize()) {
+        final var workflowRunMaxSize = settingProvider.getOrDefault("workflowRunMaxSize", 250);
+        if (!force && cache.size() < workflowRunMaxSize) {
             return;
         }
         final var start = System.currentTimeMillis();
         final var workflowRunRepository = applicationManager.getBeanOfType(WorkflowRunRepository.class);
-        final var oldestCutoffDate = workflowRunRepository.findOldestCutoffDate(of(cacheConfig.getWorkflowRunMaxSize(), 1));
+        final var oldestCutoffDate = workflowRunRepository.findOldestCutoffDate(of(workflowRunMaxSize, 1));
         if (oldestCutoffDate.size() != 1) {
             return;
         }

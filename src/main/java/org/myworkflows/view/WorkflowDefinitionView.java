@@ -12,10 +12,10 @@ import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
-import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.handler.WorkflowDefinitionEventHandler;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
+import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;
@@ -27,7 +27,7 @@ import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Slf4j
 @PermitAll
@@ -42,7 +42,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
 
     private final WorkflowDefinitionService workflowDefinitionService;
 
-    public WorkflowDefinitionView(BaseConfig baseConfig, WorkflowDefinitionService workflowDefinitionService) {
+    public WorkflowDefinitionView(SettingProvider settingProvider, WorkflowDefinitionService workflowDefinitionService) {
         super();
         this.workflowDefinitionService = workflowDefinitionService;
 
@@ -56,7 +56,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
 
         add(createHeader(getTranslation("workflow-definitions.page.title"), createFilterByName()));
         add(createContent(workflowDefinitionGrid));
-        add(createFooter(baseConfig));
+        add(createFooter(settingProvider));
     }
 
     @Override

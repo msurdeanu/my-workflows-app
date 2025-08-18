@@ -20,7 +20,7 @@ import static com.networknt.schema.SpecVersionDetector.detect;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

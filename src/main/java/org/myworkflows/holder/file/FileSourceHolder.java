@@ -12,7 +12,7 @@ import static java.nio.file.Paths.get;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Getter
 public enum FileSourceHolder {
@@ -34,7 +34,7 @@ public enum FileSourceHolder {
     }
 
     private Path getFilePath(FileSource<?> fileSource) {
-        return get(baseDirectory + File.separator + fileSource.getFileName() + fileSource.getFileExtension());
+        return get(baseDirectory + File.separator + fileSource.fileName() + fileSource.fileExtension());
     }
 
 }

@@ -20,7 +20,7 @@ import static org.myworkflows.cache.CacheNameEnum.WORKFLOW_TEMPLATE_NAME;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Service
 public class WorkflowTemplateService extends CacheableDataService<WorkflowTemplate, WorkflowTemplateFilter> implements ServiceCreator<WorkflowTemplate> {

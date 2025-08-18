@@ -28,7 +28,7 @@ public final class EventBroadcasterTest {
         final var eventBroadcaster = new EventBroadcaster(threadPoolExecutor);
         eventBroadcaster.register(event -> {
             final var onProgressEvent = (WorkflowDefinitionOnProgressEvent) event;
-            assertEquals(token, onProgressEvent.getToken());
+            assertEquals(token, onProgressEvent.token());
         }, WorkflowDefinitionOnProgressEvent.class);
 
         eventBroadcaster.broadcast(workflowDefinitionOnProgressEvent);

@@ -18,7 +18,7 @@ import java.util.List;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @RestController
 @RequestMapping("/api/v1")

@@ -21,10 +21,10 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
 import jakarta.annotation.security.PermitAll;
 import org.apache.commons.lang3.StringUtils;
-import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.DocPage;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.handler.DocPageEventHandler;
+import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.DocPageService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.DeleteConfirmDialog;
@@ -39,7 +39,7 @@ import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @PermitAll
 @Route(value = DocPageView.ROUTE, layout = BaseLayout.class)
@@ -59,7 +59,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
 
     private boolean editable;
 
-    public DocPageView(BaseConfig baseConfig, DocPageService docPageService) {
+    public DocPageView(SettingProvider settingProvider, DocPageService docPageService) {
         this.docPageService = docPageService;
 
         docPageService.getAllNames().forEach(name -> {
@@ -83,7 +83,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
             header = createHeader(getTranslation("doc-pages.page.title"), createSwitchModeButton());
         }
 
-        add(header, createContent(tabs, tabContent), createFooter(baseConfig));
+        add(header, createContent(tabs, tabContent), createFooter(settingProvider));
     }
 
     @Override
@@ -127,7 +127,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
     private void setTabContent(Tab tab) {
         tabContent.removeAll();
 
-        tab.getId().flatMap(docPageService::findByName).ifPresent(docPage -> {
+        ofNullable(tab).flatMap(Component::getId).flatMap(docPageService::findByName).ifPresent(docPage -> {
             if (editable) {
                 tabContent.add(createMarkdownEditor(docPage));
             } else {

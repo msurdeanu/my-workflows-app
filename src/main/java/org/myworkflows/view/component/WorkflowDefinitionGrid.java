@@ -25,7 +25,7 @@ import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @RequiredArgsConstructor
 public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {

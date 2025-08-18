@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 public final class WorkflowRuntimeException extends RuntimeException {
 

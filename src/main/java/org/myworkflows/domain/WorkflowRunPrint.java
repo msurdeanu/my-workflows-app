@@ -5,7 +5,7 @@ import static org.apache.commons.lang3.StringUtils.abbreviate;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 public record WorkflowRunPrint(String name, Object value) {
 

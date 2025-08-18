@@ -9,10 +9,10 @@ import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
-import org.myworkflows.config.BaseConfig;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.handler.WorkflowParameterEventHandler;
 import org.myworkflows.domain.filter.WorkflowParameterFilter;
+import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.WorkflowParameterService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.ResponsiveLayout;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Slf4j
 @RolesAllowed("ROLE_ADMIN")
@@ -37,7 +37,7 @@ public class WorkflowParameterView extends ResponsiveLayout implements HasDynami
 
     private final WorkflowParameterService workflowParameterService;
 
-    public WorkflowParameterView(BaseConfig baseConfig, WorkflowParameterService workflowParameterService) {
+    public WorkflowParameterView(SettingProvider settingProvider, WorkflowParameterService workflowParameterService) {
         super();
         this.workflowParameterService = workflowParameterService;
 
@@ -51,7 +51,7 @@ public class WorkflowParameterView extends ResponsiveLayout implements HasDynami
 
         add(createHeader(getTranslation("workflow-params.page.title"), createFilterByName()));
         add(createContent(workflowParameterGrid));
-        add(createFooter(baseConfig));
+        add(createFooter(settingProvider));
     }
 
     @Override

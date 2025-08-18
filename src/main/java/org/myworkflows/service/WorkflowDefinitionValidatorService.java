@@ -15,7 +15,7 @@ import static org.myworkflows.serializer.SerializerFactory.toSchema;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Service
 public final class WorkflowDefinitionValidatorService {

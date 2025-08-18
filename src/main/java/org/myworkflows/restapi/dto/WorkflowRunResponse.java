@@ -8,17 +8,10 @@ import java.util.UUID;
 
 /**
  * @author Mihai Surdeanu
- * @since 1.0.0
+ * @since 1.0
  */
 @Builder
-public class WorkflowRunResponse {
-
-    private final UUID id;
-    private final Integer workflowTemplateId;
-    private final Set<String> printedKeys;
-    private final String failureMessage;
-    private final long duration;
-    private final boolean running;
+public record WorkflowRunResponse(UUID id, Integer workflowTemplateId, Set<String> printedKeys, String failureMessage, long duration, boolean running) {
 
     public static WorkflowRunResponse of(WorkflowRun workflowRun) {
         return WorkflowRunResponse.builder()
