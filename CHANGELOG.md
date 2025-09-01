@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.1.1 (2025-09-01)
+
+### Dependencies
+
+* Upgrade Spring Boot to 3.5.5.
+* Upgrade Vaadin to 24.8.7.
+* Upgrade Markdown Editor to 2.0.1.
+* Upgrade Groovy to 5.0.0.
+* Upgrade Flyway Core to 11.11.2.
+* Upgrade Mockito JUnit Jupiter to 5.19.0.
+
 ## 1.1.0 (2025-08-18)
 
 ### Bug fixes
