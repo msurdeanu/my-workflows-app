@@ -7,7 +7,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Mihai Surdeanu
@@ -28,8 +27,8 @@ public final class WorkflowRunTest {
         workflowRun.markAsCompleted(1_000_000);
         assertEquals("16 mins and 40 secs", workflowRun.getHumanReadableDuration());
         assertFalse(workflowRun.isEligibleForReplay());
-        workflowRun.markAsFailed(new WorkflowRuntimeException("test"));
-        assertTrue(workflowRun.isEligibleForReplay());
+        workflowRun.markAsFailed(new WorkflowRuntimeException("test"), null);
+        assertFalse(workflowRun.isEligibleForReplay());
     }
 
 }

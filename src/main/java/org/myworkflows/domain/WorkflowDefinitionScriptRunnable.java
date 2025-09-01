@@ -4,8 +4,6 @@ import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 
-import java.util.UUID;
-
 import static org.myworkflows.domain.WorkflowDefinitionScript.of;
 
 /**
@@ -16,10 +14,10 @@ public record WorkflowDefinitionScriptRunnable(ApplicationManager applicationMan
 
     @Override
     public void run() {
+        final var workflowRun = new WorkflowRun(workflowTemplate.getId(), workflowTemplate.getWorkflowDefinitionParameters());
         applicationManager.getBeanOfType(EventBroadcaster.class)
             .broadcast(WorkflowDefinitionOnSubmitEvent.builder()
-                .token(UUID.randomUUID())
-                .workflowRun(new WorkflowRun(workflowTemplate.getId(), workflowTemplate.getWorkflowDefinitionParameters()))
+                .workflowRun(workflowRun)
                 .workflowDefinitionScript(of(workflowTemplate.getWorkflowDefinitionScripts()))
                 .build());
     }

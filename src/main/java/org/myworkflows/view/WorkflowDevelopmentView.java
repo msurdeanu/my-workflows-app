@@ -47,6 +47,7 @@ import org.myworkflows.domain.event.EditorTipOnSubmitEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.WorkflowDefinitionService;
+import org.myworkflows.util.LangUtil;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.HasResizeableWidth;
 import org.myworkflows.view.component.ResponsiveLayout;
@@ -163,14 +164,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         final var ui = attachEvent.getUI();
         registrations.put(EventType.ON_SUBMITTED_WORKFLOW_DEFINITION, applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
             final var workflowResultEvent = (WorkflowDefinitionOnSubmittedEvent) event;
-            if (workflowResultEvent.token().equals(lastSubmittedUuid)
+            if (workflowResultEvent.workflowRun().getId().equals(lastSubmittedUuid)
                 && !workflowResultEvent.validationMessages().isEmpty()) {
                 ui.access(() -> updateWorkflowProgress(workflowResultEvent.validationMessages()));
             }
         }, WorkflowDefinitionOnSubmittedEvent.class));
         registrations.put(EventType.ON_PROGRESS_WORKFLOW_DEFINITION, applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
             final var workflowResultEvent = (WorkflowDefinitionOnProgressEvent) event;
-            if (workflowResultEvent.token().equals(lastSubmittedUuid)) {
+            if (workflowResultEvent.workflowRun().getId().equals(lastSubmittedUuid)) {
                 ui.access(() -> {
                     updateWorkflowProgress(workflowResultEvent.workflowRun());
                     workflowPrintGrid.setItems(workflowResultEvent.workflowRun().getAllPrints());
@@ -269,10 +270,10 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         runWorkflowButton.setIconAfterText(true);
         runWorkflowButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         runWorkflowButton.addClickListener(event -> {
-            lastSubmittedUuid = UUID.randomUUID();
+            final var workflowRun = new WorkflowRun(workflowDevParamGrid.getParametersAsMap());
+            lastSubmittedUuid = workflowRun.getId();
             applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
-                .token(lastSubmittedUuid)
-                .workflowRun(new WorkflowRun(workflowDevParamGrid.getParametersAsMap()))
+                .workflowRun(workflowRun)
                 .workflowDefinitionScript(editor.getValue())
                 .build());
         });
@@ -323,7 +324,10 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             currentWorkflowStatus.removeClassNames(LumoUtility.Background.ERROR_10, LumoUtility.Background.SUCCESS_10);
             currentWorkflowStatus.addClassName(LumoUtility.Background.WARNING_10);
             currentWorkflowStatus.add(new Span(getTranslation("workflow-development.in-progress.message",
-                valueOf(workflowRun.getId()))));
+                valueOf(workflowRun.getId()),
+                LangUtil.pluralize(getTranslation("workflow-development.command"), workflowRun.getLastSuccessfulIndex() + 1)
+                    .map(item -> getTranslation("workflow-development.in-progress.command-message", item))
+                    .orElse(StringUtils.EMPTY))));
         } else {
             ofNullable(workflowRun.getFailureMessage()).ifPresentOrElse(error -> {
                 currentWorkflowStatus.removeClassNames(LumoUtility.Background.SUCCESS_10, LumoUtility.Background.WARNING_10);

@@ -5,13 +5,12 @@ import lombok.Builder;
 import org.myworkflows.domain.WorkflowRun;
 
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * @author Mihai Surdeanu
  * @since 1.0
  */
 @Builder
-public record WorkflowDefinitionOnSubmittedEvent(UUID token, Set<ValidationMessage> validationMessages, WorkflowRun workflowRun) implements Event {
+public record WorkflowDefinitionOnSubmittedEvent(Set<ValidationMessage> validationMessages, WorkflowRun workflowRun) implements Event {
 
 }

@@ -15,6 +15,10 @@ import static java.util.Optional.of;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class LangUtil {
 
+    public static Optional<String> pluralize(String word, long count) {
+        return pluralize(word, count, true);
+    }
+
     public static Optional<String> pluralize(String word, long count, boolean inclusive) {
         if (word == null || count < 1) {
             return empty();

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.0 (2025-09-01)
+
+### Features
+
+* Provide a way to replay failing workflows by discarding all successful commands from the last run.
+
 ## 1.1.1 (2025-09-01)
 
 ### Dependencies

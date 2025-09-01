@@ -13,6 +13,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.converter.SetOfStringToStringConverter;
 import org.myworkflows.converter.UuidToByteArrayConverter;
+import org.myworkflows.converter.WorkflowDefinitionScriptToStringConverter;
 import org.myworkflows.converter.WorkflowRunCacheToByteArrayConverter;
 import org.myworkflows.holder.file.BinaryFileSource;
 import org.myworkflows.util.ExceptionUtil;
@@ -71,6 +72,14 @@ public class WorkflowRun {
     private long duration = -1;
 
     @Getter
+    @Column(name = "last_successful_index")
+    private int lastSuccessfulIndex = -1;
+
+    @Getter
+    @Convert(converter = WorkflowDefinitionScriptToStringConverter.class)
+    private WorkflowDefinitionScript script;
+
+    @Getter
     private Instant created = Instant.now();
 
     @Setter
@@ -126,8 +135,9 @@ public class WorkflowRun {
         return join(" and ", parts);
     }
 
-    public void markAsFailed(Throwable throwable) {
+    public void markAsFailed(Throwable throwable, WorkflowDefinitionScript script) {
         this.failureMessage = ExceptionUtil.getMessageAndCause(throwable);
+        this.script = script;
     }
 
     public void markAsCompleted(long duration) {
@@ -147,7 +157,16 @@ public class WorkflowRun {
     }
 
     public boolean isEligibleForReplay() {
-        return failureMessage != null && cache.isCacheObjectMapComplete();
+        return failureMessage != null && script != null && cache.isCacheObjectMapComplete();
+    }
+
+    public void prepareForReplay() {
+        failureMessage = null;
+        duration = -1;
+    }
+
+    public void incrementLastSuccessfulIndex() {
+        lastSuccessfulIndex++;
     }
 
     @PostRemove
@@ -158,6 +177,5 @@ public class WorkflowRun {
             log.warn("Error deleting workflow run cache file", exception);
         }
     }
-
 }
 

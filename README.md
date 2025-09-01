@@ -31,15 +31,12 @@ All workflows are defined in YAML format, and the tool provides an intuitive UI 
     * Run the script and view its output.
     * Benefit from an editor with auto-complete functionality to simplify your workflow scripting.
     * Share the script made together with the params
+* Supports replaying a failed workflow beginning with the first command that failed.
 * Dedicated web pages for managing **workflow placeholders**, **workflow definitions**, **workflow templates**, and
   **workflow runs**.
 * A dedicated web page for managing **Java libraries** at runtime.
 * A dedicated web page for writing **markdown documentation** with ease.
 * A dedicated web page for viewing and analyzing **statistics**.
-
-## TODOs
-
-- [ ] **Checkpoints**. Introduce the ability to reschedule a failing workflow from a specific moment in time.
 
 ## How does it work?
 

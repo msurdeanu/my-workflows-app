@@ -6,7 +6,7 @@
 
     <name>My Workflows</name>
     <description>My Workflows is an automation tool based on Java as programming language and Vaadin as UI framework.</description>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 

@@ -22,9 +22,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.myworkflows.serializer.SerializerFactory.toObject;
 
@@ -51,7 +51,6 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
         final var workflowDefScriptObject = onSubmitEvent.workflowDefinitionScript();
 
         final var onSubmittedEventBuilder = WorkflowDefinitionOnSubmittedEvent.builder();
-        onSubmittedEventBuilder.token(onSubmitEvent.token());
 
         if (workflowDefScriptObject instanceof String workflowAsString) {
             Set<ValidationMessage> validationMessages;
@@ -82,44 +81,52 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
     private WorkflowRun submit(WorkflowDefinitionScript workflowDefinitionScript,
                                WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var workflowRun = onSubmitEvent.workflowRun();
-        final var future = executorService.submit(() -> runSynchronously(workflowDefinitionScript, workflowRun, onSubmitEvent.token()));
+        final var future = executorService.submit(() -> runSynchronously(workflowDefinitionScript, workflowRun));
         workflowRun.setFuture(future);
         return workflowRun;
     }
 
-    private void runSynchronously(WorkflowDefinitionScript workflowDefinitionScript,
-                                  WorkflowRun workflowRun,
-                                  UUID token) {
+    private void runSynchronously(WorkflowDefinitionScript workflowDefinitionScript, WorkflowRun workflowRun) {
         final var startTime = System.currentTimeMillis();
         applicationManager.getBeanOfType(EventBroadcaster.class)
-            .broadcast(WorkflowDefinitionOnProgressEvent.of(token, workflowRun, false));
+            .broadcast(WorkflowDefinitionOnProgressEvent.of(workflowRun, false));
+
         try {
-            workflowDefinitionScript.getCommands().stream()
-                .takeWhile(command -> runCommandAndMarkAsFailedIfNeeded(command, workflowRun))
-                .forEach(command -> applicationManager.getBeanOfType(EventBroadcaster.class)
-                    .broadcast(WorkflowDefinitionOnProgressEvent.of(token, workflowRun, false)));
+            final var commands = workflowDefinitionScript.getCommands();
+            IntStream.range(0, commands.size())
+                .takeWhile(index -> runCommandAndMarkAsFailedIfNeeded(index, commands.get(index), workflowRun, workflowDefinitionScript))
+                .forEach(index -> applicationManager.getBeanOfType(EventBroadcaster.class)
+                    .broadcast(WorkflowDefinitionOnProgressEvent.of(workflowRun, false)));
         } finally {
             workflowDefinitionScript.getFinallyCommands().stream()
-                .takeWhile(command -> runCommandAndMarkAsFailedIfNeeded(command, workflowRun))
+                .takeWhile(command -> runCommandAndMarkAsFailedIfNeeded(Integer.MAX_VALUE, command, workflowRun, workflowDefinitionScript))
                 .forEach(command -> applicationManager.getBeanOfType(EventBroadcaster.class)
-                    .broadcast(WorkflowDefinitionOnProgressEvent.of(token, workflowRun, false)));
+                    .broadcast(WorkflowDefinitionOnProgressEvent.of(workflowRun, false)));
             workflowRun.markAsCompleted(System.currentTimeMillis() - startTime);
             applicationManager.getBeanOfType(EventBroadcaster.class)
-                .broadcast(WorkflowDefinitionOnProgressEvent.of(token, workflowRun, true), 10);
+                .broadcast(WorkflowDefinitionOnProgressEvent.of(workflowRun, true), 10);
         }
     }
 
-    private boolean runCommandAndMarkAsFailedIfNeeded(AbstractCommand abstractCommand, WorkflowRun workflowRun) {
+    private boolean runCommandAndMarkAsFailedIfNeeded(int commandIndex, AbstractCommand abstractCommand,
+                                                      WorkflowRun workflowRun, WorkflowDefinitionScript script) {
+        if (commandIndex <= workflowRun.getLastSuccessfulIndex()) {
+            return true;
+        }
+
         try {
             resolveCommandPlaceholders(abstractCommand);
             abstractCommand.run(workflowRun);
+            if (commandIndex < Integer.MAX_VALUE) {
+                workflowRun.incrementLastSuccessfulIndex();
+            }
             return true;
         } catch (Exception exception) {
             if (log.isDebugEnabled()) {
                 log.debug("An exception was raised by command '{}' inside workflow run '{}'", abstractCommand.getName(), workflowRun.getId().toString(),
                     exception);
             }
-            workflowRun.markAsFailed(new WorkflowRuntimeException("Command '" + abstractCommand.getName() + "' failed with exception", exception));
+            workflowRun.markAsFailed(new WorkflowRuntimeException("Command '" + abstractCommand.getName() + "' failed with exception", exception), script);
             return false;
         }
     }

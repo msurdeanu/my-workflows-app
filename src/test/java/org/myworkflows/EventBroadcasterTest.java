@@ -1,9 +1,9 @@
 package org.myworkflows;
 
 import org.junit.jupiter.api.Test;
+import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 
-import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -19,8 +19,8 @@ public final class EventBroadcasterTest {
 
     @Test
     public void whenConsumerIsRegisteredAndEventIsGeneratedThenEverythingWorksAsExpected() throws InterruptedException {
-        final var token = UUID.randomUUID();
-        final var workflowDefinitionOnProgressEvent = WorkflowDefinitionOnProgressEvent.builder().token(token).build();
+        final var workflowRun = new WorkflowRun();
+        final var workflowDefinitionOnProgressEvent = WorkflowDefinitionOnProgressEvent.builder().workflowRun(workflowRun).build();
         final var threadPoolExecutor = new ThreadPoolExecutor(1, 1, 5L, TimeUnit.SECONDS,
             new ArrayBlockingQueue<>(10), new ThreadPoolExecutor.CallerRunsPolicy());
         threadPoolExecutor.allowCoreThreadTimeOut(true);
@@ -28,7 +28,7 @@ public final class EventBroadcasterTest {
         final var eventBroadcaster = new EventBroadcaster(threadPoolExecutor);
         eventBroadcaster.register(event -> {
             final var onProgressEvent = (WorkflowDefinitionOnProgressEvent) event;
-            assertEquals(token, onProgressEvent.token());
+            assertEquals(workflowRun.getId(), onProgressEvent.workflowRun().getId());
         }, WorkflowDefinitionOnProgressEvent.class);
 
         eventBroadcaster.broadcast(workflowDefinitionOnProgressEvent);

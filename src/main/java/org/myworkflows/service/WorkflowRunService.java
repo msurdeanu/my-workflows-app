@@ -2,11 +2,13 @@ package org.myworkflows.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
+import org.myworkflows.EventBroadcaster;
 import org.myworkflows.cache.CacheNameEnum;
 import org.myworkflows.cache.InternalCache;
 import org.myworkflows.cache.InternalCacheManager;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowTemplate;
+import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.filter.WorkflowRunFilter;
 import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.repository.WorkflowRunRepository;
@@ -63,6 +65,20 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
         lock.lock();
         try {
             applicationManager.getBeanOfType(WorkflowRunRepository.class).delete(workflowRun);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void replay(WorkflowRun workflowRun) {
+        lock.lock();
+        try {
+            workflowRun.prepareForReplay();
+            applicationManager.getBeanOfType(EventBroadcaster.class)
+                .broadcast(WorkflowDefinitionOnSubmitEvent.builder()
+                    .workflowRun(workflowRun)
+                    .workflowDefinitionScript(workflowRun.getScript())
+                    .build());
         } finally {
             lock.unlock();
         }

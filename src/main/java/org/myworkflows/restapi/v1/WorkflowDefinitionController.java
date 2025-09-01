@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * @author Mihai Surdeanu
@@ -49,13 +48,12 @@ public class WorkflowDefinitionController {
     @PostMapping("/workflow-definitions/{id}/schedule-now")
     public String scheduleNow(@RequestBody Map<String, Object> parameters, @PathVariable int id) {
         final var workflowDefinition = getWorkflowDefinitionById(id);
-        final var uuid = UUID.randomUUID();
+        final var workflowRun = new WorkflowRun(parameters);
         applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
-            .token(uuid)
-            .workflowRun(new WorkflowRun(parameters))
+            .workflowRun(workflowRun)
             .workflowDefinitionScript(workflowDefinition.getScript())
             .build());
-        return uuid.toString();
+        return workflowRun.getId().toString();
     }
 
     private WorkflowDefinition getWorkflowDefinitionById(int id) {
