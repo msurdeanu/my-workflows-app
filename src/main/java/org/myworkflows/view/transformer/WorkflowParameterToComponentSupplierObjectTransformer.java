@@ -23,7 +23,6 @@ import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.VaadinService;
 import jakarta.servlet.http.Cookie;
 import lombok.Builder;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.WorkflowParameter;
 
@@ -251,18 +250,12 @@ public final class WorkflowParameterToComponentSupplierObjectTransformer
             .orElseGet(() -> new Cookie[]{});
     }
 
-    @Getter
     @Builder
-    public static class ComponentSupplierObject {
-        private final Component component;
-        private final ComponentValueSupplier componentValueSupplier;
+    public record ComponentSupplierObject(Component component, ComponentValueSupplier componentValueSupplier) {
     }
 
-    @Getter
     @Builder
-    public static class ComponentValueSupplier {
-        private final Supplier<Object> valueSupplier;
-        private final Supplier<String> valueAsStringSupplier;
+    public record ComponentValueSupplier(Supplier<Object> valueSupplier, Supplier<String> valueAsStringSupplier) {
     }
 
     private record Option(String label, String value) {

@@ -126,11 +126,11 @@ public class WorkflowRun {
 
         final var parts = new ArrayList<String>(3);
         var remainingDuration = Duration.ofMillis(duration);
-        pluralize("hr", remainingDuration.toHours(), true).ifPresent(parts::add);
+        pluralize("hr", remainingDuration.toHours()).ifPresent(parts::add);
         remainingDuration = remainingDuration.minusHours(remainingDuration.toHours());
-        pluralize("min", remainingDuration.toMinutes(), true).ifPresent(parts::add);
+        pluralize("min", remainingDuration.toMinutes()).ifPresent(parts::add);
         remainingDuration = remainingDuration.minusMinutes(remainingDuration.toMinutes());
-        pluralize("sec", remainingDuration.toSeconds(), true).ifPresent(parts::add);
+        pluralize("sec", remainingDuration.toSeconds()).ifPresent(parts::add);
 
         return join(" and ", parts);
     }

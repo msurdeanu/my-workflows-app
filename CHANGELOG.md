@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.1 (2025-09-07)
+
+### Dependencies
+
+* Upgrade Flyway Core to 11.12.0.
+
+### Features
+
+* Use more and more `LangUtil` class functionality.
+
 ## 1.2.0 (2025-09-01)
 
 ### Features

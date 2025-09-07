@@ -30,8 +30,8 @@ public final class WorkflowDevParamGrid extends AbstractParameterGrid {
         super("workflow-dev-param");
         setRenderValueFunction(workflowParameter -> {
             final var componentSupplierObject = WORKFLOW_PARAMETER_TO_COMPONENT_SUPPLIER_OBJECT_TRANSFORMER.transform(workflowParameter);
-            workflowParameterFields.put(workflowParameter.getName(), componentSupplierObject.getComponentValueSupplier());
-            return componentSupplierObject.getComponent();
+            workflowParameterFields.put(workflowParameter.getName(), componentSupplierObject.componentValueSupplier());
+            return componentSupplierObject.component();
         });
         setCreateFunction(value -> {
             final var workflowParameter = WorkflowParameter.of(value);
@@ -58,7 +58,7 @@ public final class WorkflowDevParamGrid extends AbstractParameterGrid {
             names.add(workflowParameter.getName());
             types.add(workflowParameter.getType().getValue());
             values.add(base64Encode(ofNullable(workflowParameterFields.get(workflowParameter.getName()))
-                .map(WorkflowParameterToComponentSupplierObjectTransformer.ComponentValueSupplier::getValueAsStringSupplier)
+                .map(WorkflowParameterToComponentSupplierObjectTransformer.ComponentValueSupplier::valueAsStringSupplier)
                 .orElseGet(() -> workflowParameter::getValue)
                 .get()));
         });
@@ -72,7 +72,7 @@ public final class WorkflowDevParamGrid extends AbstractParameterGrid {
     public Map<String, Object> getParametersAsMap() {
         return workflowParameters.stream().collect(Collectors.toMap(WorkflowParameter::getName,
             workflowParameter -> ofNullable(workflowParameterFields.get(workflowParameter.getName()))
-                .map(WorkflowParameterToComponentSupplierObjectTransformer.ComponentValueSupplier::getValueSupplier)
+                .map(WorkflowParameterToComponentSupplierObjectTransformer.ComponentValueSupplier::valueSupplier)
                 .orElseGet(() -> workflowParameter::getComputedValue)
                 .get(), (it1, it2) -> it2));
     }

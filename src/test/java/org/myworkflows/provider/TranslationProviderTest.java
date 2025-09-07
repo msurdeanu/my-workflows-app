@@ -31,7 +31,7 @@ public final class TranslationProviderTest {
 
         // when and then
         final var time = LocalDate.now().minusDays(2).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        assertEquals("2 day(s) ago", provider.getTranslation("pretty.time.format", Locale.ENGLISH, time));
+        assertEquals("2 days ago", provider.getTranslation("pretty.time.format", Locale.ENGLISH, time));
     }
 
     @Test

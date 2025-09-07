@@ -125,13 +125,13 @@ public final class WorkflowParameterToComponentSupplierObjectTransformerTest {
         // when & then
         final var componentSupplierObject = transformer.transform(workflowParameter);
         assertNotNull(componentSupplierObject);
-        final var component = componentSupplierObject.getComponent();
-        final var componentValueSupplier = componentSupplierObject.getComponentValueSupplier();
+        final var component = componentSupplierObject.component();
+        final var componentValueSupplier = componentSupplierObject.componentValueSupplier();
         assertNotNull(component);
         assertNotNull(componentValueSupplier);
         assertInstanceOf(clazz, component);
         componentConsumer.accept(clazz.cast(component));
-        componentValueConsumer.accept(componentValueSupplier.getValueAsStringSupplier().get());
+        componentValueConsumer.accept(componentValueSupplier.valueAsStringSupplier().get());
     }
 
 }
