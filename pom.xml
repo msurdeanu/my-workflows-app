@@ -23,15 +23,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <vaadin.version>24.8.7</vaadin.version>
+        <vaadin.version>24.8.8</vaadin.version>
         <flyway-core.version>11.12.0</flyway-core.version>
         <markdown-editor-addon.version>2.0.1</markdown-editor-addon.version>
         <grid-pagination.version>4.0.1</grid-pagination.version>
-        <lombok.version>1.18.38</lombok.version>
-        <groovy.version>5.0.0</groovy.version>
+        <lombok.version>1.18.40</lombok.version>
+        <groovy.version>5.0.1</groovy.version>
         <janino.version>3.1.12</janino.version>
         <maverick-synergy-client.version>3.1.2</maverick-synergy-client.version>
-        <angus-mail.version>2.0.3</angus-mail.version>
+        <angus-mail.version>2.0.4</angus-mail.version>
         <json-schema-validator.version>1.5.8</json-schema-validator.version>
         <junit-jupiter.version>5.13.4</junit-jupiter.version>
         <mockito-junit-jupiter.version>5.19.0</mockito-junit-jupiter.version>

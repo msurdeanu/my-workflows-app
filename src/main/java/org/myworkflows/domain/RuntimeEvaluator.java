@@ -14,7 +14,6 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeLocator;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -89,18 +88,15 @@ public enum RuntimeEvaluator {
         }
     };
 
-    private static final Map<String, RuntimeEvaluator> ALL_VALUES = new HashMap<>(4);
-
-    static {
-        stream(RuntimeEvaluator.values()).forEach(item -> ALL_VALUES.put(item.getType(), item));
-    }
-
     @JsonValue
     private final String type;
 
     @JsonCreator
     public static RuntimeEvaluator of(String type) {
-        return ALL_VALUES.getOrDefault(type, PLAIN);
+        return stream(RuntimeEvaluator.values())
+            .filter(item -> item.type.equals(type))
+            .findFirst()
+            .orElse(PLAIN);
     }
 
     private static String resolveCacheAccessPatterns(String expression, Pattern cacheAccessPattern, String formatWithoutType, String formatWithType) {

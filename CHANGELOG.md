@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.2 (2025-09-15)
+
+### Dependencies
+
+* Upgrade Vaadin to 24.8.8.
+* Upgrade Lombok to 1.18.40.
+* Upgrade Groovy to 5.0.1.
+* Upgrade Angus Email to 2.0.4.
+
 ## 1.2.1 (2025-09-07)
 
 ### Dependencies
