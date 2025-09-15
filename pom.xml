@@ -6,7 +6,7 @@
 
     <name>My Workflows</name>
     <description>My Workflows is an automation tool based on Java as programming language and Vaadin as UI framework.</description>
-    <version>1.2.2</version>
+    <version>1.2.3-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
@@ -41,7 +41,7 @@
         <connection>scm:git:https://github.com/msurdeanu/my-workflows-app.git</connection>
         <url>https://github.com/msurdeanu/my-workflows-app</url>
         <developerConnection>scm:git:https://github.com/msurdeanu/my-workflows-app.git</developerConnection>
-        <tag>myworkflows-app-1.2.2</tag>
+        <tag>myworkflows-app-1.0.0</tag>
     </scm>
 
     <distributionManagement>
