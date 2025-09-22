@@ -7,7 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Dependencies
 
 * Upgrade Vaadin to 24.9.0.
-* 
+* Upgrade Lombok to 1.18.40.
+* Upgrade JSON Schema Validator to 1.5.9.
+
 ### Features
 
 * Remove deprecated functionality around `VaadinWebSecurity` class.

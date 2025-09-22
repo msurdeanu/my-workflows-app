@@ -33,7 +33,7 @@ public class SecurityApiConfig {
                                                  UserTokenFilter userTokenFilter) throws Exception {
         final var httpSecurity = http
             .securityMatcher("/api/**")
-            .sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(item -> item.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/**").authenticated());
 

@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.5</version>
+        <version>3.5.6</version>
     </parent>
 
     <properties>
@@ -27,14 +27,14 @@
         <flyway-core.version>11.12.0</flyway-core.version>
         <markdown-editor-addon.version>2.0.1</markdown-editor-addon.version>
         <grid-pagination.version>4.0.1</grid-pagination.version>
-        <lombok.version>1.18.40</lombok.version>
+        <lombok.version>1.18.42</lombok.version>
         <groovy.version>5.0.1</groovy.version>
         <janino.version>3.1.12</janino.version>
         <maverick-synergy-client.version>3.1.2</maverick-synergy-client.version>
         <angus-mail.version>2.0.4</angus-mail.version>
-        <json-schema-validator.version>1.5.8</json-schema-validator.version>
+        <json-schema-validator.version>1.5.9</json-schema-validator.version>
         <junit-jupiter.version>5.13.4</junit-jupiter.version>
-        <mockito-junit-jupiter.version>5.19.0</mockito-junit-jupiter.version>
+        <mockito-junit-jupiter.version>5.20.0</mockito-junit-jupiter.version>
     </properties>
 
     <scm>
