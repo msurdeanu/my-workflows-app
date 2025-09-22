@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.3 (2025-09-22)
+
+### Dependencies
+
+* Upgrade Vaadin to 24.9.0.
+* 
+### Features
+
+* Remove deprecated functionality around `VaadinWebSecurity` class.
+
 ## 1.2.2 (2025-09-15)
 
 ### Dependencies
