@@ -24,7 +24,7 @@ import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.handler.WorkflowTemplateEventHandler;
 import org.myworkflows.view.WorkflowDevelopmentView;
-import org.myworkflows.view.component.html.SpanBadge;
+import org.myworkflows.view.WorkflowTemplateView;
 import org.myworkflows.view.component.html.StandardPaginatedGrid;
 import org.myworkflows.view.component.html.TextFieldWithEnterShortcut;
 
@@ -122,7 +122,9 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
     }
 
     private Component getOnlyName(WorkflowTemplate workflowTemplate) {
-        return new SpanBadge(workflowTemplate.getName(), workflowTemplate.isEnabled() ? StringUtils.EMPTY : "contrast");
+        final var routerLink = new RouterLink(workflowTemplate.getName(), WorkflowTemplateView.class, workflowTemplate.getId());
+        routerLink.getElement().getThemeList().add("badge" + (workflowTemplate.isEnabled() ? StringUtils.EMPTY : " contrast"));
+        return routerLink;
     }
 
     private Component renderActions(WorkflowTemplate workflowTemplate) {
@@ -173,8 +175,18 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         definitionDraggableGrid.setDetails(workflowTemplate, workflowTemplateEventHandler::onDefinitionUpdated,
             WorkflowTemplate::getWorkflowDefinitions, substract(allWorkflowDefinitions, workflowTemplate.getWorkflowDefinitions()));
         final var parameterDraggableGrid = new DraggableGrid<WorkflowTemplate, WorkflowParameter>("parameter",
-            parameter -> new Span(parameter.getName()),
-            parameter -> new Span(parameter.getType().getValue()),
+            parameter -> {
+                final var parameterName = parameter.getName();
+                final var lastIndex = parameterName.lastIndexOf("." + workflowTemplate.getId());
+                Span span;
+                if (lastIndex > -1) {
+                    span = new Span(parameterName + " → " + parameterName.substring(0, lastIndex));
+                } else {
+                    span = new Span(parameterName);
+                }
+                span.getElement().getThemeList().add("badge");
+                return span;
+            }, parameter -> new Span(getTranslation("workflow-parameter.type." + parameter.getType().getValue())),
             WorkflowParameter.class);
         parameterDraggableGrid.setDetails(workflowTemplate, workflowTemplateEventHandler::onParameterUpdated,
             WorkflowTemplate::getWorkflowParameters, substract(allWorkflowParameters, workflowTemplate.getWorkflowParameters()));

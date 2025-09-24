@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.4 (2025-09-25)
+
+### Features
+
+* Offer a mechanism for injecting specific parameters into workflow templates, increasing their customizability.
+
 ## 1.2.3 (2025-09-22)
 
 ### Dependencies

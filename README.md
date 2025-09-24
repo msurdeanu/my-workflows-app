@@ -101,6 +101,14 @@ stateDiagram-v2
     O --> [*]
 ```
 
+#### Workflow Templates
+
+Workflow templates can be used to schedule multiple workflow definitions to run programmatically with a cron job.
+Besides the definitions, you can select a set of workflow parameters to be injected each time the template is scheduled.
+
+> [!TIP]
+> You can dedicate workflow parameters to your template by suffixing the parameter name with .<workflowTemplateId>. At runtime, when the parameter is injected into the workflow, this suffix will be removed.
+
 ### Features
 
 #### `Ace` editor

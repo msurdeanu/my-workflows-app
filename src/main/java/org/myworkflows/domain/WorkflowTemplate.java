@@ -106,7 +106,8 @@ public class WorkflowTemplate {
         return ofNullable(workflowParameters)
             .orElse(List.of())
             .stream()
-            .collect(Collectors.toMap(WorkflowParameter::getName, WorkflowParameter::getComputedValue, (it1, it2) -> it2));
+            .collect(Collectors.toMap(workflowParameter -> workflowParameter.getName().replaceAll("\\." + id + "$", StringUtils.EMPTY),
+                WorkflowParameter::getComputedValue, (it1, it2) -> it2));
     }
 
     public List<WorkflowDefinitionScript> getWorkflowDefinitionScripts() {
