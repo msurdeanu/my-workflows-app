@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.5 (2025-10-12)
+
+### Dependencies
+
+* Upgrade Vaadin to 24.9.2.
+* Upgrade Flyway Core to 11.14.0.
+* Upgrade Angus Email to 2.0.5.
+* Upgrade JUnit to 6.0.0.
+
 ## 1.2.4 (2025-09-25)
 
 ### Features

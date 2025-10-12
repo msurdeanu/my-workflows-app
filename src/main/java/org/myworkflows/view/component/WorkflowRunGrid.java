@@ -113,39 +113,39 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
     private Component renderActions(WorkflowRun workflowRun) {
         final var layout = new HorizontalLayout();
         if (workflowRun.isRunning()) {
-            final var cancelRunButton = new Button(VaadinIcon.CLOSE.create());
-            cancelRunButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-            cancelRunButton.addClickListener(event -> cancelRun(workflowRun));
-            layout.add(cancelRunButton);
+            final var cancelButton = new Button(VaadinIcon.CLOSE.create());
+            cancelButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+            cancelButton.addClickListener(event -> cancel(workflowRun));
+            layout.add(cancelButton);
         } else {
-            final var deleteRunButton = new Button(VaadinIcon.TRASH.create());
-            deleteRunButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-            deleteRunButton.addClickListener(event -> deleteRun(workflowRun));
-            layout.add(deleteRunButton);
+            final var deleteButton = new Button(VaadinIcon.TRASH.create());
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+            deleteButton.addClickListener(event -> delete(workflowRun));
+            layout.add(deleteButton);
             if (workflowRun.isEligibleForReplay()) {
                 final var replayButton = new Button(VaadinIcon.RECYCLE.create());
                 replayButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-                replayButton.addClickListener(event -> replayRun(workflowRun));
+                replayButton.addClickListener(event -> replay(workflowRun));
                 layout.add(replayButton);
             }
         }
         return layout;
     }
 
-    private void cancelRun(WorkflowRun workflowRun) {
+    private void cancel(WorkflowRun workflowRun) {
         if (workflowRun.cancelAndInterruptIfRunning()) {
             Notification.show(getTranslation("workflow-runs.grid.run.cancelled"));
             paginatedGrid.getDataProvider().refreshItem(workflowRun);
         }
     }
 
-    private void deleteRun(WorkflowRun workflowRun) {
+    private void delete(WorkflowRun workflowRun) {
         workflowRunService.delete(workflowRun);
         refreshPage();
     }
 
 
-    private void replayRun(WorkflowRun workflowRun) {
+    private void replay(WorkflowRun workflowRun) {
         workflowRunService.replay(workflowRun);
         refreshPage();
     }
