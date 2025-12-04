@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.7 (2025-12-04)
+
+### Dependencies
+
+* Upgrade Vaadin to 24.9.6.
+* Upgrade Flyway Core to 11.18.0.
+* Upgrade Markdown Editor to 2.0.3.
+* Upgrade Groovy to 5.0.2.
+* Upgrade Maverick Synergy Client to 3.1.4.
+* Upgrade Spring Boot Starter Parent to 3.5.8.
+
+## 1.2.6 (2025-11-02)
+
+### Dependencies
+
+* Upgrade Vaadin to 24.9.4.
+* Upgrade Spring Boot Starter Parent to 3.5.7.
+
 ## 1.2.5 (2025-10-12)
 
 ### Dependencies
