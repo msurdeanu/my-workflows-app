@@ -1,5 +1,6 @@
 package org.myworkflows.view.util;
 
+import de.f0rce.ace.AceEditor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.myworkflows.domain.command.DatabaseCommand;
@@ -14,7 +15,6 @@ import org.myworkflows.domain.command.SleepCommand;
 import org.myworkflows.domain.command.SshExecCommand;
 import org.myworkflows.domain.command.SshShellCommand;
 import org.myworkflows.domain.command.WaitUntilSubPassesCommand;
-import org.myworkflows.view.component.editor.AceEditor;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

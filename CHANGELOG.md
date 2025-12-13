@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.8 (2025-12-12)
+
+### Bug fixes
+
+* Fix snippets for code editor.
+
+### Dependencies
+
+* Upgrade Vaadin to 24.9.7.
+* Introduce Ace Editor dependency.
+
 ## 1.2.7 (2025-12-04)
 
 ### Dependencies

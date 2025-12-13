@@ -29,6 +29,8 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteConfiguration;
 import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import de.f0rce.ace.AceEditor;
+import de.f0rce.ace.enums.AceMode;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -39,11 +41,11 @@ import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
 import org.myworkflows.domain.WorkflowRun;
+import org.myworkflows.domain.event.EditorTipOnSubmitEvent;
 import org.myworkflows.domain.event.EventType;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
-import org.myworkflows.domain.event.EditorTipOnSubmitEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.WorkflowDefinitionService;
@@ -53,7 +55,6 @@ import org.myworkflows.view.component.HasResizeableWidth;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowDevParamGrid;
 import org.myworkflows.view.component.WorkflowPrintGrid;
-import org.myworkflows.view.component.editor.AceEditor;
 import org.myworkflows.view.util.ClipboardUtil;
 import org.myworkflows.view.util.EditorAutoCompleteUtil;
 import org.myworkflows.view.util.RequestUtil;
@@ -69,6 +70,7 @@ import java.util.stream.Stream;
 import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
+import static org.myworkflows.config.SnippetConfig.JS_CODE;
 import static org.myworkflows.serializer.SerializerFactory.toPrettyString;
 import static org.myworkflows.util.Base64Util.base64Decode;
 import static org.myworkflows.util.ListUtil.getValueAtIndex;
@@ -107,6 +109,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     public WorkflowDevelopmentView(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
 
+        editor.setMode(AceMode.yaml);
         editor.setSofttabs(true);
         editor.setShowInvisibles(true);
         editor.setTabSize(2);
@@ -115,6 +118,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         editor.setEnableSnippets(true);
         editor.setUseWorker(true);
         editor.setLiveAutocompletion(true);
+        editor.addAceReadyListener(event -> editor.getElement().executeJs(JS_CODE));
         EditorAutoCompleteUtil.apply(editor);
         attachShortcutsToEditor();
 
