@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.9 (2026-01-24)
+
+### Dependencies
+
+* Upgrade Vaadin to 24.9.9.
+* Upgrade Flyway Core to 11.20.2.
+* Upgrade Groovy to 5.0.4.
+* Upgrade JUnit to 6.0.2.
+* Upgrade Mockito JUnit Jupiter to 5.21.0.
+* Upgrade Spring Boot Starter Parent to 3.5.10.
+
 ## 1.2.8 (2025-12-12)
 
 ### Bug fixes
