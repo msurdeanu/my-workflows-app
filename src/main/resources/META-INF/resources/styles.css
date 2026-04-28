@@ -44,3 +44,34 @@ footer > span {
     font-size: var(--lumo-font-size-xs);
     color: var(--lumo-contrast-50pct);
 }
+
+#responsiveLayout {
+    display: flex;
+    flex-direction: column;
+}
+
+#responsiveLayout .header-left {
+    width: 50%;
+    margin-top: 10px;
+    padding-left: 25px;
+}
+
+#responsiveLayout .header-right {
+    width: 50%;
+    margin-top: 10px;
+    padding-right: 25px;
+}
+
+#responsiveLayout .content {
+    flex: 1;
+}
+
+#responsiveLayout .footer {
+    border-top: 1px solid var(--lumo-contrast-10pct);
+    text-align: center;
+    color: var(--lumo-contrast-70pct);
+    font-size: var(--lumo-font-size-xs);
+    padding: 10px;
+    width: 250px;
+    margin: 0 auto;
+}

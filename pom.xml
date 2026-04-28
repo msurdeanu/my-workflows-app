@@ -6,36 +6,36 @@
 
     <name>My Workflows</name>
     <description>My Workflows is an automation tool based on Java as programming language and Vaadin as UI framework.</description>
-    <version>1.2.11-SNAPSHOT</version>
+    <version>1.3.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.10</version>
+        <version>4.0.6</version>
     </parent>
 
     <properties>
-        <java.version>21</java.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <java.version>25</java.version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <vaadin.version>24.9.9</vaadin.version>
+        <vaadin.version>25.1.3</vaadin.version>
         <flyway-core.version>11.20.2</flyway-core.version>
-        <ace.version>4.0.0</ace.version>
+        <ace.version>5.0.0</ace.version>
         <markdown-editor-addon.version>2.0.3</markdown-editor-addon.version>
         <grid-pagination.version>4.0.1</grid-pagination.version>
-        <lombok.version>1.18.42</lombok.version>
-        <groovy.version>5.0.4</groovy.version>
+        <lombok.version>1.18.46</lombok.version>
+        <groovy.version>5.0.5</groovy.version>
         <janino.version>3.1.12</janino.version>
         <maverick-synergy-client.version>3.1.4</maverick-synergy-client.version>
         <angus-mail.version>2.0.5</angus-mail.version>
         <json-schema-validator.version>1.5.9</json-schema-validator.version>
         <junit-jupiter.version>6.0.2</junit-jupiter.version>
-        <mockito-junit-jupiter.version>5.21.0</mockito-junit-jupiter.version>
+        <mockito-junit-jupiter.version>5.23.0</mockito-junit-jupiter.version>
     </properties>
 
     <scm>
@@ -94,6 +94,15 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-dev</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
@@ -102,12 +111,29 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.18.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-community-dialects</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
@@ -211,6 +237,13 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 
@@ -235,7 +268,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>10.26.1</version>
+                        <version>13.4.1</version>
                     </dependency>
                 </dependencies>
             </plugin>

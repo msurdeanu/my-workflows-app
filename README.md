@@ -10,13 +10,13 @@ All workflows are defined in YAML format, and the tool provides an intuitive UI 
 
 ## Technology stack
 
-* Java 21 as a programming language.
-* Spring Boot 3 as a DI framework.
-* [Vaadin 24](https://vaadin.com) as a UI framework.
-* [SQLite](https://www.sqlite.org/) as relational database for persisting data.
-* [YAML Schema Validator](https://github.com/networknt/json-schema-validator) as schema validator for workflow scripts.
+* Java 25 as a programming language.
+* Spring Boot 4 as a DI framework.
+* [Vaadin 25](https://vaadin.com) as a UI framework.
+* [SQLite](https://www.sqlite.org/) as a relational database for persisting data.
+* [YAML Schema Validator](https://github.com/networknt/json-schema-validator) as a schema validator for workflow scripts.
 * [Groovy](https://groovy-lang.org/) as an additional language for defining commands.
-* [Janino](https://www.janino.net/) as Java runtime compiler.
+* [Janino](https://www.janino.net/) as a Java runtime compiler.
 * [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) as another runtime evaluator.
 
 ## Features
@@ -157,7 +157,7 @@ try {
 #### Placeholders
 
 You are allowed to use global `placeholders` to avoid data duplication in your workflow definition.
-Please note that all placeholders are resolved immediately before a workflow running process.
+Please note that all placeholders are resolved immediately before a workflow-running process.
 All placeholders are persisted in a database—a table called `placeholders`.
 
 Inside workflow definition, you can recognize a placeholder by having this format: `$$([A-Z0-9_.]+)`.
@@ -244,9 +244,9 @@ you are going to receive a runtime exception.
 
 #### How to debug workflow runs?
 
-In order to debug workflow runs, you just have to inject a parameter called `debug` and set it to `true` as `boolean`
+To debug workflow runs, you have to inject a parameter called `debug` and set it to `true` as `boolean`
 type.
-Once this is done, your workflow run will have debug flag activated, and you are going to see by default more prints.
+Once this is done, your workflow run will have the debug flag activated, and you are going to see by default more prints.
 
 #### Load Java libraries at runtime
 
@@ -278,7 +278,7 @@ value: "$(sleepTime:Integer.class)"
 
 #### Anchors and aliases
 
-Relying on YAML format, give us the opportunity to use anchors and aliases to simplify workflow definition.
+Relying on YAML format gives us the opportunity to use anchors and aliases to simplify workflow definition.
 More details about how to use them are
 described [here](https://www.educative.io/blog/advanced-yaml-syntax-cheatsheet#YAML-Anchors-and-Alias).
 
@@ -610,7 +610,7 @@ commands:
 You can find [here](https://github.com/msurdeanu/my-workflows-app/wiki/Samples-of-workflow-definitions) a set of
 concrete workflow pipelines that you can use for inspiration.
 
-## From development perspective
+## From a development perspective
 
 Do you want to contribute to this project as a developer? You can
 find [here](https://github.com/msurdeanu/my-workflows-app/wiki/From-development-perspective) more technical details...
