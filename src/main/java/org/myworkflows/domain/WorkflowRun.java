@@ -11,8 +11,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.myworkflows.converter.SetOfStringToStringConverter;
-import org.myworkflows.converter.UuidToByteArrayConverter;
 import org.myworkflows.converter.WorkflowDefinitionScriptToStringConverter;
 import org.myworkflows.converter.WorkflowRunCacheToByteArrayConverter;
 import org.myworkflows.holder.file.BinaryFileSource;
@@ -47,7 +48,7 @@ public class WorkflowRun {
 
     @Id
     @Getter
-    @Convert(converter = UuidToByteArrayConverter.class)
+    @JdbcTypeCode(SqlTypes.BINARY)
     private UUID id = UUID.randomUUID();
 
     @Getter

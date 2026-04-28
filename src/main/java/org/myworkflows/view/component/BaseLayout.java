@@ -5,7 +5,7 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.html.Footer;
-import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
@@ -16,7 +16,7 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.server.streams.DownloadHandler;
 import com.vaadin.flow.spring.security.AuthenticationContext;
-import com.vaadin.flow.theme.lumo.LumoUtility;
+import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.repository.MenuItemRepository;
@@ -31,6 +31,7 @@ import java.util.List;
  * @since 1.0
  */
 @Slf4j
+@PermitAll
 public class BaseLayout extends AppLayout {
 
     public BaseLayout(AuthenticationContext authContext, SettingProvider settingProvider, MenuItemRepository menuItemRepository) {
@@ -52,7 +53,7 @@ public class BaseLayout extends AppLayout {
                 avatar.setTooltipEnabled(true);
                 final var contextMenu = new ContextMenu(avatar);
                 contextMenu.setOpenOnClick(true);
-                contextMenu.addItem(getTranslation("menu.main.logout"), event -> authContext.logout());
+                contextMenu.addItem(getTranslation("menu.main.logout"), _ -> authContext.logout());
                 return avatar;
             })
             .ifPresent(header::add);
@@ -64,9 +65,10 @@ public class BaseLayout extends AppLayout {
     }
 
     private void addDrawerContent(List<SideNavItem> routerLinks, SettingProvider settingProvider) {
-        final var appName = new H1(getTranslation("app.name"));
-        appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
-        final var header = new Header(appName);
+        final var mainMenu = new H4(getTranslation("app.name"));
+        mainMenu.getStyle().set("text-align", "center");
+        mainMenu.setWidthFull();
+        final var header = new Header(mainMenu);
         final var scroller = new Scroller(createNavigation(routerLinks));
         addToDrawer(header, scroller, createFooter(settingProvider));
     }

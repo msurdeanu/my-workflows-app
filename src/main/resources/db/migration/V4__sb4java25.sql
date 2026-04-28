@@ -1,0 +1,1 @@
+UPDATE settings SET value = '1.3' WHERE "key" = 'version';

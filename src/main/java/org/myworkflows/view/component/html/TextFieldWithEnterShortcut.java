@@ -26,7 +26,7 @@ public final class TextFieldWithEnterShortcut extends TextField {
                 setInvalid(true);
                 setErrorMessage(getTranslation("field.empty.error"));
             }, () -> setInvalid(false)));
-        addKeydownEventListener(getElement(), event -> {
+        addKeydownEventListener(getElement(), _ -> {
             final var value = getValue().trim();
             if (!value.isEmpty()) {
                 valueConsumer.accept(value);

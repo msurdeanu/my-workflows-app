@@ -4,16 +4,15 @@ import lombok.NoArgsConstructor;
 import org.myworkflows.domain.ExpressionNameValue;
 import org.myworkflows.domain.command.api.ExecutionMethod;
 import org.myworkflows.domain.command.api.ExecutionParam;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 import java.util.Set;
 
-import static java.time.Duration.ofMillis;
 import static org.springframework.http.HttpMethod.valueOf;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
@@ -45,10 +44,11 @@ public final class HttpRequestCommand extends AbstractCommand {
     }
 
     private RestTemplate createRestTemplate(long timeout) {
-        return new RestTemplateBuilder()
-            .connectTimeout(ofMillis(timeout))
-            .readTimeout(ofMillis(timeout))
-            .build();
+        final var factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout((int) timeout);
+        factory.setReadTimeout((int) timeout);
+
+        return new RestTemplate(factory);
     }
 
     private HttpEntity<String> createHttpEntity(String body, Map<String, String> headers) {

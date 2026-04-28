@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.3.0 (2026-04-28)
+
+### Breaking changes
+
+* Require Java 25 as the minimum runtime.
+* Migrate to Spring Boot 4 and Vaadin 25.
+
+### Features
+
+* Switch theme to Lumo with a custom `styles.css` served from `META-INF/resources`, replacing the legacy `simple` theme bundled under `frontend/`.
+* Use Java 25 instance `main` method in `Application` and unnamed lambda parameters (`_`) where the parameter is unused.
+
+### Bug fixes
+
+* Replace `@Convert` on `WorkflowRun.id` with `@JdbcTypeCode(SqlTypes.BINARY)` — Hibernate 7 no longer allows `AttributeConverter` on `@Id` fields.
+* Replace deprecated `RestTemplateBuilder` timeout API in `HttpRequestCommand` with `SimpleClientHttpRequestFactory`.
+* Declare `vaadin-dev` as an optional dependency so dev mode starts under Vaadin 25.1 (no longer pulled transitively by `vaadin-spring-boot-starter`).
+* Add `spring-boot-starter-flyway` so Flyway autoconfiguration is picked up under Spring Boot 4 (autoconfigs were extracted from `spring-boot-autoconfigure`).
+* Configure Lombok via `annotationProcessorPaths` in `maven-compiler-plugin` — JDK 24+ no longer auto-discovers annotation processors from the classpath.
+
+### Dependencies
+
+* Upgrade Spring Boot Starter Parent to 4.0.6.
+* Upgrade Vaadin to 25.1.3.
+* Upgrade Lombok to 1.18.46.
+* Upgrade Groovy to 5.0.5.
+* Upgrade Mockito JUnit Jupiter to 5.23.0.
+* Upgrade Ace Editor to 5.0.0.
+* Upgrade Checkstyle to 13.4.1.
+* Introduce explicit `commons-lang3`, `jackson-databind`, `jackson-datatype-jsr310` and `spring-boot-starter-web` dependencies.
+
 ## 1.2.9 (2026-01-24)
 
 ### Dependencies
@@ -17,7 +48,7 @@ All notable changes to this project will be documented in this file.
 
 ### Bug fixes
 
-* Fix snippets for code editor.
+* Fix snippets in the code editor.
 
 ### Dependencies
 
@@ -118,9 +149,9 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 * New page for settings.
-* Avoid to display bigger text prints directly in the UI. Provide the ability to download the content as a file.
+* Avoid displaying bigger text prints directly in the UI. Provide the ability to download the content as a file.
 * Rely more and more on Java records.
-* Remove deprecated API regarding ResourceStream from Vaadin Framework and rely on DownloadHandler.
+* Remove the deprecated API regarding ResourceStream from Vaadin Framework and rely on DownloadHandler.
 
 ## 1.0.13 (2025-08-11)
 
@@ -130,7 +161,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* Remove deprecated API regarding AntPathRequestMatcher class from Spring Framework.
+* Remove the deprecated API regarding AntPathRequestMatcher class from Spring Framework.
 
 ## 1.0.12 (2025-08-10)
 
@@ -143,8 +174,8 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* Remove deprecated API regarding UploadHandler from Vaadin 24.8.
-* Set default maximum file size for uploaded libraries to 128MB.
+* Remove the deprecated API regarding UploadHandler from Vaadin 24.8.
+* Set the default maximum file size for uploaded libraries to 128MB.
 
 ## 1.0.10 (2025-08-06)
 
@@ -158,7 +189,7 @@ All notable changes to this project will be documented in this file.
 
 ### Bug fixes
 
-* Fix bug with allowedCharsPattern in Vaadin TextField.
+* Fix the bug with allowedCharsPattern in Vaadin TextField.
 
 ### Features
 
@@ -177,7 +208,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* Add file for CHANGELOG.
+* Add a file for CHANGELOG.
 
 ## 1.0.6 (2025-07-19)
 
@@ -190,8 +221,8 @@ All notable changes to this project will be documented in this file.
 
 ### Bug fixes
 
-* Fix bug with workflow definition update with is not propagated to workflow template.
-* Fix bug with workflow parameter update with is not propagated to workflow template.
+* Fix a bug with a workflow definition update with is not propagated to the workflow template.
+* Fix a bug with a workflow parameter update with is not propagated to the workflow template.
 
 ### Dependencies
 
@@ -203,7 +234,7 @@ All notable changes to this project will be documented in this file.
 * Introduce Ace editor snippets.
 * Activate worker for Ace editor to validate YAML content.
 * Exclude scanning of `view` package in Jacoco. As a side effect, test coverage increased from 30% to 53%.
-* Incorporate Ace editor inside our framework. Rely only on Jackson library for JSON processing.
+* Incorporate Ace editor inside our framework. Rely only on the Jackson library for JSON processing.
 
 ## 1.0.4 (2025-07-16)
 
@@ -214,7 +245,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* Show invisible chars in Ace editor by default.
+* Show invisible chars in the Ace editor by default.
 
 ## 1.0.3 (2025-07-05)
 
@@ -226,14 +257,14 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* Introduce ability to download libraries.
+* Introduce the ability to download libraries.
 * Rename `email` command to `mail` command + add optional parameters for CC and BBC.
 
 ## 1.0.2 (2025-07-05)
 
 ### Bug fixes
 
-* Fix bug with workflow template creation due to immutable collections.
+* Fix a bug with workflow template creation due to immutable collections.
 
 ## 1.0.1 (2025-07-01)
 
@@ -243,7 +274,7 @@ All notable changes to this project will be documented in this file.
 
 ### Documentation
 
-* Introduce section about workflow debugging.
+* Introduce a section about workflow debugging.
 
 ### Tests
 
