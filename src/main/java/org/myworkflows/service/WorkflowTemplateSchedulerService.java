@@ -17,6 +17,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.networknt.schema.utils.StringUtils.isBlank;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -35,19 +36,21 @@ public final class WorkflowTemplateSchedulerService {
     private final ApplicationManager applicationManager;
 
     public void schedule(WorkflowTemplate workflowTemplate) {
-        if (workflowTemplate.getCron() == null) {
+        // An empty cron is as unusable as a missing one: CronTrigger rejects it with an exception.
+        if (isBlank(workflowTemplate.getCron())) {
             log.warn("Workflow template '{}' is not scheduled because cron is not set.", workflowTemplate.getId());
             return;
         }
 
-        final var scheduledTask = applicationManager.getBeanOfType(TaskScheduler.class)
-            .schedule(new WorkflowDefinitionScriptRunnable(applicationManager, workflowTemplate),
-                new CronTrigger(workflowTemplate.getCron(),
-                    TimeZone.getTimeZone(TimeZone.getDefault().getID())));
-
         lock.lock();
         try {
             unschedule(workflowTemplate);
+            // The task is created only once the previous one is gone and while holding the lock, so that it
+            // cannot start running before it is registered and therefore become impossible to cancel.
+            final var scheduledTask = applicationManager.getBeanOfType(TaskScheduler.class)
+                .schedule(new WorkflowDefinitionScriptRunnable(applicationManager, workflowTemplate),
+                    new CronTrigger(workflowTemplate.getCron(),
+                        TimeZone.getTimeZone(TimeZone.getDefault().getID())));
             scheduledFutureMap.put(workflowTemplate.getId(), scheduledTask);
         } finally {
             lock.unlock();

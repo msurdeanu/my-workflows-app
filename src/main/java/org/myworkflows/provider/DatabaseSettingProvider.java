@@ -13,12 +13,14 @@ import java.lang.reflect.Method;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.exception.WorkflowRuntimeException.wrap;
@@ -82,8 +84,15 @@ public final class DatabaseSettingProvider implements InvocationHandler {
     }
 
     private Optional<Object> transformTo(SettingType type, String value) {
-        return ofNullable(SETTING_TO_OBJECT_MAPPING.get(type))
-            .flatMap(function -> function.apply(value));
+        try {
+            return ofNullable(SETTING_TO_OBJECT_MAPPING.get(type))
+                .flatMap(function -> function.apply(value));
+        } catch (Exception exception) {
+            // A single malformed row must not prevent the application from starting: the setting is simply
+            // dropped, so the caller transparently falls back to the default provider.
+            log.warn("Setting value '{}' cannot be read as '{}' and is ignored.", value, type, exception);
+            return empty();
+        }
     }
 
     private boolean isGetOrDefault(Method method) {
@@ -119,7 +128,7 @@ public final class DatabaseSettingProvider implements InvocationHandler {
         try {
             availableSettings.stream()
                 .filter(setting -> setting.getKey().equals(args[0]))
-                .filter(setting -> !setting.getComputedValue().equals(args[1]))
+                .filter(setting -> !Objects.equals(setting.getComputedValue(), args[1]))
                 .findFirst()
                 .ifPresent(setting -> setSettingValue(setting, args[1]));
         } finally {

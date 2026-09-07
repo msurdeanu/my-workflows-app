@@ -1,20 +1,3 @@
-vaadin-scroller[slot="drawer"] {
-    padding: var(--lumo-space-s);
-}
-
-[slot="drawer"]:is(header, footer) {
-    display: flex;
-    align-items: center;
-    gap: var(--lumo-space-s);
-    padding: var(--lumo-space-s) var(--lumo-space-m);
-    min-height: var(--lumo-size-xl);
-    box-sizing: border-box;
-}
-
-[slot="drawer"]:is(header, footer):is(:empty) {
-    display: none;
-}
-
 .app-layout-icon-button {
     margin: -5px 0 -5px 0;
 }
@@ -40,9 +23,9 @@ vaadin-scroller[slot="drawer"] {
 
 footer > span {
     width: 100%;
+    display: block;
     text-align: center;
-    font-size: var(--lumo-font-size-xs);
-    color: var(--lumo-contrast-50pct);
+    font-size: var(--aura-font-size-xs);
 }
 
 #responsiveLayout {
@@ -67,11 +50,52 @@ footer > span {
 }
 
 #responsiveLayout .footer {
-    border-top: 1px solid var(--lumo-contrast-10pct);
+    border-top: 1px solid color-mix(in srgb, var(--aura-neutral-light) 50%, transparent);
     text-align: center;
-    color: var(--lumo-contrast-70pct);
-    font-size: var(--lumo-font-size-xs);
+    font-size: var(--aura-font-size-xs);
     padding: 10px;
     width: 250px;
     margin: 0 auto;
+}
+
+/* Markdown editor/viewer: drop the add-on's opaque GitHub palette so the
+   component blends into the surrounding theme instead of showing a white box. */
+markdown-editor .w-md-editor,
+markdown-editor .wmde-markdown,
+markdown-viewer .wmde-markdown {
+    --color-canvas-default: transparent;
+    --color-canvas-subtle: color-mix(in srgb, currentColor 6%, transparent);
+    --color-fg-default: currentColor;
+    --color-border-default: color-mix(in srgb, var(--aura-neutral-light) 50%, transparent);
+    --color-border-muted: var(--color-border-default);
+}
+
+markdown-editor .w-md-editor,
+markdown-editor .w-md-editor-toolbar,
+markdown-editor .w-md-editor-content,
+markdown-editor .w-md-editor-input,
+markdown-editor .w-md-editor-text,
+markdown-editor .w-md-editor-text-input,
+markdown-editor .w-md-editor-text-pre,
+markdown-editor .w-md-editor-preview,
+markdown-editor .wmde-markdown,
+markdown-viewer .wmde-markdown {
+    background-color: transparent;
+    color: inherit;
+}
+
+markdown-editor .w-md-editor {
+    box-shadow: 0 0 0 1px var(--color-border-default);
+}
+
+markdown-editor .w-md-editor-toolbar {
+    border-bottom: 1px solid var(--color-border-default);
+}
+
+markdown-editor .w-md-editor-toolbar li > button {
+    color: inherit;
+}
+
+markdown-editor .w-md-editor-preview {
+    box-shadow: inset 1px 0 0 0 var(--color-border-default);
 }

@@ -104,9 +104,9 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
 
     private Component renderDetails(WorkflowRun workflowRun) {
         final var button = new Button(getTranslation("pretty.time.format", workflowRun.getCreated()));
-        button.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        button.addThemeVariants(ButtonVariant.SMALL);
         button.setTooltipText(workflowRun.getCreated().toString());
-        button.addClickListener(event -> new WorkflowRunDetailsDialog(workflowRun).open());
+        button.addClickListener(_ -> new WorkflowRunDetailsDialog(workflowRun).open());
         return button;
     }
 
@@ -114,18 +114,18 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         final var layout = new HorizontalLayout();
         if (workflowRun.isRunning()) {
             final var cancelButton = new Button(VaadinIcon.CLOSE.create());
-            cancelButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-            cancelButton.addClickListener(event -> cancel(workflowRun));
+            cancelButton.addThemeVariants(ButtonVariant.SMALL);
+            cancelButton.addClickListener(_ -> cancel(workflowRun));
             layout.add(cancelButton);
         } else {
             final var deleteButton = new Button(VaadinIcon.TRASH.create());
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-            deleteButton.addClickListener(event -> delete(workflowRun));
+            deleteButton.addThemeVariants(ButtonVariant.SMALL);
+            deleteButton.addClickListener(_ -> delete(workflowRun));
             layout.add(deleteButton);
             if (workflowRun.isEligibleForReplay()) {
                 final var replayButton = new Button(VaadinIcon.RECYCLE.create());
-                replayButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-                replayButton.addClickListener(event -> replay(workflowRun));
+                replayButton.addThemeVariants(ButtonVariant.SMALL);
+                replayButton.addClickListener(_ -> replay(workflowRun));
                 layout.add(replayButton);
             }
         }

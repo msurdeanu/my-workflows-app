@@ -78,6 +78,36 @@ public final class InternalCacheTest {
     }
 
     @Test
+    public void whenCacheIsUnorderedThenGetAllValuesReturnsADetachedCopy() {
+        // given
+        final var cache = new InternalCache("test");
+        cache.put("key1", "value1");
+
+        // when
+        final var values = cache.getAllValues();
+        cache.put("key2", "value2");
+
+        // then the previously returned collection must not observe the later write
+        assertEquals(1, values.size());
+        assertEquals(2, cache.getAllValues().size());
+    }
+
+    @Test
+    public void whenAKeyIsMappedToNullThenItIsNotTrackedTwice() {
+        // given
+        final var cache = new InternalCache("test", 10, InternalCache.InternalCacheOrder.FIFO);
+
+        // when
+        cache.put("key1", null);
+        cache.put("key1", "value1");
+
+        // then
+        assertEquals(1, cache.size());
+        assertEquals(1, cache.getAllKeys(String.class).size());
+        assertEquals(1, cache.getAllValues().size());
+    }
+
+    @Test
     public void testUnlimitedCache() {
         // given
         final var cache = new InternalCache("test");

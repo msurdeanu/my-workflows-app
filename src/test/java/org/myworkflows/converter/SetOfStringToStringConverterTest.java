@@ -9,6 +9,7 @@ import static java.lang.String.join;
 import static java.util.Collections.addAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Mihai Surdeanu
@@ -30,6 +31,14 @@ public final class SetOfStringToStringConverterTest {
 
         assertNull(setOfStringToStringConverter.convertToEntityAttribute(null));
         assertEquals("123", join("", setOfStringToStringConverter.convertToEntityAttribute("1,2,3")));
+    }
+
+    @Test
+    public void whenDatabaseColumnIsEmptyThenAnEmptySetIsReturned() {
+        final var setOfStringToStringConverter = new SetOfStringToStringConverter();
+
+        assertTrue(setOfStringToStringConverter.convertToEntityAttribute("").isEmpty());
+        assertEquals(Set.of("1"), setOfStringToStringConverter.convertToEntityAttribute("1,,"));
     }
 
     private Set<String> createSet() {

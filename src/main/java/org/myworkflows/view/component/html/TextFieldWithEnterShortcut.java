@@ -41,7 +41,7 @@ public final class TextFieldWithEnterShortcut extends TextField {
     }
 
     public TextFieldWithEnterShortcut small() {
-        addThemeVariants(TextFieldVariant.LUMO_SMALL);
+        addThemeVariants(TextFieldVariant.SMALL);
         return this;
     }
 

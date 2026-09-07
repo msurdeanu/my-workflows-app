@@ -26,7 +26,13 @@ public enum FileSourceHolder {
     }
 
     public <T> void writeToSource(FileSource<T> fileSource, T data) throws IOException {
-        fileSource.writeTo(getFilePath(fileSource), data);
+        final var filePath = getFilePath(fileSource);
+        // Without this, the very first write fails when the configured base directory does not exist yet.
+        final var parent = filePath.getParent();
+        if (parent != null) {
+            Files.createDirectories(parent);
+        }
+        fileSource.writeTo(filePath, data);
     }
 
     public void deleteIfExists(FileSource<?> fileSource) throws IOException {

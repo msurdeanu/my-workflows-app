@@ -226,8 +226,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         final var button = new Button(VaadinIcon.LINK.create());
         button.setTooltipText(getTranslation("workflow-development.share.button.tooltip"));
         button.setEnabled(false);
-        button.addThemeVariants(ButtonVariant.LUMO_ICON);
-        button.addClickListener(event -> {
+        button.addClickListener(_ -> {
             var url = ofNullable(filterByDefinition.getValue())
                 .map(item -> RouteConfiguration.forSessionScope().getUrl(WorkflowDevelopmentView.class, item.getId()))
                 .orElseGet(() -> RouteConfiguration.forSessionScope().getUrl(WorkflowDevelopmentView.class));
@@ -250,8 +249,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         final var button = new Button(VaadinIcon.EDIT.create());
         button.setTooltipText(getTranslation("workflow-development.update.button.tooltip"));
         button.setEnabled(false);
-        button.addThemeVariants(ButtonVariant.LUMO_ICON);
-        button.addClickListener(event -> ofNullable(filterByDefinition.getValue())
+        button.addClickListener(_ -> ofNullable(filterByDefinition.getValue())
             .ifPresent(workflowDefinition -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
                 .updateDefinition(workflowDefinition, editor.getValue())));
         button.addClickShortcut(Key.KEY_U, KeyModifier.CONTROL, KeyModifier.ALT).resetFocusOnActiveElement();
@@ -318,7 +316,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             .map(ValidationMessage::getMessage)
             .map(ListItem::new)
             .toList();
-        currentWorkflowStatus.add(new UnorderedList(listItems.toArray(listItems.toArray(new ListItem[0]))));
+        currentWorkflowStatus.add(new UnorderedList(listItems.toArray(new ListItem[0])));
         currentWorkflowStatus.setVisible(true);
     }
 

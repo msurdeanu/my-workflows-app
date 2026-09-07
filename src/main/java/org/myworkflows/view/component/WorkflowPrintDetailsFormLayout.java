@@ -51,7 +51,7 @@ public final class WorkflowPrintDetailsFormLayout extends FormLayout {
     private Component createComponent(String name, String type, String value) {
         if (value.length() > TEXTAREA_CHAR_LIMIT) {
             final var data = value.getBytes();
-            return new Anchor(fromInputStream(event -> {
+            return new Anchor(fromInputStream(_ -> {
                 try {
                     return new DownloadResponse(new ByteArrayInputStream(data), "value.txt", "text/plain", data.length);
                 } catch (Exception notUsed) {

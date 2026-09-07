@@ -40,7 +40,10 @@ public final class WaitUntilSubPassesCommand extends AbstractSubCommand {
                 break;
             } catch (Exception exception) {
                 log.debug("Command '{}' thrown an exception.", getName(), exception);
-                sleepAWhile(backoffPeriod.longValue());
+                // No point in backing off after the last attempt.
+                if (remainingIterations > 0) {
+                    sleepAWhile(backoffPeriod.longValue());
+                }
             }
         }
 

@@ -9,12 +9,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Mihai Surdeanu
@@ -50,10 +50,17 @@ public class ExpressionNameValue {
         return switch (object) {
             case String objectAsStr -> runtimeEvaluator.evaluate(objectAsStr, variables, CACHE_ACCESS_PATTERN);
             case List<?> objectAsList -> objectAsList.stream().map(item -> recursiveEvaluation(item, variables)).collect(toList());
-            case Map<?, ?> objectAsMap -> objectAsMap.entrySet().stream()
-                .collect(toMap(Map.Entry::getKey, entry -> recursiveEvaluation(entry.getValue(), variables)));
+            case Map<?, ?> objectAsMap -> evaluateMap(objectAsMap, variables);
             default -> object;
         };
+    }
+
+    private Map<Object, Object> evaluateMap(Map<?, ?> objectAsMap, Map<String, Object> variables) {
+        // Collectors.toMap rejects null values, so an expression evaluating to null would blow up here.
+        // Insertion order is kept as well, which Collectors.toMap does not guarantee.
+        final var evaluatedMap = new LinkedHashMap<>();
+        objectAsMap.forEach((key, value) -> evaluatedMap.put(key, recursiveEvaluation(value, variables)));
+        return evaluatedMap;
     }
 
 }

@@ -10,10 +10,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.myworkflows.domain.User;
 import org.myworkflows.repository.UserRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -103,6 +105,8 @@ public final class UserTokenFilterTest {
         userTokenFilter.doFilterInternal(httpServletRequest, httpServletResponse, filterChain);
         verify(filterChain).doFilter(httpServletRequest, httpServletResponse);
         verify(httpServletResponse, never()).sendError(anyInt(), anyString());
+        // the chain is stateless, so the authentication must not stay behind on this thread
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
     }
 
 }

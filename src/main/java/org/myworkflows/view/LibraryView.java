@@ -1,8 +1,11 @@
 package org.myworkflows.view;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.UploadVariant;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -69,10 +72,18 @@ public class LibraryView extends ResponsiveLayout implements HasDynamicTitle, Li
 
     private Component createUpload() {
         final var upload = new Upload(event -> onUpload(event.getFileName(), event.getInputStream()));
+        upload.addThemeVariants(UploadVariant.AURA_NO_BORDER);
         upload.setAcceptedFileTypes("application/java-archive", LibraryConfig.JAR_EXTENSION);
         upload.setMaxFiles(1);
         upload.setDropAllowed(false);
+        upload.setUploadButton(createUploadButton());
         return upload;
+    }
+
+    private Component createUploadButton() {
+        final var uploadButton = new Button(VaadinIcon.UPLOAD.create());
+        uploadButton.setTooltipText(getTranslation("libs.upload.button.tooltip"));
+        return uploadButton;
     }
 
     private Component createFilterByFilePath() {

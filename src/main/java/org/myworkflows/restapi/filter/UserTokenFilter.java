@@ -49,7 +49,12 @@ public class UserTokenFilter extends OncePerRequestFilter {
 
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
             user.get(), null, Collections.emptyList()));
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            // The chain is stateless, so the authentication must not survive on the thread handling the request.
+            SecurityContextHolder.clearContext();
+        }
     }
 
 }

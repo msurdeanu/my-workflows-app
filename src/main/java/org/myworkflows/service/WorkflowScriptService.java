@@ -14,6 +14,7 @@ import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
 import org.myworkflows.exception.WorkflowRuntimeException;
+import org.myworkflows.serializer.SerializerFactory;
 import org.myworkflows.util.PlaceholderUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,11 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
     public void onEventReceived(WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var workflowDefScriptObject = onSubmitEvent.workflowDefinitionScript();
 
-        final var onSubmittedEventBuilder = WorkflowDefinitionOnSubmittedEvent.builder();
+        // The workflow run is always attached, so that subscribers can correlate the outcome - including a
+        // validation failure - with the run they submitted.
+        final var onSubmittedEventBuilder = WorkflowDefinitionOnSubmittedEvent.builder()
+            .workflowRun(onSubmitEvent.workflowRun())
+            .validationMessages(Set.of());
 
         if (workflowDefScriptObject instanceof String workflowAsString) {
             Set<ValidationMessage> validationMessages;
@@ -81,9 +86,25 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
     private WorkflowRun submit(WorkflowDefinitionScript workflowDefinitionScript,
                                WorkflowDefinitionOnSubmitEvent onSubmitEvent) {
         final var workflowRun = onSubmitEvent.workflowRun();
-        final var future = executorService.submit(() -> runSynchronously(workflowDefinitionScript, workflowRun));
+        final var runnableScript = detach(workflowDefinitionScript);
+        final var future = executorService.submit(() -> runSynchronously(runnableScript, workflowRun));
         workflowRun.setFuture(future);
         return workflowRun;
+    }
+
+    /**
+     * Returns a private copy of the script, because running it resolves placeholders by mutating the
+     * expressions in place. A template or definition script comes straight out of the internal cache and
+     * is shared by every run, so mutating it would freeze the placeholder values at their first-run state
+     * and would race between concurrent runs of the same workflow.
+     */
+    private WorkflowDefinitionScript detach(WorkflowDefinitionScript workflowDefinitionScript) {
+        final var scriptAsString = SerializerFactory.toString(workflowDefinitionScript, null);
+        if (scriptAsString == null) {
+            log.warn("Workflow definition script could not be copied, so the shared instance is used instead.");
+            return workflowDefinitionScript;
+        }
+        return toObject(scriptAsString, WorkflowDefinitionScript.class);
     }
 
     private void runSynchronously(WorkflowDefinitionScript workflowDefinitionScript, WorkflowRun workflowRun) {

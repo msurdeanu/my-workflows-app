@@ -48,14 +48,14 @@ public class SettingsToComponentsTransformer implements Transformer<List<Setting
     private Map<SettingType, Function<Setting, Optional<Component>>> createMapper() {
         final var settingTypeObjectEnumMap = new EnumMap<SettingType, Function<Setting, Optional<Component>>>(SettingType.class);
         settingTypeObjectEnumMap.put(SettingType.STR, setting -> Optional.of(createTextField(setting)));
-        settingTypeObjectEnumMap.put(SettingType.STR_H, setting -> Optional.empty());
+        settingTypeObjectEnumMap.put(SettingType.STR_H, _ -> Optional.empty());
         settingTypeObjectEnumMap.put(SettingType.TEXT, setting -> Optional.of(createTextArea(setting)));
-        settingTypeObjectEnumMap.put(SettingType.TEXT_H, setting -> Optional.empty());
+        settingTypeObjectEnumMap.put(SettingType.TEXT_H, _ -> Optional.empty());
         settingTypeObjectEnumMap.put(SettingType.PASSWORD, setting -> Optional.of(createPasswordField(setting)));
         settingTypeObjectEnumMap.put(SettingType.INTEGER, setting -> Optional.of(createIntegerField(setting)));
-        settingTypeObjectEnumMap.put(SettingType.INTEGER_H, setting -> Optional.empty());
+        settingTypeObjectEnumMap.put(SettingType.INTEGER_H, _ -> Optional.empty());
         settingTypeObjectEnumMap.put(SettingType.BOOLEAN, setting -> Optional.of(createCheckbox(setting)));
-        settingTypeObjectEnumMap.put(SettingType.BOOLEAN_H, setting -> Optional.empty());
+        settingTypeObjectEnumMap.put(SettingType.BOOLEAN_H, _ -> Optional.empty());
         return settingTypeObjectEnumMap;
     }
 

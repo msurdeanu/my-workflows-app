@@ -11,9 +11,10 @@ import java.sql.SQLException;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.sql.rowset.RowSetProvider;
+
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.myworkflows.util.SqlUtil.escape;
 
 /**
  * @author Mihai Surdeanu
@@ -36,13 +37,17 @@ public final class DatabaseCommand extends AbstractCommand {
     public Optional<ResultSet> database(@ExecutionParam String url,
                                         @ExecutionParam String query) throws SQLException {
         try (final var connection = DriverManager.getConnection(url); // format: "jdbc:sqlite:"
-             final var statement = connection.createStatement()) {
-            final var resultSet = statement.executeQuery(escape(query));
-            if (resultSet != null && resultSet.isBeforeFirst()) {
-                return of(resultSet);
-            } else {
+             final var statement = connection.createStatement();
+             final var resultSet = statement.executeQuery(query)) {
+            if (resultSet == null || !resultSet.isBeforeFirst()) {
                 return empty();
             }
+            // The result set is detached from the connection, otherwise it would be unusable
+            // by asserts and outputs, which run after this try-with-resources block closes it.
+            final var cachedRowSet = RowSetProvider.newFactory().createCachedRowSet();
+            cachedRowSet.populate(resultSet);
+            cachedRowSet.beforeFirst();
+            return of(cachedRowSet);
         }
     }
 

@@ -11,7 +11,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
-import com.vaadin.flow.component.tabs.TabsVariant;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.HasUrlParameter;
@@ -71,7 +70,6 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
             tabMap.put(name, tab);
             tabs.add(tab);
         });
-        tabs.addThemeVariants(TabsVariant.LUMO_CENTERED);
         tabs.addSelectedChangeListener(event -> setTabContent(event.getSelectedTab()));
         setTabContent(tabs.getSelectedTab());
 
@@ -150,13 +148,13 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
             horizontalLayout.setWidthFull();
 
             final var updateDocPageButton = new Button(getTranslation("doc-pages.update.button"), VaadinIcon.EDIT.create());
-            updateDocPageButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+            updateDocPageButton.addThemeVariants(ButtonVariant.SMALL);
             updateDocPageButton.getStyle().set("flex", "1 1 50%");
-            updateDocPageButton.addClickListener(event -> onUpdate(docPage, markdownEditor.getValue()));
+            updateDocPageButton.addClickListener(_ -> onUpdate(docPage, markdownEditor.getValue()));
             final var deleteDocPageButton = new Button(getTranslation("doc-pages.delete.button"), VaadinIcon.TRASH.create());
-            deleteDocPageButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+            deleteDocPageButton.addThemeVariants(ButtonVariant.SMALL);
             deleteDocPageButton.getStyle().set("flex", "1 1 50%");
-            deleteDocPageButton.addClickListener(event -> new DeleteConfirmDialog(docPage.getName(), item -> onDelete(docPage)).open());
+            deleteDocPageButton.addClickListener(_ -> new DeleteConfirmDialog(docPage.getName(), _ -> onDelete(docPage)).open());
 
             horizontalLayout.add(updateDocPageButton, deleteDocPageButton);
             layout.add(horizontalLayout);
@@ -181,7 +179,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
 
     private Component createSwitchModeButton() {
         final var switchModeButton = new Button(VaadinIcon.EXCHANGE.create());
-        switchModeButton.addClickListener(event -> {
+        switchModeButton.addClickListener(_ -> {
             final var queryParams = getUI()
                 .map(ui -> new HashMap<>(ui.getInternals().getActiveViewLocation().getQueryParameters().getParameters()))
                 .orElse(new HashMap<>());

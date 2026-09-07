@@ -58,6 +58,8 @@ public abstract class AbstractCommand {
 
     private static final String OUTPUT = "output";
 
+    private static final String NULL_AS_STR = "null";
+
     @Getter
     @JsonProperty
     private String name;
@@ -124,18 +126,24 @@ public abstract class AbstractCommand {
         range(0, parameters.length).forEach(index -> resolvedParameters[index] = resolveParameter(parameters[index], executionMethod, workflowRun));
         if (workflowRun.isDebugModeEnabled()) {
             range(0, parameters.length)
-                .filter(index -> !parameters[index].getDeclaredAnnotation(ExecutionParam.class).bypassed())
+                .filter(index -> !isBypassed(parameters[index]))
                 .forEach(index -> {
                     final var cache = workflowRun.getCache();
                     final var parameterName = parameters[index].getName();
                     final var resolvedParameter = resolvedParameters[index];
                     cache.putAsDebug(name, executionMethod.prefix() + "." + parameterName + ">type",
-                        resolvedParameter.getClass().getSimpleName());
+                        ofNullable(resolvedParameter).map(item -> item.getClass().getSimpleName()).orElse(NULL_AS_STR));
                     cache.putAsDebug(name, executionMethod.prefix() + "." + parameterName + ">value",
                         resolvedParameter);
                 });
         }
         return resolvedParameters;
+    }
+
+    private boolean isBypassed(Parameter parameter) {
+        return ofNullable(parameter.getDeclaredAnnotation(ExecutionParam.class))
+            .map(ExecutionParam::bypassed)
+            .orElse(false);
     }
 
     private Object resolveParameter(Parameter parameter, ExecutionMethod executionMethod, WorkflowRun workflowRun) {

@@ -62,15 +62,15 @@ public final class WorkflowPlaceholderGrid extends Composite<VerticalLayout> {
             .setHeader(getTranslation("workflow-placeholders.grid.value.column"))
             .setEditorComponent(valueField);
 
-        final var saveButton = new Button(VaadinIcon.CHECK.create(), event -> {
+        final var saveButton = new Button(VaadinIcon.CHECK.create(), _ -> {
             final var currentItem = editor.getItem();
             if (editor.save()) {
                 workflowPlaceholderEventHandler.onUpdate(currentItem);
             }
         });
-        saveButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
-        final var cancelButton = new Button(VaadinIcon.CLOSE.create(), event -> editor.cancel());
-        cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+        saveButton.addThemeVariants(ButtonVariant.SUCCESS, ButtonVariant.SMALL);
+        final var cancelButton = new Button(VaadinIcon.CLOSE.create(), _ -> editor.cancel());
+        cancelButton.addThemeVariants(ButtonVariant.ERROR, ButtonVariant.SMALL);
         final var actions = new HorizontalLayout(saveButton, cancelButton);
         actions.setPadding(false);
 
@@ -94,16 +94,16 @@ public final class WorkflowPlaceholderGrid extends Composite<VerticalLayout> {
     private Component createActionComponent(WorkflowPlaceholder workflowPlaceholder, Editor<WorkflowPlaceholder> editor) {
         final var layout = new HorizontalLayout();
         final var editButton = new Button(VaadinIcon.EDIT.create());
-        editButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
-        editButton.addClickListener(event -> {
+        editButton.addThemeVariants(ButtonVariant.SMALL);
+        editButton.addClickListener(_ -> {
             if (editor.isOpen()) {
                 editor.cancel();
             }
             paginatedGrid.getEditor().editItem(workflowPlaceholder);
         });
         final var deleteButton = new Button(VaadinIcon.TRASH.create());
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
-        deleteButton.addClickListener(event -> new DeleteConfirmDialog(workflowPlaceholder.getName(),
+        deleteButton.addThemeVariants(ButtonVariant.ERROR, ButtonVariant.SMALL);
+        deleteButton.addClickListener(_ -> new DeleteConfirmDialog(workflowPlaceholder.getName(),
             item -> workflowPlaceholderEventHandler.onDelete(workflowPlaceholder)).open());
         layout.add(editButton, deleteButton);
         return layout;

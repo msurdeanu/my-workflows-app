@@ -40,26 +40,31 @@ public final class EventBroadcaster {
     }
 
     public void broadcast(Event event, long millisDelay) {
+        final List<Consumer<Event>> consumers;
         lock.lock();
         try {
-            ofNullable(consumersMap.get(event.getClass()))
-                    .orElse(List.of())
-                    .forEach(consumer -> executorService.execute(() -> {
-                        if (millisDelay > 0) {
-                            safeSleep(millisDelay);
-                        }
-                        consumer.accept(event);
-                    }));
+            consumers = ofNullable(consumersMap.get(event.getClass()))
+                    .<List<Consumer<Event>>>map(List::copyOf)
+                    .orElseGet(List::of);
         } finally {
             lock.unlock();
         }
+
+        consumers.forEach(consumer -> executorService.execute(() -> {
+            if (millisDelay > 0) {
+                safeSleep(millisDelay);
+            }
+            consumer.accept(event);
+        }));
     }
 
     public Registration register(Consumer<Event> consumer, Class<? extends Event> acceptedEvent) {
-        ofNullable(consumersMap.get(acceptedEvent)).ifPresentOrElse(
-                consumers -> consumers.add(consumer),
-                () -> consumersMap.put(acceptedEvent, new ArrayList<>(List.of(consumer)))
-        );
+        lock.lock();
+        try {
+            consumersMap.computeIfAbsent(acceptedEvent, notUsed -> new ArrayList<>()).add(consumer);
+        } finally {
+            lock.unlock();
+        }
 
         log.debug("A new broadcast consumer is registered for event type '{}'.", acceptedEvent.getName());
 

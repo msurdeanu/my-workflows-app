@@ -115,14 +115,20 @@ public final class InternalCache implements org.springframework.cache.Cache {
                 return result;
             });
         } else {
-            return applyFunctionInsideOptimisticReadBlock(null, item -> cacheMap.values());
+            // A defensive copy is returned, because the live view backing the map is not safe
+            // to iterate once the caller has left the read block.
+            return applyFunctionInsideOptimisticReadBlock(null, item -> new ArrayList<>(cacheMap.values()));
         }
     }
 
     @Override
     public void put(@NonNull Object key, Object value) {
         acceptConsumerInsideWriteBlock(key, item -> {
-            if (ofNullable(cacheMap.put(item, value)).isEmpty() && isOrderedOrHasLimitedSize()) {
+            // containsKey, not the value returned by put: a key mapped to a null value is already
+            // tracked in the key list and must not be added to it a second time.
+            final var isNewKey = !cacheMap.containsKey(item);
+            cacheMap.put(item, value);
+            if (isNewKey && isOrderedOrHasLimitedSize()) {
                 if (cacheOrder == InternalCacheOrder.FIFO) {
                     keys.addLast(item);
                 } else {
@@ -172,17 +178,25 @@ public final class InternalCache implements org.springframework.cache.Cache {
     }
 
     private <K, V> V applyFunctionInsideOptimisticReadBlock(K key, Function<K, V> function) {
-        var stamp = stampedLock.tryOptimisticRead();
-        V value = function.apply(key);
-        if (!stampedLock.validate(stamp)) {
-            stamp = stampedLock.readLock();
+        final var stamp = stampedLock.tryOptimisticRead();
+        if (stamp != 0) {
             try {
-                value = function.apply(key);
-            } finally {
-                stampedLock.unlockRead(stamp);
+                final V value = function.apply(key);
+                if (stampedLock.validate(stamp)) {
+                    return value;
+                }
+            } catch (RuntimeException notUsed) {
+                // The backing collections are not thread-safe, so a concurrent write can make an optimistic
+                // read observe a torn state and blow up. The read is simply retried under a real read lock.
             }
         }
-        return value;
+
+        final var readStamp = stampedLock.readLock();
+        try {
+            return function.apply(key);
+        } finally {
+            stampedLock.unlockRead(readStamp);
+        }
     }
 
     private <K> void acceptConsumerInsideWriteBlock(K key, Consumer<K> consumer) {

@@ -27,6 +27,19 @@ public final class EncryptionHolderTest {
     }
 
     @Test
+    public void whenValueContainsNonAsciiCharactersThenItSurvivesTheRoundTrip() {
+        // given
+        final var data = "parolă-sécurisée-\u00e9\u00e8\u0219\u021b";
+        EncryptionHolder.INSTANCE.setAlgorithm("AES");
+        EncryptionHolder.INSTANCE.setSecretKey("key");
+
+        // when and then
+        final var optionalEncrypt = EncryptionHolder.INSTANCE.encrypt(data);
+        assertTrue(optionalEncrypt.isPresent());
+        assertEquals(data, EncryptionHolder.INSTANCE.decrypt(optionalEncrypt.get()).orElse(null));
+    }
+
+    @Test
     public void testExceptions() {
         // given
         EncryptionHolder.INSTANCE.setAlgorithm("AES");

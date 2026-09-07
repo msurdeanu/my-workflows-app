@@ -2,6 +2,7 @@ package org.myworkflows.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -30,7 +31,10 @@ public final class SetOfStringToStringConverter implements AttributeConverter<Se
     @Override
     public Set<String> convertToEntityAttribute(String data) {
         return ofNullable(data)
-            .map(item -> stream(item.split(COMMA_DELIMITER)).collect(Collectors.toCollection(LinkedHashSet::new)))
+            // An empty column would otherwise be split into a single, empty entry.
+            .map(item -> stream(item.split(COMMA_DELIMITER))
+                .filter(StringUtils::isNotEmpty)
+                .collect(Collectors.toCollection(LinkedHashSet::new)))
             .orElse(null);
     }
 

@@ -2,6 +2,62 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.3.1 (2026-09-07)
+
+### Features
+
+* Switch the UI theme from Lumo to Aura, replacing every `LUMO_*` component variant with its Aura equivalent and reworking `styles.css` around the `--aura-*` custom properties.
+* Render the Markdown editor and viewer on the documentation page with a transparent background, so they blend into the surrounding theme instead of showing a white box.
+* Replace the default upload control on the Libraries page with a borderless icon button carrying a tooltip.
+* Continue the migration to unnamed lambda parameters (`_`) wherever the parameter is unused.
+
+### Bug fixes
+
+* Detach the `database` command result into a `CachedRowSet` — the original result set was closed by its try-with-resources block before asserts and outputs could read it.
+* Run every workflow on a private copy of the definition script: placeholder resolution mutates the expressions in place, and the script instance is shared across runs through the internal cache.
+* Always attach the workflow run to `WorkflowDefinitionOnSubmittedEvent`, so subscribers can correlate an outcome — a validation failure included — with the run they submitted.
+* Clear the Spring `SecurityContext` once a REST API request has been handled, instead of leaving the authentication behind on the request thread.
+* Reject uploaded library file names that resolve outside the configured base directory, and accept only `.jar` files.
+* Create the parent directory before writing a file source or an uploaded library, so the very first write no longer fails when the directory does not exist yet.
+* Release the native memory held by `Deflater` and `Inflater` through `end()`, and fail fast on truncated compressed input instead of looping forever.
+* Take a copy of the consumer list before broadcasting, and register consumers under the lock, in `EventBroadcaster`.
+* Fix `InternalCache`: return a defensive copy of the cached values, track keys with `containsKey` so a key mapped to a null value is not recorded twice, and retry an optimistic read under a real read lock when it observes a torn state.
+* Ignore a single malformed setting row instead of aborting startup, so the caller transparently falls back to the default provider.
+* Keep the editor tip scheduler alive: clamp the frequency to at least one second and contain exceptions, which `scheduleAtFixedRate` would otherwise treat as a permanent cancellation.
+* Skip placeholders without a value, and preserve insertion order while allowing null results when evaluating a map expression — `Collectors.toMap` rejects both.
+* Treat a blank cron like a missing one, and create the scheduled task while holding the lock so it cannot start before it can be canceled.
+* Load JAR libraries defensively: tolerate a missing or unreadable base directory, and report a single broken JAR as not loaded instead of aborting startup.
+* Decode decrypted values with the explicit charset in `EncryptionHolder`.
+* Drop empty entries when converting an empty column into a `Set<String>`.
+* Skip the backoff after the last attempt of `waitUntilSubPasses`.
+* Compare setting values with `Objects.equals`, so a null value no longer throws.
+* Tolerate a missing `@ExecutionParam` annotation and a null resolved parameter when debug mode records parameter types.
+* Remove a duplicated `toArray` call when rendering workflow validation messages.
+
+### Dependencies
+
+* Upgrade Spring Boot Starter Parent to 4.1.1.
+* Upgrade Vaadin to 25.2.7.
+* Upgrade Groovy to 5.1.1.
+* Upgrade Lombok to 1.18.48, declare it with `provided` scope and exclude it from the repackaged Spring Boot artifact.
+* Upgrade Ace Editor to 5.0.1.
+* Upgrade Checkstyle to 14.1.0.
+* Upgrade JaCoCo to 0.8.15.
+* Exclude `vaadin-ai-components-flow` from the Vaadin starter and from the production profile.
+* Exclude `spring-aspects` from `spring-boot-starter-data-jpa`.
+* Let the Spring Boot and Vaadin BOMs manage `commons-lang3` and `junit-jupiter` instead of pinning their versions.
+
+### Documentation
+
+* Add `CLAUDE.md`, describing the build, the architecture and the conventions of the project.
+* Correct the English throughout `README.md` and `CHANGELOG.md`.
+* Fix the SSH command documentation: the `sshShell` inputs are prefixed with `sshShell.`, not `sshExec.`, and the `password` input of both SSH commands represents the password, not the host.
+
+### Tests
+
+* Add tests for `DatabaseCommand`, `LibraryService` and `WorkflowScriptService`.
+* Extend the `EventBroadcaster`, `InternalCache`, `SetOfStringToStringConverter`, `EncryptionHolder`, `UserTokenFilter` and `ByteArrayCompressUtil` tests to cover the fixes above.
+
 ## 1.3.0 (2026-04-28)
 
 ### Breaking changes
@@ -12,7 +68,7 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 * Switch theme to Lumo with a custom `styles.css` served from `META-INF/resources`, replacing the legacy `simple` theme bundled under `frontend/`.
-* Use Java 25 instance `main` method in `Application` and unnamed lambda parameters (`_`) where the parameter is unused.
+* Use the Java 25 instance `main` method in `Application` and unnamed lambda parameters (`_`) where the parameter is unused.
 
 ### Bug fixes
 
@@ -86,7 +142,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* Offer a mechanism for injecting specific parameters into workflow templates, increasing their customizability.
+* Offer a mechanism for injecting specific parameters into workflow templates, making them more customizable.
 
 ## 1.2.3 (2025-09-22)
 
@@ -98,7 +154,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* Remove deprecated functionality around `VaadinWebSecurity` class.
+* Remove deprecated functionality around the `VaadinWebSecurity` class.
 
 ## 1.2.2 (2025-09-15)
 
@@ -117,7 +173,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* Use more and more `LangUtil` class functionality.
+* Make broader use of the `LangUtil` class functionality.
 
 ## 1.2.0 (2025-09-01)
 
@@ -140,7 +196,7 @@ All notable changes to this project will be documented in this file.
 
 ### Bug fixes
 
-* Avoid NullPointerException when no documentation page is available.
+* Avoid a `NullPointerException` when no documentation page is available.
 
 ### Dependencies
 
@@ -148,10 +204,10 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* New page for settings.
-* Avoid displaying bigger text prints directly in the UI. Provide the ability to download the content as a file.
-* Rely more and more on Java records.
-* Remove the deprecated API regarding ResourceStream from Vaadin Framework and rely on DownloadHandler.
+* Add a new page for settings.
+* Avoid displaying large text prints directly in the UI; provide the ability to download the content as a file instead.
+* Rely more heavily on Java records.
+* Remove the deprecated `ResourceStream` API from the Vaadin framework and rely on `DownloadHandler` instead.
 
 ## 1.0.13 (2025-08-11)
 
@@ -161,7 +217,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* Remove the deprecated API regarding AntPathRequestMatcher class from Spring Framework.
+* Remove the deprecated `AntPathRequestMatcher` class API from the Spring framework.
 
 ## 1.0.12 (2025-08-10)
 
@@ -174,8 +230,8 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* Remove the deprecated API regarding UploadHandler from Vaadin 24.8.
-* Set the default maximum file size for uploaded libraries to 128MB.
+* Remove the deprecated `UploadHandler` API from Vaadin 24.8.
+* Set the default maximum file size for uploaded libraries to 128 MB.
 
 ## 1.0.10 (2025-08-06)
 
@@ -189,11 +245,11 @@ All notable changes to this project will be documented in this file.
 
 ### Bug fixes
 
-* Fix the bug with allowedCharsPattern in Vaadin TextField.
+* Fix the bug with `allowedCharsPattern` in the Vaadin `TextField`.
 
 ### Features
 
-* Activate Dependabot checks every week.
+* Activate weekly Dependabot checks.
 
 ## 1.0.8 (2025-07-26)
 
@@ -208,21 +264,21 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* Add a file for CHANGELOG.
+* Add a CHANGELOG file.
 
 ## 1.0.6 (2025-07-19)
 
 ### Features
 
-* Implement Ace editor tips functionality to help developers to write new workflow scripts.
-* An initial number of 23 tips were added. New tips will be added in upcoming releases, together with new snippets.
+* Implement the Ace editor tips functionality to help developers write new workflow scripts.
+* An initial set of 23 tips was added. More tips will be added in upcoming releases, together with new snippets.
 
 ## 1.0.5 (2025-07-19)
 
 ### Bug fixes
 
-* Fix a bug with a workflow definition update with is not propagated to the workflow template.
-* Fix a bug with a workflow parameter update with is not propagated to the workflow template.
+* Fix a bug where a workflow definition update was not propagated to the workflow template.
+* Fix a bug where a workflow parameter update was not propagated to the workflow template.
 
 ### Dependencies
 
@@ -232,9 +288,9 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 * Introduce Ace editor snippets.
-* Activate worker for Ace editor to validate YAML content.
-* Exclude scanning of `view` package in Jacoco. As a side effect, test coverage increased from 30% to 53%.
-* Incorporate Ace editor inside our framework. Rely only on the Jackson library for JSON processing.
+* Activate the Ace editor worker to validate YAML content.
+* Exclude the `view` package from JaCoCo scanning. As a side effect, test coverage increased from 30% to 53%.
+* Incorporate the Ace editor into our framework. Rely only on the Jackson library for JSON processing.
 
 ## 1.0.4 (2025-07-16)
 
@@ -245,7 +301,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-* Show invisible chars in the Ace editor by default.
+* Show invisible characters in the Ace editor by default.
 
 ## 1.0.3 (2025-07-05)
 
@@ -258,13 +314,13 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 * Introduce the ability to download libraries.
-* Rename `email` command to `mail` command + add optional parameters for CC and BBC.
+* Rename the `email` command to `mail` and add optional parameters for CC and BCC.
 
 ## 1.0.2 (2025-07-05)
 
 ### Bug fixes
 
-* Fix a bug with workflow template creation due to immutable collections.
+* Fix a bug in workflow template creation caused by immutable collections.
 
 ## 1.0.1 (2025-07-01)
 
@@ -278,9 +334,9 @@ All notable changes to this project will be documented in this file.
 
 ### Tests
 
-* Implement unitary test for `CookieUtil` class.
+* Implement a unit test for the `CookieUtil` class.
 
 ## 1.0.0 (2025-06-24)
 
 This is the initial version.
-Vaadin 24.8.0 is used.
+It uses Vaadin 24.8.0.

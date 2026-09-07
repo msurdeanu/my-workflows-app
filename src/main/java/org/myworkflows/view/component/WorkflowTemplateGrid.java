@@ -82,7 +82,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
 
     private Component renderActive(WorkflowTemplate workflowTemplate) {
         final var checkbox = new Checkbox(workflowTemplate.isEnabled());
-        checkbox.addValueChangeListener(event -> workflowTemplateEventHandler.onActivationChanged(workflowTemplate));
+        checkbox.addValueChangeListener(_ -> workflowTemplateEventHandler.onActivationChanged(workflowTemplate));
         return checkbox;
     }
 
@@ -132,23 +132,23 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
 
         final var scheduleNowButton = new Button(VaadinIcon.START_COG.create());
         scheduleNowButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.schedule.title"));
-        scheduleNowButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        scheduleNowButton.addThemeVariants(ButtonVariant.SMALL);
         final var editButton = new Button(VaadinIcon.EDIT.create());
         editButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.edit.title"));
-        editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        editButton.addThemeVariants(ButtonVariant.SMALL);
         final var deleteButton = new Button(VaadinIcon.TRASH.create());
         deleteButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.delete.title"));
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
+        deleteButton.addThemeVariants(ButtonVariant.SMALL, ButtonVariant.ERROR);
 
         if (isLogged) {
-            scheduleNowButton.addClickListener(event -> onScheduleNow(workflowTemplate));
+            scheduleNowButton.addClickListener(_ -> onScheduleNow(workflowTemplate));
         } else {
             scheduleNowButton.setEnabled(false);
         }
         if (isLoggedAsAdmin) {
-            editButton.addClickListener(event -> onEdit(workflowTemplate));
+            editButton.addClickListener(_ -> onEdit(workflowTemplate));
             if (!workflowTemplate.isEnabled()) {
-                deleteButton.addClickListener(event -> new DeleteConfirmDialog(workflowTemplate.getName(),
+                deleteButton.addClickListener(_ -> new DeleteConfirmDialog(workflowTemplate.getName(),
                     item -> workflowTemplateEventHandler.onDelete(workflowTemplate)).open());
             } else {
                 deleteButton.setEnabled(false);

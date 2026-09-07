@@ -30,6 +30,8 @@ public class WorkflowPlaceholderService extends CacheableDataService<WorkflowPla
         return cache.getAllValues().stream()
             .filter(item -> item instanceof WorkflowPlaceholder)
             .map(item -> (WorkflowPlaceholder) item)
+            // Collectors.toMap rejects null values, and a placeholder without a value is not usable anyway.
+            .filter(item -> item.getValue() != null)
             .collect(Collectors.toMap(WorkflowPlaceholder::getName, WorkflowPlaceholder::getValue));
     }
 

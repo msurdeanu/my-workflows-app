@@ -43,12 +43,12 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
     @Setter
     private Function<WorkflowParameter, Component> renderValueFunction = workflowParameter -> new SpanBadge(workflowParameter.getValue());
     @Setter
-    private Function<String, WorkflowParameter> createFunction = value -> null;
+    private Function<String, WorkflowParameter> createFunction = _ -> null;
     @Setter
-    private Consumer<WorkflowParameter> updateConsumer = workflowParameter -> {
+    private Consumer<WorkflowParameter> updateConsumer = _ -> {
     };
     @Setter
-    private Consumer<WorkflowParameter> deleteConsumer = workflowParameter -> {
+    private Consumer<WorkflowParameter> deleteConsumer = _ -> {
     };
 
     private Grid.Column<WorkflowParameter> actionColumn;
@@ -88,7 +88,7 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
         paginatedGrid.addColumn(WorkflowParameter::getName).setHeader(getTranslation(id + ".grid.name.column"));
 
         final var typeField = new ComboBox<WorkflowParameterType>();
-        typeField.addThemeVariants(ComboBoxVariant.LUMO_SMALL);
+        typeField.addThemeVariants(ComboBoxVariant.SMALL);
         typeField.setItems(WorkflowParameterType.values());
         typeField.setWidthFull();
         typeField.setAllowCustomValue(false);
@@ -101,10 +101,10 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
             .setEditorComponent(typeField);
 
         final var valueField = new TextField();
-        valueField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
+        valueField.addThemeVariants(TextFieldVariant.SMALL);
         valueField.setWidthFull();
         binder.forField(valueField)
-            .withValidator((Validator<String>) (value, valueContext) -> WorkflowParameter.validateTypeAndValue(typeField.getValue(), value)
+            .withValidator((Validator<String>) (value, _) -> WorkflowParameter.validateTypeAndValue(typeField.getValue(), value)
                 .map(ValidationResult::error)
                 .orElseGet(ValidationResult::ok))
             .bind(WorkflowParameter::getValue, WorkflowParameter::setValue);
@@ -112,17 +112,17 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
             .setHeader(getTranslation(id + ".grid.value.column"))
             .setEditorComponent(valueField);
 
-        final var saveButton = new Button(VaadinIcon.CHECK.create(), event -> {
+        final var saveButton = new Button(VaadinIcon.CHECK.create(), _ -> {
             final var currentItem = editor.getItem();
             if (editor.save()) {
                 updateConsumer.accept(currentItem);
             }
         });
-        saveButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
-        addKeydownEventListener(typeField.getElement(), event -> saveButton.click(), "Enter");
-        addKeydownEventListener(valueField.getElement(), event -> saveButton.click(), "Enter");
-        final var cancelButton = new Button(VaadinIcon.CLOSE.create(), event -> editor.cancel());
-        cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+        saveButton.addThemeVariants(ButtonVariant.SUCCESS, ButtonVariant.SMALL);
+        addKeydownEventListener(typeField.getElement(), _ -> saveButton.click(), "Enter");
+        addKeydownEventListener(valueField.getElement(), _ -> saveButton.click(), "Enter");
+        final var cancelButton = new Button(VaadinIcon.CLOSE.create(), _ -> editor.cancel());
+        cancelButton.addThemeVariants(ButtonVariant.ERROR, ButtonVariant.SMALL);
         final var actions = new HorizontalLayout(saveButton, cancelButton);
         actions.setPadding(false);
 
@@ -142,16 +142,16 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
     private Component createActionComponent(WorkflowParameter workflowParameter, Editor<WorkflowParameter> editor) {
         final var layout = new HorizontalLayout();
         final var editButton = new Button(VaadinIcon.EDIT.create());
-        editButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
-        editButton.addClickListener(event -> {
+        editButton.addThemeVariants(ButtonVariant.SMALL);
+        editButton.addClickListener(_ -> {
             if (editor.isOpen()) {
                 editor.cancel();
             }
             paginatedGrid.getEditor().editItem(workflowParameter);
         });
         final var deleteButton = new Button(VaadinIcon.TRASH.create());
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
-        deleteButton.addClickListener(event -> deleteConsumer.accept(workflowParameter));
+        deleteButton.addThemeVariants(ButtonVariant.ERROR, ButtonVariant.SMALL);
+        deleteButton.addClickListener(_ -> deleteConsumer.accept(workflowParameter));
         layout.add(editButton, deleteButton);
         return layout;
     }

@@ -47,7 +47,7 @@ public enum EncryptionHolder {
         try {
             final var cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
-            return of(new String(cipher.doFinal(Base64.getDecoder().decode(value))));
+            return of(new String(cipher.doFinal(Base64.getDecoder().decode(value)), CHARSET));
         } catch (Exception exception) {
             log.warn("An exception occurred during process of decrypting value using AES.", exception);
             return empty();
