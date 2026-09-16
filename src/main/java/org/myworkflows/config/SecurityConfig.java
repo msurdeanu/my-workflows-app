@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .key(cookieName)
                 .tokenValiditySeconds(settingProvider.getOrDefault("rememberMeCookieDays", 30) * 86400)
                 .rememberMeCookieName(cookieName));
+        // Ace loads modes, themes and snippets lazily from here; without it the editor falls back to text mode
+        http.authorizeHttpRequests(auth -> auth.requestMatchers("/ace-builds/**").authenticated());
         return http.with(VaadinSecurityConfigurer.vaadin(), configurer -> configurer.loginView(LoginView.class)).build();
     }
 

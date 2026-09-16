@@ -23,13 +23,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <vaadin.version>25.2.7</vaadin.version>
-        <flyway-core.version>11.20.2</flyway-core.version>
+        <vaadin.version>25.2.8</vaadin.version>
         <ace.version>5.0.1</ace.version>
         <markdown-editor-addon.version>2.0.3</markdown-editor-addon.version>
         <grid-pagination.version>4.0.1</grid-pagination.version>
         <lombok.version>1.18.48</lombok.version>
-        <groovy.version>5.1.1</groovy.version>
+        <groovy.version>5.1.2</groovy.version>
         <janino.version>3.1.12</janino.version>
         <maverick-synergy-client.version>3.1.4</maverick-synergy-client.version>
         <angus-mail.version>2.0.5</angus-mail.version>
@@ -146,7 +145,6 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>${flyway-core.version}</version>
         </dependency>
         <dependency>
             <groupId>de.f0rce</groupId>

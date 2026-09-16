@@ -2,13 +2,13 @@ package org.myworkflows.view.component;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import lombok.NoArgsConstructor;
 import org.myworkflows.domain.WorkflowRunPrint;
-import org.myworkflows.view.component.html.SpanBadge;
 import org.myworkflows.view.component.html.StandardPaginatedGrid;
 
 import java.util.List;
@@ -81,11 +81,11 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
     }
 
     private Component renderName(WorkflowRunPrint print) {
-        return new SpanBadge(print.name());
+        return new Badge(print.name());
     }
 
     private Component renderValueAndType(WorkflowRunPrint print) {
-        final var span = new SpanBadge(print.abbrValue());
+        final var span = new Badge(print.abbrValue());
         Tooltip.forComponent(span)
             .withText(getTranslation("workflow-print.grid.type.tooltip", print.type()))
             .withPosition(Tooltip.TooltipPosition.TOP);

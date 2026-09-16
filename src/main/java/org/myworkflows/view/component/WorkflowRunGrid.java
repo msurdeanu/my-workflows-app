@@ -2,6 +2,8 @@ package org.myworkflows.view.component;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
@@ -15,13 +17,11 @@ import com.vaadin.flow.component.popover.PopoverVariant;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.RouterLink;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.service.WorkflowRunService;
 import org.myworkflows.view.WorkflowRunView;
 import org.myworkflows.view.WorkflowTemplateView;
-import org.myworkflows.view.component.html.SpanBadge;
 import org.myworkflows.view.component.html.StandardPaginatedGrid;
 
 import static java.util.Optional.ofNullable;
@@ -80,26 +80,37 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
             final var routerLink = new RouterLink(template.getName(), WorkflowTemplateView.class, template.getId());
             routerLink.getElement().getThemeList().add("badge small");
             return (Component) routerLink;
-        }).orElseGet(() -> new SpanBadge(getTranslation("workflow-runs.grid.template.manual"), "contrast small"));
+        }).orElseGet(() -> {
+            final var badge = new Badge(getTranslation("workflow-runs.grid.template.manual"));
+            badge.addThemeVariants(BadgeVariant.CONTRAST, BadgeVariant.SMALL);
+            return badge;
+        });
     }
 
     private Component renderStatus(WorkflowRun workflowRun) {
         if (workflowRun.isRunning()) {
-            return new SpanBadge(getTranslation("workflow-runs.grid.status.pending", workflowRun.getHumanReadableDuration()), "contrast small");
+            final var badge = new Badge(getTranslation("workflow-runs.grid.status.pending", workflowRun.getHumanReadableDuration()));
+            badge.addThemeVariants(BadgeVariant.CONTRAST, BadgeVariant.SMALL);
+            return badge;
         }
 
         return ofNullable(workflowRun.getFailureMessage())
-            .map(item -> {
-                final var errorSpan = new SpanBadge(getTranslation("workflow-runs.grid.status.error", workflowRun.getHumanReadableDuration()), "error small");
+            .map(_ -> {
+                final var badge = new Badge(getTranslation("workflow-runs.grid.status.error", workflowRun.getHumanReadableDuration()));
+                badge.addThemeVariants(BadgeVariant.ERROR, BadgeVariant.SMALL);
                 final var popover = new Popover();
-                popover.setTarget(errorSpan);
+                popover.setTarget(badge);
                 popover.setWidth("300px");
                 popover.addThemeVariants(PopoverVariant.ARROW);
                 popover.setPosition(PopoverPosition.BOTTOM);
                 popover.add(createExceptionBlock(workflowRun));
-                return errorSpan;
+                return badge;
             })
-            .orElseGet(() -> new SpanBadge(getTranslation("workflow-runs.grid.status.success", workflowRun.getHumanReadableDuration()), "success small"));
+            .orElseGet(() -> {
+                final var badge = new Badge(getTranslation("workflow-runs.grid.status.success", workflowRun.getHumanReadableDuration()));
+                badge.addThemeVariants(BadgeVariant.SUCCESS, BadgeVariant.SMALL);
+                return badge;
+            });
     }
 
     private Component renderDetails(WorkflowRun workflowRun) {
@@ -152,7 +163,7 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
 
     private Component createExceptionBlock(WorkflowRun workflowRun) {
         final var span = new Span(workflowRun.getFailureMessage());
-        span.addClassNames(LumoUtility.TextColor.ERROR);
+        span.addClassName("text-error");
         return span;
     }
 

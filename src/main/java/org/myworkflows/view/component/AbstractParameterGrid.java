@@ -2,6 +2,7 @@ package org.myworkflows.view.component;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -21,7 +22,6 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import lombok.Setter;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
-import org.myworkflows.view.component.html.SpanBadge;
 import org.myworkflows.view.component.html.StandardPaginatedGrid;
 import org.myworkflows.view.component.html.TextFieldWithEnterShortcut;
 
@@ -41,7 +41,7 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
     private final String id;
 
     @Setter
-    private Function<WorkflowParameter, Component> renderValueFunction = workflowParameter -> new SpanBadge(workflowParameter.getValue());
+    private Function<WorkflowParameter, Component> renderValueFunction = workflowParameter -> new Badge(workflowParameter.getValue());
     @Setter
     private Function<String, WorkflowParameter> createFunction = _ -> null;
     @Setter

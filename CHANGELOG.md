@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.3.2 (2026-09-16)
+
+### Features
+
+* Restyled workflow status banner.
+* Copy workflow id button.
+* Native Vaadin `Badge` replaces `SpanBadge`.
+* Drop remaining `LumoUtility` usages.
+
+### Bug fixes
+
+* Ace editor syntax highlighting restored.
+* Print output scrolls without focus ring.
+
+### Dependencies
+
+* Upgrade Vaadin to 25.2.8.
+* Upgrade Groovy to 5.1.2.
+* Flyway version managed by Spring Boot.
+
 ## 1.3.1 (2026-09-07)
 
 ### Features

@@ -28,7 +28,6 @@ import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteConfiguration;
 import com.vaadin.flow.shared.Registration;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.f0rce.ace.AceEditor;
 import de.f0rce.ace.enums.AceMode;
 import jakarta.annotation.security.PermitAll;
@@ -118,11 +117,11 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         editor.setEnableSnippets(true);
         editor.setUseWorker(true);
         editor.setLiveAutocompletion(true);
-        editor.addAceReadyListener(event -> editor.getElement().executeJs(JS_CODE));
+        editor.addAceReadyListener(_ -> editor.getElement().executeJs(JS_CODE));
         EditorAutoCompleteUtil.apply(editor);
         attachShortcutsToEditor();
 
-        currentWorkflowStatus.addClassNames(LumoUtility.Padding.SMALL, LumoUtility.FontSize.SMALL);
+        currentWorkflowStatus.addClassName("workflow-status");
         currentWorkflowStatus.setVisible(false);
 
         filterByDefinition = createFilterByDefinition();
@@ -285,7 +284,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         }
         runWorkflowButton.setWidthFull();
 
-        editorHelper.addClassNames(LumoUtility.FontSize.XSMALL);
+        editorHelper.addClassName("editor-helper");
         layout.add(currentWorkflowStatus, editor, editorHelper, new Hr(), runWorkflowButton);
         layout.setFlexGrow(1, editor);
         return layout;
@@ -309,43 +308,65 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
 
     private void updateWorkflowProgress(Set<ValidationMessage> validationMessages) {
         currentWorkflowStatus.removeAll();
-        currentWorkflowStatus.removeClassNames(LumoUtility.Background.SUCCESS_10, LumoUtility.Background.WARNING_10);
-        currentWorkflowStatus.addClassName(LumoUtility.Background.ERROR_10);
-        currentWorkflowStatus.add(new Span(getTranslation("workflow-development.validation.message")));
+        setWorkflowStatus("error");
+        final var message = new Div(new Span(getTranslation("workflow-development.validation.message")));
+        message.addClassName("workflow-status-message");
         final var listItems = validationMessages.stream()
             .map(ValidationMessage::getMessage)
             .map(ListItem::new)
             .toList();
-        currentWorkflowStatus.add(new UnorderedList(listItems.toArray(new ListItem[0])));
+        message.add(new UnorderedList(listItems.toArray(new ListItem[0])));
+        currentWorkflowStatus.add(message);
         currentWorkflowStatus.setVisible(true);
     }
 
     private void updateWorkflowProgress(WorkflowRun workflowRun) {
         currentWorkflowStatus.removeAll();
         if (workflowRun.isRunning()) {
-            currentWorkflowStatus.removeClassNames(LumoUtility.Background.ERROR_10, LumoUtility.Background.SUCCESS_10);
-            currentWorkflowStatus.addClassName(LumoUtility.Background.WARNING_10);
-            currentWorkflowStatus.add(new Span(getTranslation("workflow-development.in-progress.message",
-                valueOf(workflowRun.getId()),
+            setWorkflowStatus("running");
+            currentWorkflowStatus.add(createStatusMessage(getTranslation("workflow-development.in-progress.message",
                 LangUtil.pluralize(getTranslation("workflow-development.command"), workflowRun.getLastSuccessfulIndex() + 1)
                     .map(item -> getTranslation("workflow-development.in-progress.command-message", item))
                     .orElse(StringUtils.EMPTY))));
         } else {
             ofNullable(workflowRun.getFailureMessage()).ifPresentOrElse(error -> {
-                currentWorkflowStatus.removeClassNames(LumoUtility.Background.SUCCESS_10, LumoUtility.Background.WARNING_10);
-                currentWorkflowStatus.addClassName(LumoUtility.Background.ERROR_10);
-                currentWorkflowStatus.add(new Span(getTranslation("workflow-development.error.message",
-                    valueOf(workflowRun.getId()), workflowRun.getHumanReadableDuration(),
-                    workflowRun.getFailureMessage())));
+                setWorkflowStatus("error");
+                currentWorkflowStatus.add(createStatusMessage(getTranslation("workflow-development.error.message",
+                    workflowRun.getHumanReadableDuration(), workflowRun.getFailureMessage())));
             }, () -> {
-                currentWorkflowStatus.removeClassNames(LumoUtility.Background.ERROR_10, LumoUtility.Background.WARNING_10);
-                currentWorkflowStatus.addClassName(LumoUtility.Background.SUCCESS_10);
-                currentWorkflowStatus.add(new Span(getTranslation("workflow-development.success.message",
-                    valueOf(workflowRun.getId()), workflowRun.getHumanReadableDuration())));
+                setWorkflowStatus("success");
+                currentWorkflowStatus.add(createStatusMessage(getTranslation("workflow-development.success.message",
+                    workflowRun.getHumanReadableDuration())));
             });
         }
 
+        currentWorkflowStatus.add(createCopyWorkflowIdButton(workflowRun));
         currentWorkflowStatus.setVisible(true);
+    }
+
+    private void setWorkflowStatus(String status) {
+        currentWorkflowStatus.removeClassNames("error", "running", "success");
+        currentWorkflowStatus.addClassName(status);
+    }
+
+    private Div createStatusMessage(String text) {
+        final var message = new Div(new Span(text));
+        message.addClassName("workflow-status-message");
+        return message;
+    }
+
+    private Button createCopyWorkflowIdButton(WorkflowRun workflowRun) {
+        final var workflowId = valueOf(workflowRun.getId());
+        final var button = new Button(VaadinIcon.COPY_O.create());
+        button.addThemeVariants(ButtonVariant.TERTIARY, ButtonVariant.SMALL);
+        button.addClassName("workflow-status-copy");
+        button.setTooltipText(getTranslation("workflow-development.copy-id.button.tooltip"));
+        button.setAriaLabel(getTranslation("workflow-development.copy-id.button.tooltip"));
+        button.addClickListener(_ -> {
+            ClipboardUtil.copyTo(getElement(), workflowId);
+            Notification.show(getTranslation("workflow-development.copy-id.message"));
+        });
+        return button;
     }
 
     private void processReadOnlyParamIfPresent(QueryParameters queryParameters) {
@@ -373,7 +394,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             final var value = base64Decode(getValueAtIndex(queryParameters.getOrDefault("v", List.of()), index, StringUtils.EMPTY));
             final var workflowParameterType = ofNullable(WorkflowParameterType.of(type)).orElse(WorkflowParameterType.STR);
             return workflowParameterType.validate(value)
-                .<Stream<WorkflowParameter>>map(error -> Stream.empty())
+                .<Stream<WorkflowParameter>>map(_ -> Stream.empty())
                 .orElseGet(() -> Stream.of(WorkflowParameter.of(names.get(index), workflowParameterType, value)));
         }).toList());
     }

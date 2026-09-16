@@ -16,6 +16,60 @@
     flex-wrap: wrap;
 }
 
+.workflow-status {
+    padding: var(--vaadin-padding-s) var(--vaadin-padding-m, 12px);
+    font-size: var(--aura-font-size-m);
+    font-weight: 600;
+    border-left: 4px solid currentColor;
+    align-self: stretch;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: var(--vaadin-padding-s);
+}
+
+.workflow-status[hidden] {
+    display: none;
+}
+
+.workflow-status-message {
+    flex: 1;
+    min-width: 0;
+}
+
+.workflow-status-copy {
+    flex-shrink: 0;
+    color: inherit;
+}
+
+.workflow-status ul {
+    margin: var(--vaadin-padding-s) 0 0;
+    font-weight: normal;
+}
+
+.workflow-status.error {
+    background-color: color-mix(in srgb, var(--aura-red) 22%, transparent);
+    color: var(--aura-red-text);
+}
+
+.workflow-status.running {
+    background-color: color-mix(in srgb, var(--aura-yellow) 30%, transparent);
+    color: var(--aura-yellow-text);
+}
+
+.workflow-status.success {
+    background-color: color-mix(in srgb, var(--aura-green) 22%, transparent);
+    color: var(--aura-green-text);
+}
+
+.editor-helper {
+    font-size: var(--aura-font-size-xs);
+}
+
+.text-error {
+    color: var(--aura-red-text);
+}
+
 .workflow-dev-param {
     max-height: 230px;
     overflow: auto;

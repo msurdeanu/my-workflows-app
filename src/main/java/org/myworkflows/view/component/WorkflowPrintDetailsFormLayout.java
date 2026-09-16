@@ -65,7 +65,9 @@ public final class WorkflowPrintDetailsFormLayout extends FormLayout {
             textArea.setReadOnly(true);
             textArea.addThemeVariants(TextAreaVariant.LUMO_SMALL);
             textArea.setMaxHeight("200px");
-            textArea.focus();
+            // scroll to the latest output without focusing, as focus draws the read-only focus ring
+            textArea.addAttachListener(_ -> textArea.getElement()
+                .executeJs("requestAnimationFrame(() => this.scrollToEnd())"));
             return textArea;
         }
     }

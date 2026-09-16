@@ -2,6 +2,8 @@ package org.myworkflows.view.component;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.DataProvider;
@@ -9,7 +11,6 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.streams.DownloadHandler;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.Library;
-import org.myworkflows.view.component.html.SpanBadge;
 import org.myworkflows.view.component.html.StandardPaginatedGrid;
 
 import java.io.File;
@@ -53,9 +54,13 @@ public final class LibraryGrid extends Composite<VerticalLayout> {
 
     private Component renderStatus(Library library) {
         if (library.isLoaded()) {
-            return new SpanBadge(getTranslation("libs.grid.status.ok"), "success small");
+            final var badge = new Badge(getTranslation("libs.grid.status.ok"));
+            badge.addThemeVariants(BadgeVariant.SUCCESS, BadgeVariant.SMALL);
+            return badge;
         } else {
-            return new SpanBadge(getTranslation("libs.grid.status.nok"), "error small");
+            final var badge = new Badge(getTranslation("libs.grid.status.nok"));
+            badge.addThemeVariants(BadgeVariant.ERROR, BadgeVariant.SMALL);
+            return badge;
         }
     }
 
