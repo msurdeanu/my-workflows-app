@@ -70,6 +70,20 @@
     color: var(--aura-red-text);
 }
 
+.workflow-run-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: var(--aura-font-size-s);
+    padding: 2px 8px;
+    border-radius: var(--vaadin-radius-s);
+    background-color: color-mix(in srgb, currentColor 8%, transparent);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.workflow-run-id:hover {
+    background-color: color-mix(in srgb, currentColor 14%, transparent);
+}
+
 .workflow-dev-param {
     max-height: 230px;
     overflow: auto;

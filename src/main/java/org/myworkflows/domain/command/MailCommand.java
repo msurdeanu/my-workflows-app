@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import static com.networknt.schema.utils.StringUtils.isBlank;
+import static com.networknt.schema.utils.Strings.isBlank;
 
 /**
  * @author Mihai Surdeanu

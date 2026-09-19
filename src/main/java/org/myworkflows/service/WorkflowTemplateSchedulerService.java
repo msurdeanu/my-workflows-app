@@ -17,7 +17,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.networknt.schema.utils.StringUtils.isBlank;
+import static com.networknt.schema.utils.Strings.isBlank;
 import static java.util.Optional.ofNullable;
 
 /**

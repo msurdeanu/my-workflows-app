@@ -1,6 +1,6 @@
 package org.myworkflows.view;
 
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
+import org.myworkflows.config.ScriptEditorConfig;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowParameter;
@@ -52,16 +53,17 @@ import org.myworkflows.util.LangUtil;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.HasResizeableWidth;
 import org.myworkflows.view.component.ResponsiveLayout;
+import org.myworkflows.view.component.ScriptEditorDialog;
 import org.myworkflows.view.component.WorkflowDevParamGrid;
 import org.myworkflows.view.component.WorkflowPrintGrid;
 import org.myworkflows.view.util.ClipboardUtil;
 import org.myworkflows.view.util.EditorAutoCompleteUtil;
 import org.myworkflows.view.util.RequestUtil;
+import org.myworkflows.view.util.ScriptBlockUtil;
 
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -117,9 +119,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         editor.setEnableSnippets(true);
         editor.setUseWorker(true);
         editor.setLiveAutocompletion(true);
-        editor.addAceReadyListener(_ -> editor.getElement().executeJs(JS_CODE));
+        editor.addAceReadyListener(_ -> {
+            editor.getElement().executeJs(JS_CODE);
+            editor.getElement().executeJs(ScriptEditorConfig.JS_CODE, getTranslation("workflow-development.script-editor.lens.java"),
+                getTranslation("workflow-development.script-editor.lens.groovy"));
+        });
         EditorAutoCompleteUtil.apply(editor);
         attachShortcutsToEditor();
+        attachScriptEditorToEditor();
 
         currentWorkflowStatus.addClassName("workflow-status");
         currentWorkflowStatus.setVisible(false);
@@ -200,6 +207,39 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             final var currentValue = editor.getValue();
             editor.setValue(toPrettyString(currentValue, currentValue));
         }, Key.KEY_F, KeyModifier.CONTROL, KeyModifier.ALT).listenOn(editor).resetFocusOnActiveElement();
+    }
+
+    private void attachScriptEditorToEditor() {
+        editor.getElement().addEventListener("script-edit", event -> openScriptEditor(
+                event.getEventData().get("event.detail.value").asString(),
+                event.getEventData().get("event.detail.row").asInt()))
+            .addEventData("event.detail.value")
+            .addEventData("event.detail.row");
+    }
+
+    private void openScriptEditor(String definition, int row) {
+        ScriptBlockUtil.locate(definition, row).ifPresentOrElse(scriptBlock -> {
+            final var dialog = new ScriptEditorDialog(scriptBlock, editor.isReadOnly());
+            dialog.addSaveListener(event -> ScriptBlockUtil.replace(definition, row, event.getScript())
+                .ifPresentOrElse(replacement -> writeScript(replacement, dialog), () -> onScriptNotSaved(dialog)));
+            dialog.open();
+        }, () -> Notification.show(getTranslation("workflow-development.script-editor.not-found.message")));
+    }
+
+    private void writeScript(ScriptBlockUtil.Replacement replacement, ScriptEditorDialog dialog) {
+        editor.getElement().executeJs("return this.replaceScriptBlock($0, $1, $2, $3, $4, $5)", replacement.startRow(),
+                replacement.startColumn(), replacement.endRow(), replacement.endColumn(), replacement.source(), replacement.text())
+            .then(Boolean.class, replaced -> {
+                if (!Boolean.TRUE.equals(replaced)) {
+                    onScriptNotSaved(dialog);
+                }
+            }, _ -> onScriptNotSaved(dialog));
+    }
+
+    private void onScriptNotSaved(ScriptEditorDialog dialog) {
+        // reopen the dialog, so that the changes made to the script are not lost
+        Notification.show(getTranslation("workflow-development.script-editor.not-saved.message"));
+        dialog.open();
     }
 
     private Select<WorkflowDefinition> createFilterByDefinition() {
@@ -306,13 +346,13 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         return layout;
     }
 
-    private void updateWorkflowProgress(Set<ValidationMessage> validationMessages) {
+    private void updateWorkflowProgress(List<Error> validationMessages) {
         currentWorkflowStatus.removeAll();
         setWorkflowStatus("error");
         final var message = new Div(new Span(getTranslation("workflow-development.validation.message")));
         message.addClassName("workflow-status-message");
         final var listItems = validationMessages.stream()
-            .map(ValidationMessage::getMessage)
+            .map(error -> error.getInstanceLocation() == null ? error.getMessage() : error.toString())
             .map(ListItem::new)
             .toList();
         message.add(new UnorderedList(listItems.toArray(new ListItem[0])));

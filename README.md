@@ -1,79 +1,87 @@
 # MyWorkflows
 
-[MyWorkflows](https://myworkflows.org) is a simple tool designed to help you automate manual tasks.
-It allows you to encapsulate manual tasks as workflows, schedule them, and view their outputs.
+[MyWorkflows](https://myworkflows.org) is a simple tool that helps you automate manual tasks.
+It lets you encapsulate manual tasks as workflows, schedule them, and view their outputs.
 
-The tool uses Java as its programming language and Vaadin as its UI framework.
+The tool is written in Java and uses Vaadin as its UI framework.
 
 MyWorkflows is ideal for small teams overwhelmed by daily manual tasks.
-All workflows are defined in YAML format, and the tool provides an intuitive UI for interacting with them.
+All workflows are defined in YAML, and the tool provides an intuitive UI for working with them.
 
 ## Technology stack
 
-* Java 25 as a programming language.
-* Spring Boot 4 as a DI framework.
-* [Vaadin 25](https://vaadin.com) as a UI framework.
-* [SQLite](https://www.sqlite.org/) as a relational database for persisting data.
-* [YAML Schema Validator](https://github.com/networknt/json-schema-validator) as a schema validator for workflow scripts.
+* Java 25 as the programming language.
+* Spring Boot 4 as the application and DI framework.
+* [Vaadin 25](https://vaadin.com) as the UI framework.
+* [SQLite](https://www.sqlite.org/) as the relational database for persisting data.
+* [Flyway](https://github.com/flyway/flyway) for database schema migrations.
+* [JSON Schema Validator](https://github.com/networknt/json-schema-validator) for validating workflow scripts.
 * [Groovy](https://groovy-lang.org/) as an additional language for defining commands.
-* [Janino](https://www.janino.net/) as a Java runtime compiler.
-* [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) as another runtime evaluator.
+* [Janino](https://www.janino.net/) as the Java runtime compiler.
+* [SpEL](https://docs.spring.io/spring-framework/reference/core/expressions.html) as another runtime evaluator.
 
 ## Features
 
-* **Modern and responsive UI** for an enhanced user experience.
+* **Modern, responsive UI** for a better user experience.
 * **Authentication** and **authorization** enabled by default for secure access.
-* **Vaadin Push** enabled—using WebSockets, the server can send real-time updates to the client.
+* **Vaadin Push** enabled: using WebSockets, the server can send real-time updates to the client.
 * **Persistence layer** powered by **SQLite** for reliable data storage.
-* Dedicated page for **workflow definition script development**, allowing you to:
+* A dedicated page for **workflow definition script development**, which lets you:
     * Write your script.
     * Inject parameters.
     * Run the script and view its output.
-    * Benefit from an editor with auto-complete functionality to simplify your workflow scripting.
+    * Use an editor with auto-completion to simplify writing workflow scripts.
     * Share the script together with its parameters.
-* Supports replaying a failed workflow, starting from the first command that failed.
-* Dedicated web pages for managing **workflow placeholders**, **workflow definitions**, **workflow templates**, and
-  **workflow runs**.
+* Replay of a failed workflow run, starting from the command that failed.
+* Dedicated web pages for managing **workflow placeholders**, **workflow parameters**, **workflow definitions**,
+  **workflow templates**, and **workflow runs**.
 * A dedicated web page for managing **Java libraries** at runtime.
-* A dedicated web page for writing **Markdown documentation** with ease.
+* A dedicated web page for writing **Markdown documentation**.
 * A dedicated web page for viewing and analyzing **statistics**.
+* A dedicated web page for editing application **settings**.
 
 ## How does it work?
 
 ### Terminology
 
-* **Workflow**: Represents a list of steps that resolve a given task.
-* **Command**: Represents a single step in the workflow. A command has a `name`, a `class`, `ifs`, `inputs`,
-  `asserts` and `outputs`. `name` and `class` are mandatory in order to define a valid command.
-* **If**: Each command allows you to define running conditions. If at least one condition is not met, the command is
+* **Workflow**: A list of steps that together accomplish a given task.
+* **Command**: A single step in the workflow. A command has a `name`, a `class`, `ifs`, `inputs`, `asserts`, and
+  `outputs`. Only `name` and `class` are mandatory. Some commands (`loop` and `waitUntilSubPasses`) also require a list
+  of `subcommands`.
+* **If**: A condition that must be met for the command to run. If at least one condition is not met, the command is
   skipped.
-* **Input**: Each command accepts input parameters that customize the current step.
-* **Assert**: Once a command has run, if the command output exists, you can apply different assertions to it.
-* **Output**: Once a command has run, if the command output exists, you can perform further processing (such as saving
-  the output in another variable).
-* **Variable**: Represents a standalone data variable that is generated by a command and can be used as input by
-  subsequent commands.
+* **Input**: A parameter that customizes the current step.
+* **Assert**: After a command has run, if it produced an output, you can apply assertions to that output.
+* **Output**: After a command has run, if it produced an output, you can process it further (for example, save it to
+  another variable).
+* **Variable**: A named value stored in the workflow run cache. Variables are produced by inputs and outputs and can be
+  used by subsequent commands.
 
 ### Workflow
 
-A `workflow` is the logical entity that encapsulates the multiple steps—called `commands`—needed to implement a task.
+A `workflow` is the logical entity that groups the steps (called `commands`) needed to implement a task.
 Each workflow has a `name`, so you can easily identify what it does.
 
-When the time comes, the workflow can be run `manually` by the user or `automatically` using a scheduler.
-Behind the scenes, a `thread pool` is responsible for executing the workflow.
-Each workflow is scheduled to run inside a single thread, and all of its commands are run in sequential order.
+A workflow can be run `manually` by the user or `automatically` by a scheduler.
+Behind the scenes, a `thread pool` is responsible for executing workflows.
+Each workflow runs on a single thread, and its commands are run sequentially.
+
+A workflow definition can contain at most 100 `commands` and 10 `finallyCommands`.
 
 #### Command
 
 Each command has:
 
-* a `class`
-* `inputs` - define the customization for the current run
-* an `output` - defines the value returned
-* `asserts` - to assert different things when the output is present
-* `outputs` - to process the output further and to save partial outputs in other variables
+* a `name` - identifies the command
+* a `class` - defines the type of the command
+* `ifs` - conditions that must all be met for the command to run
+* `inputs` - customize the current run
+* an `output` - the value returned by the command
+* `asserts` - check the output, if one is present
+* `outputs` - process the output further and save partial results in other variables
 
-The following state diagram describes how a command works:
+Before anything else, all `ifs` are evaluated; if any of them is not `true`, the command is skipped.
+Otherwise, the following state diagram describes how a command works:
 
 ```mermaid
 stateDiagram-v2
@@ -103,44 +111,50 @@ stateDiagram-v2
 
 #### Workflow Templates
 
-Workflow templates can be used to schedule multiple workflow definitions to run programmatically with a cron job.
-Besides the definitions, you can select a set of workflow parameters to be injected each time the template is scheduled.
+Workflow templates let you schedule multiple workflow definitions to run automatically, based on a cron expression.
+Besides the definitions, you can select a set of workflow parameters to be injected each time the template runs.
 
 > [!TIP]
-> You can assign workflow parameters to a specific template by suffixing the parameter name with `.<workflowTemplateId>`. At runtime, when the parameter is injected into the workflow, this suffix is removed.
+> You can assign a workflow parameter to a specific template by suffixing the parameter name with
+> `.<workflowTemplateId>`. At runtime, when the parameter is injected into the workflow, the suffix is removed.
 
 ### Features
 
 #### `Ace` editor
 
-This tool uses [Ace](https://ace.c9.io/) as the code editor for your workflow definition scripts.
+The tool uses [Ace](https://ace.c9.io/) as the code editor for workflow definition scripts.
 The editor is available on the `Workflow Development` page.
 
 The editor provides:
 * **Syntax highlighting**
-* **Live autocompletion**
+* **Live auto-completion**
 * **Snippets**
-  * type `input` to activate the snippet for creating a quick input expression with `name`, `class` and `value`.
-  * type `assert` to activate the snippet for creating a quick assert expression with `name`, `class` and `value`.
-  * type `output` to activate the snippet for creating a quick output expression with `name`, `class` and `value`.
+  * type `input` to insert a snippet for an input expression with `name`, `class`, and `value`.
+  * type `assert` to insert a snippet for an assert expression with `name`, `class`, and `value`.
+  * type `output` to insert a snippet for an output expression with `name`, `class`, and `value`.
 * **Key bindings**
-  * <kbd>Ctrl</kbd> + <kbd>A</kbd> = Select the entire code. Editor focus is required.
-  * <kbd>Ctrl</kbd> + <kbd>F</kbd> = Search inside the code. Editor focus is required.
-  * <kbd>Ctrl</kbd> + <kbd>L</kbd> = Go to a specific line in the code. Editor focus is required.
-  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd> = Reformat code. Editor focus is required.
-  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>W</kbd> = Wrap / unwrap code. Editor focus is required.
+  * <kbd>Alt</kbd> + <kbd>E</kbd> = Focus the editor.
+  * <kbd>Ctrl</kbd> + <kbd>A</kbd> = Select all code. Requires editor focus.
+  * <kbd>Ctrl</kbd> + <kbd>F</kbd> = Search the code. Requires editor focus.
+  * <kbd>Ctrl</kbd> + <kbd>L</kbd> = Go to a specific line. Requires editor focus.
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd> = Reformat the code. Requires editor focus.
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>W</kbd> = Toggle line wrapping. Requires editor focus.
+  * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>J</kbd> = Open the `java.script` or `groovy.script` under the cursor in the script editor. Requires editor focus.
+* **Script editor for `java` and `groovy` commands**
+  * click `Open in Java editor` / `Open in Groovy editor`, shown above each `java.script` / `groovy.script` input, to edit the script in a dedicated editor with Java / Groovy syntax highlighting.
+  * press <kbd>Ctrl</kbd> + <kbd>S</kbd> or click `Save` to write the script back into the workflow definition. The script is re-indented automatically, the rest of the definition (including comments) stays untouched, and <kbd>Ctrl</kbd> + <kbd>Z</kbd> in the workflow editor undoes the whole change.
 * **Search and replace with regular expressions**
 * **Display of hidden characters**
 * **Code folding**
 * **Multiple cursors and selections**
-* **Live syntax checker (for YAML syntax)**
-* **Cut, copy, and paste functionality**
+* **Live syntax checking (for YAML)**
+* **Cut, copy, and paste**
 * and much more
 
 #### `Finally` commands
 
-The concept of `finally commands` lets you declare special commands that are executed at the end of your workflow, no
-matter whether the workflow failed or not.
+`Finally commands` are special commands that are executed at the end of your workflow, regardless of whether the
+workflow failed.
 The concept is similar to the `try-finally` block in Java.
 
 ```
@@ -152,53 +166,58 @@ try {
 ```
 
 > [!TIP]
-> You are not allowed to have more than 10 finally commands inside a single workflow definition!
+> A single workflow definition cannot have more than 10 finally commands.
 
 #### Placeholders
 
-You can use global `placeholders` to avoid data duplication in your workflow definition.
-Please note that all placeholders are resolved immediately before a workflow run.
-All placeholders are persisted in a database table called `placeholders`.
+You can use global `placeholders` to avoid duplicating data across workflow definitions.
+All placeholders are resolved immediately before a workflow runs.
+Placeholders are persisted in a database table called `workflow_placeholders`.
 
-Inside a workflow definition, you can recognize a placeholder by its format: `$$([A-Z0-9_.]+)`.
-You can use placeholders inside any `input`, `assert` and `output` (in the `name` and `value` fields).
-
-> [!TIP]
-> The name of the placeholder must match the pattern `[A-Z0-9_.]+` in order to be accepted as a valid placeholder.
+Inside a workflow definition, a placeholder has the format `$$(PLACEHOLDER_NAME)`.
+You can use placeholders inside any `input`, `assert`, and `output` (in both the `name` and `value` fields), including
+those of subcommands.
 
 > [!TIP]
-> If the placeholder you are looking for is not found, you will receive a runtime exception.
+> A placeholder name must match the pattern `[A-Z0-9_.]+` to be recognized as a valid placeholder.
+
+> [!TIP]
+> If a placeholder cannot be found, you will get a runtime exception.
 
 #### Expressions
 
 Expressions are the heart of this tool.
-By using them, you are able to pass information between commands.
-Expressions are evaluated at runtime, and they can be used anywhere inside an `input`, `assert`, `output` or `if`
-structure.
-Inside these structures, the expression is always encapsulated in the `value` field.
-Each expression is evaluated by a runtime evaluator specified by the user in the `class` field.
+They let you pass information between commands.
+Expressions are evaluated at runtime and can be used inside any `input`, `assert`, `output`, or `if`.
+Inside these structures, the expression is always placed in the `value` field.
+Each expression is evaluated by the runtime evaluator specified in the `class` field.
 
 Currently, **3 runtime evaluators** are supported:
 
-1. Set `class` to `groovy` if you want to enable the Groovy runtime evaluator.
-2. Set `class` to `java` if you want to enable the Java runtime evaluator based on the [Janino](https://www.janino.net/)
-   runtime compiler.
-3. Set `class` to `spel` if you want to
-   enable the [SpEL](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html) runtime evaluator.
+1. Set `class` to `groovy` to use the Groovy runtime evaluator.
+2. Set `class` to `java` to use the Java runtime evaluator, based on the [Janino](https://www.janino.net/) runtime
+   compiler.
+3. Set `class` to `spel` to use
+   the [SpEL](https://docs.spring.io/spring-framework/reference/core/expressions.html) runtime evaluator.
 
-If `class` is not set, this field defaults to `plain`, which means the value is treated exactly as it is.
+If `class` is not set, it defaults to `plain`, which means the value is used exactly as written.
+
+The following variables are available inside an expression:
+
+* `cache` - the workflow run cache (in SpEL, use `#cache`).
+* `output` - the command output (in SpEL, use `#output`). Available only in `asserts` and `outputs`.
 
 ##### Examples
 
-###### Retrieve the exit code after running the `sshExec` command by using the SpEL runtime evaluator
+###### Check that the exit code of the `sshExec` command is 0, using the SpEL runtime evaluator
 
 ```yaml
-name: Asserts output exitCode to be equal with 0
+name: Assert that output exitCode equals 0
 class: spel
 value: "#output.getExitCode() == 0"
 ```
 
-###### Retrieve information from the workflow run cache and save it to another variable (named `sleep.time`)
+###### Read a value from the workflow run cache and save it to another variable (named `sleep.time`)
 
 ```yaml
 name: sleep.time
@@ -208,14 +227,13 @@ value: "cache.get('sleepTime').toInteger()"
 
 ##### Cache access patterns
 
-If you look at all the examples above, you will see that writing an expression is sometimes quite challenging, because
-the expression is too long.
-In addition, accessing the workflow run cache with a pattern such as `cache.get('sleepTime')` makes the expression
+As the examples above show, expressions can get long and hard to write.
+In addition, accessing the workflow run cache with a call such as `cache.get('sleepTime')` makes the expression
 harder to read.
 
-This is why the tool exposes a simplified alternative: **the cache access pattern feature**.
+This is why the tool provides a simpler alternative: **cache access patterns**.
 
-If we take one of the previous examples:
+Take one of the previous examples:
 
 ```yaml
 name: sleep.time
@@ -223,7 +241,7 @@ class: groovy
 value: "cache.get('sleepTime').toInteger()"
 ```
 
-we can rewrite it like this:
+It can be rewritten like this:
 
 ```yaml
 name: sleep.time
@@ -233,39 +251,41 @@ value: "$(sleepTime:Integer.class)"
 
 The tool recognizes every string inside `value` that matches the following regular expression:
 `\$\(([a-zA-Z0-9_.]+)(:[a-zA-Z0-9_.]+)?\)`.
-The string between the parentheses is split into two parts: the first one defines the name of the variable to look up in
-the workflow run cache (this part is mandatory), while the second one is optional and defines the type of the value you
-are looking for.
+The text between the parentheses has two parts: the first (mandatory) is the name of the variable to look up in the
+workflow run cache, and the second (optional) is the expected type of its value.
 
-If there is no variable named `sleepTime` of type `Integer` in the workflow run cache, you will receive a runtime
-exception during the workflow execution phase.
+The type must be written in the syntax of the evaluator you use:
+
+* `groovy` and `java`: a class literal, for example `$(sleepTime:Integer.class)`.
+* `spel`: a fully qualified class name, for example `$(sleepTime:java.lang.Integer)`.
+
+If the workflow run cache has no variable named `sleepTime` of type `Integer`, you will get a runtime exception while
+the workflow is running.
 
 #### How to debug workflow runs?
 
-To debug workflow runs, you have to inject a parameter called `debug` and set it to `true` as a `boolean`
-type.
-Once this is done, your workflow run has the debug flag activated, and more prints are displayed by default.
+To debug a workflow run, inject a parameter named `debug` of type `boolean` and set it to `true`.
+With the debug flag enabled, the run also prints the resolved type and value of every command parameter.
 
 #### Load Java libraries at runtime
 
-The tool is able to load a list of Java libraries (JAR files) at runtime, during the application initialization
-phase.
-This is quite useful if you want to extend `java` or `groovy` commands with more functionality.
+The tool can load Java libraries (JAR files) at runtime, while the application is starting up.
+This is useful if you want to extend `java` or `groovy` commands with more functionality.
 
-To do this, please use the following application config property:
+To do this, use the following application config properties:
 
 ```yaml
 my-workflows:
   config:
     library:
-      base-directory: "./libs" # Directory where all JAR files are discovered
-      reload-after-upload: false # Set this property to true to reload the new libraries at runtime after uploading them
+      base-directory: "./libs" # Directory where JAR files are discovered
+      reload-after-upload: false # Set to true to reload libraries at runtime after uploading new ones
 ```
 
 #### Comments
 
-From a technical point of view, each workflow is defined in YAML format.
-If you are familiar with the YAML format, you probably know that comments are allowed:
+Technically, each workflow is defined in YAML.
+If you are familiar with YAML, you probably know that comments are allowed:
 
 ```yaml
 # This is a simple comment
@@ -276,54 +296,54 @@ value: "$(sleepTime:Integer.class)"
 
 #### Anchors and aliases
 
-Relying on the YAML format gives us the opportunity to use anchors and aliases to simplify a workflow definition.
-More details about how to use them are
-described [here](https://www.educative.io/blog/advanced-yaml-syntax-cheatsheet#YAML-Anchors-and-Alias).
+Because workflows are written in YAML, you can use anchors and aliases to simplify a workflow definition.
+You can find more details about how to use them
+[here](https://www.educative.io/blog/advanced-yaml-syntax-cheatsheet#YAML-Anchors-and-Alias).
 
 #### Shortcuts
 
-Shortcuts are available in multiple views, and they are there to improve your experience.
+Keyboard shortcuts are available in several views to make your work faster.
 
 * **Workflow Development** view:
     * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> = Run workflow
     * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>U</kbd> = Update workflow definition
     * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd> = Share workflow
 
-#### REST API interface
+#### REST API
 
-The app also provides a REST API that can be used to interact with it programmatically.
+The app also provides a REST API that lets you interact with it programmatically.
 
-The REST API is not enabled by default, but you can enable this feature by setting the application config property
+The REST API is disabled by default. You can enable it by setting the application config property
 `my-workflows.config.feature.restApiEnabled` to `true`.
 
-Each user has a `token` field (usually 64 random characters), which represents the API token used to
-authenticate REST API calls. The token is unique across all users, so two users cannot have the same token.
+Each user has a `token` field (usually 64 random characters), which is the API token used to authenticate REST API
+calls. Tokens are unique, so no two users can have the same token.
 
-To authenticate REST API calls, you need to provide the `token` URL parameter for every request:
-`GET:https://myworkflows.org/workflow-definitions?token={TOKEN}`.
+To authenticate a REST API call, provide the `token` URL parameter with every request, for example:
+`GET https://myworkflows.org/api/v1/workflow-definitions?token={TOKEN}`.
 
 The following APIs are available:
 
 ##### `WorkflowDefinition` APIs
 
-| Method | URI                                              | Description                                                                                                                                                                                                                                          |
-|--------|--------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `GET`  | `/api/v1/workflow-definitions`                   | Returns all workflow definitions as a list of `WorkflowDefinitionResponse` objects.                                                                                                                                                                  |
-| `GET`  | `/api/v1/workflow-definitions/{id}`              | Returns a single workflow definition (selected by `id`, of type `int`) as a `WorkflowDefinitionResponse` object. An exception is raised if nothing is found.                                                                                          |
-| `POST` | `/api/v1/workflow-definitions/{id}/schedule-now` | Immediately schedules a run for a specific workflow definition (selected by `id`, of type `int`). The request body is mandatory and contains a `Map<String, Object>` with parameters. Returns the UUID, as a string, that identifies the workflow run. |
+| Method | URI                                              | Description                                                                                                                                                                                                                                       |
+|--------|--------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`  | `/api/v1/workflow-definitions`                   | Returns all workflow definitions as a list of `WorkflowDefinitionResponse` objects.                                                                                                                                                               |
+| `GET`  | `/api/v1/workflow-definitions/{id}`              | Returns a single workflow definition (selected by `id`, of type `int`) as a `WorkflowDefinitionResponse` object. An exception is raised if nothing is found.                                                                                      |
+| `POST` | `/api/v1/workflow-definitions/{id}/schedule-now` | Immediately schedules a run of a specific workflow definition (selected by `id`, of type `int`). The request body is mandatory and contains the parameters as a `Map<String, Object>`. Returns the UUID of the workflow run, as a string.          |
 
 ##### `WorkflowTemplate` APIs
 
 | Method | URI                                            | Description                                                                                                                                              |
-|--------|------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|--------|------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `GET`  | `/api/v1/workflow-templates`                   | Returns all workflow templates as a list of `WorkflowTemplateResponse` objects.                                                                          |
 | `GET`  | `/api/v1/workflow-templates/{id}`              | Returns a single workflow template (selected by `id`, of type `int`) as a `WorkflowTemplateResponse` object. An exception is raised if nothing is found. |
-| `POST` | `/api/v1/workflow-templates/{id}/schedule-now` | Immediately schedules a run for a specific workflow template (selected by `id`, of type `int`). Nothing is returned.                                     |
+| `POST` | `/api/v1/workflow-templates/{id}/schedule-now` | Immediately schedules a run of a specific workflow template (selected by `id`, of type `int`). Nothing is returned.                                      |
 
 ##### `WorkflowRun` APIs
 
 | Method | URI                          | Description                                                                                                                                       |
-|--------|------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+|--------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
 | `GET`  | `/api/v1/workflow-runs`      | Returns all workflow runs as a list of `WorkflowRunResponse` objects.                                                                             |
 | `GET`  | `/api/v1/workflow-runs/{id}` | Returns a single workflow run (selected by `id`, of type `String`) as a `WorkflowRunResponse` object. An exception is raised if nothing is found. |
 
@@ -331,13 +351,13 @@ The following APIs are available:
 
 ### Database command
 
-Provides the ability to interact with a relational database by running SQL queries.
+Lets you interact with a relational database by running SQL queries.
 
-| `class`    | Inputs                                                                                                                                                                               | Output                         |
-|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
-| `database` | <ul><li><strong>database.url</strong>: Mandatory. Represents the connection URL.</li><li><strong>database.query</strong>: Mandatory. Represents the query that is executed.</li></ul> | Returns `Optional<ResultSet>`. |
+| `class`    | Inputs                                                                                                                                                                                    | Output                                                                                                                   |
+|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| `database` | <ul><li><strong>database.url</strong>: Mandatory. The JDBC connection URL.</li><li><strong>database.query</strong>: Mandatory. The query to execute. It must return a result set.</li></ul> | Returns `Optional<ResultSet>`. The result set is detached from the connection. The `Optional` is empty if no rows are returned. |
 
-Example of a sample command:
+Example command:
 
 ```yaml
 commands:
@@ -352,13 +372,13 @@ commands:
 
 ### Mail command
 
-This command allows you to send emails using the Jakarta Mail API.
+Sends emails using the Jakarta Mail API.
 
-| `class` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Output |
-|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
-| `mail`  | <ul><li><strong>mail.from</strong>: Mandatory. Email address of the sender.</li><li><strong>mail.to</strong>: Mandatory. Email address of the recipient.</li><li><em>mail.cc</em>: Optional. CC email address.</li><li><em>mail.bcc</em>: Optional. BCC email address.</li><li><strong>mail.subject</strong>: Mandatory. The email subject.</li><li><strong>mail.body</strong>: Mandatory. The email body.</li><li><strong>mail.props</strong>: Mandatory. Email properties, as a map.</li><li><em>mail.bodyType</em>: Optional. Defines the type of the body. Default value: `text/html; charset=utf-8`.</li><li><em>mail.username</em>: Optional. The username used for authentication. Leave it blank to disable authentication.</li><li><em>mail.password</em>: Optional. The password of the user.</li></ul> | N/A    |
+| `class` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Output |
+|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
+| `mail`  | <ul><li><strong>mail.from</strong>: Mandatory. The sender's email address.</li><li><strong>mail.to</strong>: Mandatory. The recipients' email addresses, separated by commas.</li><li><em>mail.cc</em>: Optional. CC email addresses, separated by commas.</li><li><em>mail.bcc</em>: Optional. BCC email addresses, separated by commas.</li><li><strong>mail.subject</strong>: Mandatory. The email subject.</li><li><strong>mail.body</strong>: Mandatory. The email body.</li><li><strong>mail.props</strong>: Mandatory. Jakarta Mail properties, as a map.</li><li><em>mail.bodyType</em>: Optional. The content type of the body. Default value: `text/html; charset=utf-8`.</li><li><em>mail.username</em>: Optional. The username used for authentication. Leave it blank to disable authentication.</li><li><em>mail.password</em>: Optional. The user's password.</li></ul> | N/A    |
 
-Example of a sample command:
+Example command:
 
 ```yaml
 commands:
@@ -385,21 +405,21 @@ commands:
         value:
           mail.smtp.auth: true
           mail.smtp.starttls.enable: true
-          mail.smtp.host: sandbox.smtp.mailtrap.ip
+          mail.smtp.host: sandbox.smtp.mailtrap.io
           mail.smtp.port: 25
           mail.smtp.ssl.trust: sandbox.smtp.mailtrap.io
 ```
 
 ### Groovy command
 
-Provides the ability to run Groovy code at runtime.
-As you can probably imagine, this command is very powerful.
+Runs Groovy code at runtime.
+As you can imagine, this command is very powerful.
 
-| `class`  | Inputs                                                                                                                                                                                                                                                                                     | Output                                       |
-|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------|
-| `groovy` | <ul><li><strong>groovy.script</strong>: Mandatory. Represents the source code that contains the definition of the `groovy.method` (or `run`) method to be executed.</li><li><em>groovy.method</em>: Optional. Represents the name of the method invoked when the code is executed.</li></ul> | Return value of the invoked method or `void` |
+| `class`  | Inputs                                                                                                                                                                                                                                                                                                                                                            | Output                                         |
+|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------|
+| `groovy` | <ul><li><strong>groovy.script</strong>: Mandatory. The source code that defines the method named by `groovy.method`. The method is invoked with the workflow run cache as its only argument.</li><li><em>groovy.method</em>: Optional. The name of the method to invoke. Default value: `run`.</li></ul> | The return value of the invoked method, or none |
 
-Example of a sample command:
+Example command:
 
 ```yaml
 commands:
@@ -416,13 +436,13 @@ commands:
 
 ### HTTP Request command
 
-This command provides a programmatic way to perform HTTP requests.
+Performs HTTP requests.
 
-| `class`       | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Output                   |
-|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
-| `httpRequest` | <ul><li><strong>httpRequest.url</strong>: Mandatory. Represents the request URL.</li><li><em>httpRequest.method</em>: Optional. Represents the request method type. Default value: `GET`.</li><li><em>httpRequest.body</em>: Optional. Represents the request body. No body is set by default.</li><li><em>httpRequest.headers</em>: Optional. Map with the request headers.</li><li><em>httpRequest.timeout</em>: Optional. Defines the connection and read timeout, in milliseconds. Default value: `60000`.</li></ul> | `ResponseEntity<String>` |
+| `class`       | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Output                   |
+|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| `httpRequest` | <ul><li><strong>httpRequest.url</strong>: Mandatory. The request URL.</li><li><em>httpRequest.method</em>: Optional. The HTTP method. Default value: `GET`.</li><li><em>httpRequest.body</em>: Optional. The request body. No body is sent by default.</li><li><em>httpRequest.headers</em>: Optional. A map of request headers.</li><li><em>httpRequest.timeout</em>: Optional. The connection and read timeout, in milliseconds. Default value: `60000`.</li></ul> | `ResponseEntity<String>` |
 
-Example of a sample command:
+Example command:
 
 ```yaml
 commands:
@@ -435,14 +455,14 @@ commands:
 
 ### Java command
 
-Provides the ability to run Java code at runtime.
-Like the Groovy command, this command is also very powerful.
+Runs Java code at runtime.
+Like the Groovy command, this command is very powerful.
 
-| `class` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Output                                       |
-|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------|
-| `java`  | <ul><li><strong>java.script</strong>: Mandatory. Represents the source code that contains the definition of the `java.method` (or `run`) method, inside a `java.clazz` (or `DynamicClass`) class, which is executed.</li><li><em>java.method</em>: Optional. Represents the name of the method invoked when the code is executed.</li><li><em>java.clazz</em>: Optional. Represents the name of the class invoked when the code is executed.</li><li><em>java.sourceVersion</em>: Optional. Sets the source version used for Java compilation before running the script.</li><li><em>java.targetVersion</em>: Optional. Sets the target version used for Java compilation before running the script.</li></ul> | Return value of the invoked method or `void` |
+| `class` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Output                                          |
+|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------|
+| `java`  | <ul><li><strong>java.script</strong>: Mandatory. The source code of the class named by `java.clazz`, which must have a public no-args constructor and a public method named by `java.method` that takes a `WorkflowRunCache` argument.</li><li><em>java.method</em>: Optional. The name of the method to invoke. Default value: `run`.</li><li><em>java.clazz</em>: Optional. The name of the class to instantiate. Default value: `DynamicClass`.</li><li><em>java.sourceVersion</em>: Optional. The Java source version used to compile the script. Default value: `11`.</li><li><em>java.targetVersion</em>: Optional. The Java target version used to compile the script. Default value: `11`.</li></ul> | The return value of the invoked method, or none |
 
-Example of a sample command:
+Example command:
 
 ```yaml
 commands:
@@ -465,23 +485,92 @@ commands:
 
 ### Loop command
 
-This command lets you iterate over a list of items and run a list of subcommands for each of them.
-The command can be seen as the equivalent of a `for` loop in Java.
+Iterates over a list of items and runs the list of `subcommands` for each of them.
+You can think of it as the equivalent of a `for` loop in Java.
 
-| `class` | Inputs                                                                                                                                                                                                      | Output                                                          |
-|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
-| `loop`  | <ul><li><strong>loop.items</strong>: Mandatory. The list of items.</li><li><em>loop.backoffPeriod</em>: Optional. Backoff period, in milliseconds, between two iterations. Default value: 1000 ms.</li></ul> | Sets `loop.item` to the current item and returns the item count |
+| `class` | Inputs                                                                                                                                                                                                             | Output                                   |
+|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
+| `loop`  | <ul><li><strong>loop.items</strong>: Mandatory. The list of items.</li><li><em>loop.backoffPeriod</em>: Optional. The pause, in milliseconds, between two iterations. Default value: `1000`.</li></ul> | Returns the number of items. Type: `int` |
+
+During each iteration, the current item is available in the `loop.item` variable.
+Outputs of subcommands are not saved directly: each output variable becomes a map whose keys are the loop items and
+whose values are the results of the corresponding iterations.
+
+Example command:
+
+```yaml
+commands:
+  - name: Upper-case every item
+    class: loop
+    inputs:
+      - name: loop.items
+        value:
+          - first
+          - second
+      - name: loop.backoffPeriod
+        value: 0
+    subcommands:
+      - name: Upper-case current item
+        class: groovy
+        inputs:
+          - name: groovy.script
+            value: |
+              def run(cache) {
+                cache.get('loop.item').toUpperCase()
+              }
+        outputs:
+          - name: upperCaseItems # becomes {first: FIRST, second: SECOND}
+            class: spel
+            value: "#output"
+```
+
+### Wait until subcommands pass command
+
+Runs the list of `subcommands` repeatedly until all of them pass (no exception and no failed assertion) or until the
+maximum number of rounds is reached.
+This is useful for waiting until a resource becomes available.
+
+| `class`              | Inputs                                                                                                                                                                                                                                                             | Output                                                                                  |
+|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| `waitUntilSubPasses` | <ul><li><em>waitUntilSubPasses.rounds</em>: Optional. The maximum number of rounds. Default value: `3`.</li><li><em>waitUntilSubPasses.backoffPeriod</em>: Optional. The pause, in milliseconds, between two rounds. Default value: `1000`.</li></ul> | Returns the number of unused rounds, or `-1` if every round failed. Type: `int` |
+
+> [!IMPORTANT]
+> The command does not fail when every round fails. Add an assert (for example, `#output >= 0`) if the workflow should
+> fail in that case.
+
+Example command:
+
+```yaml
+commands:
+  - name: Wait until the service is up
+    class: waitUntilSubPasses
+    inputs:
+      - name: waitUntilSubPasses.rounds
+        value: 5
+      - name: waitUntilSubPasses.backoffPeriod
+        value: 2000
+    subcommands:
+      - name: Call the health endpoint
+        class: httpRequest
+        inputs:
+          - name: httpRequest.url
+            value: http://my-service:8080/health
+    asserts:
+      - name: The service is up
+        class: spel
+        value: "#output >= 0"
+```
 
 ### Nothing command
 
 This command does nothing.
-Its purpose is to allow inputs to be injected into the workflow pipeline.
+Its purpose is to inject inputs into the workflow pipeline.
 
 | `class`   | Inputs | Output |
 |-----------|--------|--------|
 | `nothing` | N/A    | N/A    |
 
-Example of a sample command:
+Example command:
 
 ```yaml
 commands:
@@ -494,13 +583,13 @@ commands:
 
 ### Print command
 
-Captures an input / output variable during workflow execution and displays its value in the UI.
+Captures variables during workflow execution and displays their values in the UI.
 
-| `class` | Inputs                                                                                                             | Output                                                                    |
-|---------|--------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| `print` | <ul><li><strong>print.keys</strong>: Mandatory. Represents the list of variable names that are displayed.</li></ul> | Returns the total number of keys affected by this operation. Type: `int`. |
+| `class` | Inputs                                                                                                          | Output                                                                                             |
+|---------|-----------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| `print` | <ul><li><strong>print.keys</strong>: Mandatory. The list of names of the variables to display.</li></ul>        | Returns the number of keys that were found in the workflow run cache and marked for printing. Type: `int`. |
 
-Example of a sample command:
+Example command:
 
 ```yaml
 commands:
@@ -518,18 +607,19 @@ commands:
 ```
 
 > [!IMPORTANT]  
-> All variables whose name contains `password` (case-insensitive) have all of their characters replaced with `*`.
+> For every variable whose name contains `password` (case-insensitive), each non-whitespace character of its value is
+> replaced with `*`.
 
 ### Sleep command
 
-Provides the ability to pause the current workflow execution for a given amount of time.
+Pauses the current workflow execution for a given amount of time.
 The time unit is milliseconds.
 
-| `class` | Inputs                                                                                                   | Output                                       |
-|---------|----------------------------------------------------------------------------------------------------------|----------------------------------------------|
-| `sleep` | <ul><li><strong>sleep.time</strong>: Mandatory. Represents the number of milliseconds to sleep.</li></ul> | Returns the actual time slept. Type: `long`. |
+| `class` | Inputs                                                                                               | Output                                       |
+|---------|------------------------------------------------------------------------------------------------------|----------------------------------------------|
+| `sleep` | <ul><li><strong>sleep.time</strong>: Mandatory. The number of milliseconds to sleep.</li></ul> | Returns the actual time slept. Type: `long`. |
 
-Example of a sample command:
+Example command:
 
 ```yaml
 commands:
@@ -542,15 +632,15 @@ commands:
 
 ### Single SSH command
 
-This command can be used to execute a single SSH operation in a single SSH session.
+Executes a single command in an SSH session.
 
 Equivalent SSH command: `ssh user@localhost ls -l`
 
-| `class`   | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Output                                                                          |
-|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| `sshExec` | <ul><li><strong>sshExec.host</strong>: Mandatory. Represents the host.</li><li><strong>sshExec.command</strong>: Mandatory. Represents the command.</li><li><strong>sshExec.username</strong>: Mandatory. Represents the username.</li><li><strong>sshExec.password</strong>: Mandatory. Represents the password.</li><li><em>sshExec.port</em>: Optional. The SSH port. Default value: `22`.</li><li><em>sshExec.timeout</em>: Optional. Defines the timeout, in milliseconds, for the operation to complete. Default value: `60000`.</li></ul> | `SshCommandOutput` - contains `exitCode` as an integer and `output` as a string |
+| `class`   | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Output                                                                          |
+|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| `sshExec` | <ul><li><strong>sshExec.host</strong>: Mandatory. The host.</li><li><strong>sshExec.command</strong>: Mandatory. The command to execute.</li><li><strong>sshExec.username</strong>: Mandatory. The username.</li><li><strong>sshExec.password</strong>: Mandatory. The password.</li><li><em>sshExec.port</em>: Optional. The SSH port. Default value: `22`.</li><li><em>sshExec.timeout</em>: Optional. The timeout, in milliseconds, for the operation to complete. Default value: `60000`.</li></ul> | `SshCommandOutput` - contains `exitCode` as an integer and `output` as a string |
 
-Example of a sample command:
+Example command:
 
 ```yaml
 commands:
@@ -573,14 +663,14 @@ commands:
 
 ### Multiple SSH commands
 
-This command can be used to execute multiple SSH operations in a single SSH session.
-The command opens a shell and runs all of the given commands in that shell.
+Executes multiple commands in a single SSH session.
+The command opens a shell and runs all the given commands in it.
 
-| `class`    | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Output                                                                          |
-|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| `sshShell` | <ul><li><strong>sshShell.host</strong>: Mandatory. Represents the host.</li><li><strong>sshShell.commands</strong>: Mandatory. Represents the list of commands.</li><li><strong>sshShell.username</strong>: Mandatory. Represents the username.</li><li><strong>sshShell.password</strong>: Mandatory. Represents the password.</li><li><em>sshShell.port</em>: Optional. The SSH port. Default value: `22`.</li><li><em>sshShell.timeout</em>: Optional. Defines the timeout, in milliseconds, for the operation to complete. Default value: `60000`.</li></ul> | `SshCommandOutput` - contains `exitCode` as an integer and `output` as a string |
+| `class`    | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Output                                                                                                                                  |
+|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `sshShell` | <ul><li><strong>sshShell.host</strong>: Mandatory. The host.</li><li><strong>sshShell.commands</strong>: Mandatory. The list of commands to execute.</li><li><strong>sshShell.username</strong>: Mandatory. The username.</li><li><strong>sshShell.password</strong>: Mandatory. The password.</li><li><em>sshShell.port</em>: Optional. The SSH port. Default value: `22`.</li><li><em>sshShell.timeout</em>: Optional. The timeout, in milliseconds, for the operation to complete. Default value: `60000`.</li></ul> | `SshCommandOutput` - contains `exitCode` (the exit code of the last command) as an integer and `output` (the combined output of all commands) as a string |
 
-Example of a sample command:
+Example command:
 
 ```yaml
 commands:
@@ -605,10 +695,10 @@ commands:
 
 ## Examples of workflow pipelines
 
-You can find a set of concrete workflow pipelines that you can use for
+You can find a set of concrete workflow pipelines to use as
 inspiration [here](https://github.com/msurdeanu/my-workflows-app/wiki/Samples-of-workflow-definitions).
 
 ## From a development perspective
 
-Do you want to contribute to this project as a developer? You can find more technical
+Would you like to contribute to this project as a developer? You can find more technical
 details [here](https://github.com/msurdeanu/my-workflows-app/wiki/From-development-perspective).

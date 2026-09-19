@@ -17,7 +17,7 @@ import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Optional;
 
-import static com.networknt.schema.utils.StringUtils.isBlank;
+import static com.networknt.schema.utils.Strings.isBlank;
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.config.LibraryConfig.JAR_EXTENSION;
 import static org.myworkflows.exception.WorkflowRuntimeException.wrap;

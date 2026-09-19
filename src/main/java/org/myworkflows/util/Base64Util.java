@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-import static com.networknt.schema.utils.StringUtils.isBlank;
+import static com.networknt.schema.utils.Strings.isBlank;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Base64.getEncoder;
 import static org.myworkflows.util.ByteArrayCompressUtil.compress;

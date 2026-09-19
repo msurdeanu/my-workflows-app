@@ -1,6 +1,6 @@
 package org.myworkflows.service;
 
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -55,15 +54,15 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
         // validation failure - with the run they submitted.
         final var onSubmittedEventBuilder = WorkflowDefinitionOnSubmittedEvent.builder()
             .workflowRun(onSubmitEvent.workflowRun())
-            .validationMessages(Set.of());
+            .validationMessages(List.of());
 
         if (workflowDefScriptObject instanceof String workflowAsString) {
-            Set<ValidationMessage> validationMessages;
+            List<Error> validationMessages;
             try {
                 validationMessages = applicationManager.getBeanOfType(WorkflowDefinitionValidatorService.class)
                     .validate(workflowAsString);
             } catch (Exception exception) {
-                validationMessages = Set.of(ValidationMessage.builder().message(exception.getMessage()).build());
+                validationMessages = List.of(Error.builder().message(exception.getMessage()).build());
             }
             onSubmittedEventBuilder.validationMessages(validationMessages);
             if (!validationMessages.isEmpty()) {

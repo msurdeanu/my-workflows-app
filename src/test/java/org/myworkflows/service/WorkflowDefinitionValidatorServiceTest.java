@@ -51,7 +51,7 @@ public final class WorkflowDefinitionValidatorServiceTest {
         // when and then
         final var validationMessages = new WorkflowDefinitionValidatorService().validate(workflowAsString);
         assertEquals(1, validationMessages.size());
-        assertEquals("$.commands[0]: required property 'name' not found", validationMessages.iterator().next().getMessage());
+        assertEquals("$.commands[0]: required property 'name' not found", validationMessages.getFirst().toString());
     }
 
     @Test
@@ -75,7 +75,7 @@ public final class WorkflowDefinitionValidatorServiceTest {
         final var validationMessages = new WorkflowDefinitionValidatorService().validate(workflowAsString);
         assertEquals(1, validationMessages.size());
         assertEquals("$.commands[1]: property '_inputs' is not defined in the schema and the schema does not allow additional properties",
-            validationMessages.iterator().next().getMessage());
+            validationMessages.getFirst().toString());
     }
 
     @Test

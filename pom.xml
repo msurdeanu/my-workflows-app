@@ -32,7 +32,7 @@
         <janino.version>3.1.12</janino.version>
         <maverick-synergy-client.version>3.1.4</maverick-synergy-client.version>
         <angus-mail.version>2.0.5</angus-mail.version>
-        <json-schema-validator.version>1.5.9</json-schema-validator.version>
+        <json-schema-validator.version>3.0.7</json-schema-validator.version>
         <mockito-junit-jupiter.version>5.23.0</mockito-junit-jupiter.version>
     </properties>
 
@@ -125,6 +125,10 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

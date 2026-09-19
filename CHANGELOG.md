@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.3.3 (2026-09-19)
+
+### Features
+
+* Dedicated Java/Groovy editor for `java.script` and `groovy.script` inputs (code lens or `Ctrl + Alt + J`, save with `Ctrl + S`).
+* Short run id in the runs grid, with full-id tooltip and copy button.
+
+### Documentation
+
+* README reworked; `waitUntilSubPasses` command documented.
+
+### Dependencies
+
+* Upgrade json-schema-validator to 3.0.7.
+
 ## 1.3.2 (2026-09-16)
 
 ### Features
