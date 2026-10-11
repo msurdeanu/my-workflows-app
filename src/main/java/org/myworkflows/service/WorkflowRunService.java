@@ -6,17 +6,22 @@ import org.myworkflows.EventBroadcaster;
 import org.myworkflows.cache.CacheNameEnum;
 import org.myworkflows.cache.InternalCache;
 import org.myworkflows.cache.InternalCacheManager;
+import org.myworkflows.domain.User;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.filter.WorkflowRunFilter;
 import org.myworkflows.provider.SettingProvider;
+import org.myworkflows.repository.UserRepository;
 import org.myworkflows.repository.WorkflowRunRepository;
+import org.myworkflows.util.SecurityUtil;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.cache.CacheNameEnum.WORKFLOW_RUN_NAME;
@@ -29,6 +34,8 @@ import static org.springframework.data.domain.PageRequest.of;
 @Slf4j
 @Service
 public class WorkflowRunService extends CacheableDataService<WorkflowRun, WorkflowRunFilter> implements ServiceCreator<WorkflowRun> {
+
+    private final Map<Integer, Optional<String>> usernames = new ConcurrentHashMap<>();
 
     private final SettingProvider settingProvider;
     private final InternalCache templateCache;
@@ -43,6 +50,14 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
     public Optional<WorkflowTemplate> findWorkflowTemplate(WorkflowRun workflowRun) {
         return ofNullable(workflowRun.getWorkflowTemplateId())
             .map(id -> templateCache.get(id, WorkflowTemplate.class));
+    }
+
+    public Optional<String> findUsername(WorkflowRun workflowRun) {
+        // Users are not managed by the application, so a name is read once and kept for the following lookups.
+        return ofNullable(workflowRun.getUserId())
+            .flatMap(id -> usernames.computeIfAbsent(id, key -> applicationManager.getBeanOfType(UserRepository.class)
+                .findById(key)
+                .map(User::getUsername)));
     }
 
     @Override
@@ -70,15 +85,21 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
         }
     }
 
-    public void replay(WorkflowRun workflowRun) {
+    public boolean replay(WorkflowRun workflowRun) {
+        final var userId = SecurityUtil.findCurrentUserId().orElse(null);
         lock.lock();
         try {
+            if (!workflowRun.isReplayableBy(userId)) {
+                log.warn("Workflow run '{}' is not replayed, because it was not triggered by the user asking for it.", workflowRun.getId());
+                return false;
+            }
             workflowRun.prepareForReplay();
             applicationManager.getBeanOfType(EventBroadcaster.class)
                 .broadcast(WorkflowDefinitionOnSubmitEvent.builder()
                     .workflowRun(workflowRun)
                     .workflowDefinitionScript(workflowRun.getScript())
                     .build());
+            return true;
         } finally {
             lock.unlock();
         }

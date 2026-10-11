@@ -26,7 +26,7 @@ public final class LibraryFilter implements Filter<Library> {
     public Predicate<Library> getFilterPredicate() {
         return isNotEmpty(filePathCriteria)
             ? item -> containsIgnoreCase(item.filePath(), filePathCriteria)
-            : item -> true;
+            : _ -> true;
     }
 
 }

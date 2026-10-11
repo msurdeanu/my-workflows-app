@@ -10,6 +10,7 @@ import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.restapi.dto.WorkflowDefinitionResponse;
 import org.myworkflows.service.WorkflowDefinitionService;
+import org.myworkflows.util.SecurityUtil;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,7 +49,7 @@ public class WorkflowDefinitionController {
     @PostMapping("/workflow-definitions/{id}/schedule-now")
     public String scheduleNow(@RequestBody Map<String, Object> parameters, @PathVariable int id) {
         final var workflowDefinition = getWorkflowDefinitionById(id);
-        final var workflowRun = new WorkflowRun(parameters);
+        final var workflowRun = new WorkflowRun(null, parameters, SecurityUtil.findCurrentUserId().orElse(null));
         applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
             .workflowRun(workflowRun)
             .workflowDefinitionScript(workflowDefinition.getScript())

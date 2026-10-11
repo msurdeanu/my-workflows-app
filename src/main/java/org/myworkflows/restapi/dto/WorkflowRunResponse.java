@@ -11,12 +11,14 @@ import java.util.UUID;
  * @since 1.0
  */
 @Builder
-public record WorkflowRunResponse(UUID id, Integer workflowTemplateId, Set<String> printedKeys, String failureMessage, long duration, boolean running) {
+public record WorkflowRunResponse(UUID id, Integer workflowTemplateId, Integer userId, Set<String> printedKeys, String failureMessage, long duration,
+                                  boolean running) {
 
     public static WorkflowRunResponse of(WorkflowRun workflowRun) {
         return WorkflowRunResponse.builder()
             .id(workflowRun.getId())
             .workflowTemplateId(workflowRun.getWorkflowTemplateId())
+            .userId(workflowRun.getUserId())
             .printedKeys(workflowRun.getPrintedKeys())
             .failureMessage(workflowRun.getFailureMessage())
             .duration(workflowRun.getDuration())

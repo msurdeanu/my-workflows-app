@@ -17,6 +17,10 @@ public final class UserAccountDetails implements UserDetails {
 
     private final transient User user;
 
+    public int getUserId() {
+        return user.getId();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(user.isAdmin() ? "ROLE_ADMIN" : "ROLE_USER"));

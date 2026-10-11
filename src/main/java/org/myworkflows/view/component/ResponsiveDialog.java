@@ -1,6 +1,5 @@
 package org.myworkflows.view.component;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dialog.Dialog;
 
 /**
@@ -9,10 +8,9 @@ import com.vaadin.flow.component.dialog.Dialog;
  */
 public abstract class ResponsiveDialog extends Dialog {
 
-    private static final int MAX_WIDTH = 900;
-    private static final int MAX_HEIGHT = 450;
-
-    private static final String PIXELS = "px";
+    // half of the screen, but never less than 900x450 and never more than the screen itself
+    private static final String WIDTH = "min(max(900px, 50vw), 96vw)";
+    private static final String HEIGHT = "min(max(450px, 50vh), 96vh)";
 
     public ResponsiveDialog(String id) {
         setId(id);
@@ -26,16 +24,13 @@ public abstract class ResponsiveDialog extends Dialog {
         setResizable(true);
     }
 
+    /**
+     * A dialog attaches to the UI overlay rather than below a {@link ResponsiveLayout}, so it never receives a
+     * breakpoint and is sized in viewport terms instead.
+     */
     private void makeDialogResponsive() {
-        UI.getCurrent().getPage().retrieveExtendedClientDetails(details -> {
-            setWidth(Math.max(MAX_WIDTH, details.getScreenWidth() / 2) + PIXELS);
-            setHeight(Math.max(MAX_HEIGHT, details.getScreenHeight() / 2) + PIXELS);
-        });
-
-        UI.getCurrent().getPage().addBrowserWindowResizeListener(details -> {
-            setWidth(Math.max(MAX_WIDTH, details.getWidth() / 2) + PIXELS);
-            setHeight(Math.max(MAX_HEIGHT, details.getHeight() / 2) + PIXELS);
-        });
+        setWidth(WIDTH);
+        setHeight(HEIGHT);
     }
 
 }

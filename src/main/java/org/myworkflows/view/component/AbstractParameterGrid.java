@@ -85,7 +85,11 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
         editor.setBinder(binder);
         editor.setBuffered(true);
 
-        paginatedGrid.addColumn(WorkflowParameter::getName).setHeader(getTranslation(id + ".grid.name.column"));
+        // four columns and an inline editor do not fit a phone, so the name stays pinned while the rest scrolls
+        paginatedGrid.addColumn(WorkflowParameter::getName).setHeader(getTranslation(id + ".grid.name.column"))
+            .setWidth("100px")
+            .setFlexGrow(1)
+            .setFrozen(true);
 
         final var typeField = new ComboBox<WorkflowParameterType>();
         typeField.addThemeVariants(ComboBoxVariant.SMALL);
@@ -98,6 +102,8 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
             .bind(WorkflowParameter::getType, WorkflowParameter::setType);
         paginatedGrid.addColumn(workflowParameter -> getTranslation("workflow-parameter.type." + workflowParameter.getType().getValue()))
             .setHeader(getTranslation(id + ".grid.type.column"))
+            .setWidth("110px")
+            .setFlexGrow(0)
             .setEditorComponent(typeField);
 
         final var valueField = new TextField();
@@ -110,6 +116,8 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
             .bind(WorkflowParameter::getValue, WorkflowParameter::setValue);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderValue))
             .setHeader(getTranslation(id + ".grid.value.column"))
+            .setWidth("120px")
+            .setFlexGrow(2)
             .setEditorComponent(valueField);
 
         final var saveButton = new Button(VaadinIcon.CHECK.create(), _ -> {
@@ -129,7 +137,9 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
         actionColumn = paginatedGrid.addComponentColumn(parameter -> createActionComponent(parameter, editor))
             .setHeader(new TextFieldWithEnterShortcut(item -> paginatedGrid.getEditor().editItem(createFunction.apply(item)))
                 .allowedCharPatternAndPlaceholder("[a-zA-Z0-9_.]").small())
-            .setEditorComponent(actions);
+            .setEditorComponent(actions)
+            .setAutoWidth(true)
+            .setFlexGrow(0);
 
         layout.add(paginatedGrid);
         return layout;
@@ -141,6 +151,7 @@ public abstract class AbstractParameterGrid extends Composite<VerticalLayout> {
 
     private Component createActionComponent(WorkflowParameter workflowParameter, Editor<WorkflowParameter> editor) {
         final var layout = new HorizontalLayout();
+        layout.addClassName("cell-badges");
         final var editButton = new Button(VaadinIcon.EDIT.create());
         editButton.addThemeVariants(ButtonVariant.SMALL);
         editButton.addClickListener(_ -> {

@@ -56,6 +56,10 @@ public class WorkflowRun {
     private Integer workflowTemplateId;
 
     @Getter
+    @Column(name = "user_id")
+    private Integer userId;
+
+    @Getter
     @Column(name = "cache")
     @Convert(converter = WorkflowRunCacheToByteArrayConverter.class)
     private WorkflowRunCache cache;
@@ -75,6 +79,13 @@ public class WorkflowRun {
     @Getter
     @Column(name = "last_successful_index")
     private int lastSuccessfulIndex = -1;
+
+    /**
+     * How far the final commands got. It is not saved, because a replay runs every final command again.
+     */
+    @Getter
+    @Transient
+    private int lastSuccessfulFinallyIndex = -1;
 
     @Getter
     @Convert(converter = WorkflowDefinitionScriptToStringConverter.class)
@@ -100,7 +111,12 @@ public class WorkflowRun {
     }
 
     public WorkflowRun(Integer workflowTemplateId, Map<String, Object> parameters) {
+        this(workflowTemplateId, parameters, null);
+    }
+
+    public WorkflowRun(Integer workflowTemplateId, Map<String, Object> parameters, Integer userId) {
         this.workflowTemplateId = workflowTemplateId;
+        this.userId = userId;
         this.cache = new WorkflowRunCache(id);
         ofNullable(parameters).orElse(Map.of()).forEach(cache::put);
     }
@@ -161,13 +177,26 @@ public class WorkflowRun {
         return failureMessage != null && script != null && cache.isCacheObjectMapComplete();
     }
 
+    /**
+     * A run can be replayed only by the user who triggered it, so a run without a user - one scheduled by its
+     * template - cannot be replayed at all.
+     */
+    public boolean isReplayableBy(Integer currentUserId) {
+        return userId != null && userId.equals(currentUserId) && isEligibleForReplay();
+    }
+
     public void prepareForReplay() {
         failureMessage = null;
         duration = -1;
+        lastSuccessfulFinallyIndex = -1;
     }
 
     public void incrementLastSuccessfulIndex() {
         lastSuccessfulIndex++;
+    }
+
+    public void incrementLastSuccessfulFinallyIndex() {
+        lastSuccessfulFinallyIndex++;
     }
 
     @PostRemove

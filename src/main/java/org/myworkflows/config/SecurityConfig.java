@@ -2,6 +2,7 @@ package org.myworkflows.config;
 
 import com.vaadin.flow.spring.security.VaadinAwareSecurityContextHolderStrategyConfiguration;
 import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
+import jakarta.servlet.DispatcherType;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.holder.EncryptionHolder;
 import org.myworkflows.provider.SettingProvider;
@@ -35,8 +36,13 @@ public class SecurityConfig {
                 .key(cookieName)
                 .tokenValiditySeconds(settingProvider.getOrDefault("rememberMeCookieDays", 30) * 86400)
                 .rememberMeCookieName(cookieName));
-        // Ace loads modes, themes and snippets lazily from here; without it the editor falls back to text mode
-        http.authorizeHttpRequests(auth -> auth.requestMatchers("/ace-builds/**").authenticated());
+        http.authorizeHttpRequests(auth -> auth
+            // An error status is rendered by dispatching the failed request internally to /error. If that dispatch
+            // had to be authenticated, every error - a 401 of the REST API included - would end up as a redirect
+            // to the login page. Only the internal dispatch is let through: /error itself stays protected.
+            .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+            // Ace loads modes, themes and snippets lazily from here; without it the editor falls back to text mode
+            .requestMatchers("/ace-builds/**").authenticated());
         return http.with(VaadinSecurityConfigurer.vaadin(), configurer -> configurer.loginView(LoginView.class)).build();
     }
 

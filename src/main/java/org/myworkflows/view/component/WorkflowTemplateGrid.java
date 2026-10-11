@@ -8,6 +8,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.shared.Tooltip;
@@ -66,17 +67,37 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         final var layout = super.initContent();
         layout.setSizeFull();
 
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActive))
-            .setAutoWidth(true);
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderNameAndCron))
+        // the field that creates a template lives in a column header, so the stacked column carries its own copy of it
+        final var narrowColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderPhoneCell))
+            .setHeader(new TextFieldWithEnterShortcut(workflowTemplateEventHandler::onCreate).small());
+        final var activeColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActive))
+            .setAutoWidth(true)
+            .setFlexGrow(0);
+        final var nameColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderNameAndCron))
             .setHeader(getTranslation("workflow-templates.grid.name.column"))
-            .setAutoWidth(true);
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
+            .setWidth("150px")
+            .setFlexGrow(1);
+        final var actionsColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
             .setHeader(new TextFieldWithEnterShortcut(workflowTemplateEventHandler::onCreate).small())
             .setAutoWidth(true);
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(this::createDraggableComponent));
+        paginatedGrid.setNarrowColumn(narrowColumn, List.of(activeColumn, nameColumn, actionsColumn));
 
         layout.add(paginatedGrid);
+        return layout;
+    }
+
+    /**
+     * A phone shows the whole template in one cell: the activation and the name, then the actions.
+     */
+    private Component renderPhoneCell(WorkflowTemplate workflowTemplate) {
+        final var nameLine = new HorizontalLayout(renderActive(workflowTemplate), renderNameAndCron(workflowTemplate));
+        nameLine.addClassName("cell-badges");
+        nameLine.setAlignItems(FlexComponent.Alignment.CENTER);
+        final var layout = new VerticalLayout(nameLine, renderActions(workflowTemplate));
+        layout.addClassName("phone-cell");
+        layout.setPadding(false);
+        layout.setSpacing(false);
         return layout;
     }
 
@@ -88,6 +109,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
 
     private Component renderNameAndCron(WorkflowTemplate workflowTemplate) {
         final var layout = new HorizontalLayout();
+        layout.addClassName("cell-badges");
         if (!workflowTemplate.isEditable()) {
             return ofNullable(workflowTemplate.getCron())
                 .<Component>map(cron -> {
@@ -129,6 +151,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
 
     private Component renderActions(WorkflowTemplate workflowTemplate) {
         final var layout = new HorizontalLayout();
+        layout.addClassName("cell-badges");
 
         final var scheduleNowButton = new Button(VaadinIcon.START_COG.create());
         scheduleNowButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.schedule.title"));

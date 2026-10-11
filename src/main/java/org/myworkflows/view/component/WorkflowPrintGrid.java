@@ -22,7 +22,7 @@ import static com.vaadin.flow.component.UI.getCurrent;
 @NoArgsConstructor
 public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> {
 
-    private final StandardPaginatedGrid<WorkflowRunPrint, ?> paginatedGrid = new StandardPaginatedGrid<>(GridVariant.LUMO_COMPACT);
+    private final StandardPaginatedGrid<WorkflowRunPrint, ?> paginatedGrid = new StandardPaginatedGrid<>(GridVariant.LUMO_WRAP_CELL_CONTENT);
 
     public WorkflowPrintGrid(List<WorkflowRunPrint> prints) {
         setItems(prints);
@@ -42,31 +42,16 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
     }
 
     @Override
-    public void onSmallWidth() {
-        final var visibleColumns = new boolean[]{true, false, false};
-        for (int index = 0; index < visibleColumns.length; index++) {
-            paginatedGrid.getColumns().get(index).setVisible(visibleColumns[index]);
-        }
-    }
-
-    @Override
-    public void onBigWidth() {
-        final var visibleColumns = new boolean[]{false, true, true};
-        for (int index = 0; index < visibleColumns.length; index++) {
-            paginatedGrid.getColumns().get(index).setVisible(visibleColumns[index]);
-        }
-    }
-
-    @Override
     protected VerticalLayout initContent() {
         final var layout = super.initContent();
         layout.setSizeFull();
 
-        paginatedGrid.addComponentColumn(item -> new Html(getTranslation("workflow-print.grid.summarized.column", item.name(), item.abbrValue())))
-            .setHeader(getTranslation("workflow-print.grid.name-value.column")).setVisible(false);
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderName))
+        final var narrowColumn = paginatedGrid.addComponentColumn(item -> new Html(getTranslation("workflow-print.grid.summarized.column",
+                item.name(), item.abbrValue())))
+            .setHeader(getTranslation("workflow-print.grid.name-value.column"));
+        final var nameColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderName))
             .setHeader(getTranslation("workflow-print.grid.name.column"));
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderValueAndType))
+        final var valueColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderValueAndType))
             .setHeader(getTranslation("workflow-print.grid.value.column"));
         paginatedGrid.setItemDetailsRenderer(new ComponentRenderer<>(WorkflowPrintDetailsFormLayout::new,
             WorkflowPrintDetailsFormLayout::setExecutionPrint));
@@ -74,9 +59,13 @@ public final class WorkflowPrintGrid extends ResizableComposite<VerticalLayout> 
         layout.add(paginatedGrid);
 
         final var contextMenu = paginatedGrid.addContextMenu();
+        // on a phone a tap opens this menu instead of the details, so the details have to be reachable from here
+        contextMenu.addItem(getTranslation("workflow-print.grid.context-menu.details"),
+            event -> event.getItem().ifPresent(it -> paginatedGrid.setDetailsVisible(it, !paginatedGrid.isDetailsVisible(it))));
         contextMenu.addItem(getTranslation("workflow-print.grid.context-menu.value-to-clipboard"),
             event -> event.getItem().ifPresent(it -> getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", it.fullValue())));
 
+        paginatedGrid.setNarrowColumn(narrowColumn, List.of(nameColumn, valueColumn));
         return layout;
     }
 

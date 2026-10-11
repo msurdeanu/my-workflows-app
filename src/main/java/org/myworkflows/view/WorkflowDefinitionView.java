@@ -1,6 +1,7 @@
 package org.myworkflows.view;
 
-import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
@@ -12,18 +13,22 @@ import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.handler.WorkflowDefinitionEventHandler;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
-import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.view.component.BaseLayout;
+import org.myworkflows.view.component.PageFilter;
+import org.myworkflows.view.component.PageGuide;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowDefinitionGrid;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.math.NumberUtils.toInt;
 
 /**
  * @author Mihai Surdeanu
@@ -42,7 +47,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
 
     private final WorkflowDefinitionService workflowDefinitionService;
 
-    public WorkflowDefinitionView(SettingProvider settingProvider, WorkflowDefinitionService workflowDefinitionService) {
+    public WorkflowDefinitionView(WorkflowDefinitionService workflowDefinitionService) {
         super();
         this.workflowDefinitionService = workflowDefinitionService;
 
@@ -54,9 +59,23 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
         workflowDefinitionGrid = new WorkflowDefinitionGrid(this);
         workflowDefinitionGrid.setDataProvider(configurableFilterDataProvider);
 
-        add(createHeader(getTranslation("workflow-definitions.page.title"), createFilterByName()));
+        final var filterByName = createFilterByName();
+        add(createHeader(getTranslation("workflow-definitions.page.title"), filterByName));
+        // the id has no field: it comes from a link to one definition, and its chip is the way back to all of them
+        add(createFilters(ROUTE,
+            PageFilter.text("name", filterByName, value -> getTranslation("workflow-definitions.filter.chip.name", value)),
+            new PageFilter("id", null,
+                () -> workflowDefinitionFilter.idCriteria() > 0 ? String.valueOf(workflowDefinitionFilter.idCriteria()) : StringUtils.EMPTY,
+                value -> onFilterById(toInt(value)), value -> getTranslation("workflow-definitions.filter.chip.id", value))));
         add(createContent(workflowDefinitionGrid));
-        add(createFooter(settingProvider));
+        add(createGuide("workflow-definitions")
+            .legend("name", PageGuide.link(getTranslation("workflow-definitions.grid.name.column")))
+            .legend("edit", PageGuide.button(VaadinIcon.EDIT), UserRole.ADMIN)
+            .legend("delete", PageGuide.button(VaadinIcon.TRASH, ButtonVariant.ERROR), UserRole.ADMIN)
+            .steps(4)
+            .note("used")
+            .note("rename")
+            .note("placeholders"));
     }
 
     @Override
@@ -64,9 +83,12 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
         return getTranslation("site.base.title", getTranslation("menu.main.workflow-definitions"));
     }
 
+    /**
+     * Kept for the links pointing to {@code workflow/definitions/42}.
+     */
     @Override
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter Integer id) {
-        ofNullable(id).ifPresent(this::onFilterById);
+        setPathFilterValues(id != null ? Map.of("id", String.valueOf(id)) : Map.of());
     }
 
     @Override
@@ -87,12 +109,13 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
         workflowDefinitionService.updateName(workflowDefinition, newName);
     }
 
-    private Component createFilterByName() {
+    private TextField createFilterByName() {
         final var filterByNameTextField = new TextField();
         filterByNameTextField.setPlaceholder(getTranslation("workflow-definitions.filter.by-name.placeholder"));
         filterByNameTextField.setClearButtonVisible(true);
         filterByNameTextField.setValueChangeMode(ValueChangeMode.LAZY);
         filterByNameTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));
+        filterByNameTextField.addClassName("header-filter");
         filterByNameTextField.addValueChangeListener(event -> onFilterByName(event.getValue()));
         return filterByNameTextField;
     }

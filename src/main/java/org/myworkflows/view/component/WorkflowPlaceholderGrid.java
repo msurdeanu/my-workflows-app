@@ -52,7 +52,9 @@ public final class WorkflowPlaceholderGrid extends Composite<VerticalLayout> {
         editor.setBuffered(true);
 
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderName))
-            .setHeader(getTranslation("workflow-placeholders.grid.name.column"));
+            .setHeader(getTranslation("workflow-placeholders.grid.name.column"))
+            .setWidth("100px")
+            .setFlexGrow(1);
 
         final var valueField = new TextField();
         valueField.setWidthFull();
@@ -60,6 +62,8 @@ public final class WorkflowPlaceholderGrid extends Composite<VerticalLayout> {
             .bind(WorkflowPlaceholder::getValue, WorkflowPlaceholder::setValue);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderValue))
             .setHeader(getTranslation("workflow-placeholders.grid.value.column"))
+            .setWidth("120px")
+            .setFlexGrow(2)
             .setEditorComponent(valueField);
 
         final var saveButton = new Button(VaadinIcon.CHECK.create(), _ -> {
@@ -77,7 +81,9 @@ public final class WorkflowPlaceholderGrid extends Composite<VerticalLayout> {
         paginatedGrid.addComponentColumn(placeholder -> createActionComponent(placeholder, editor))
             .setHeader(new TextFieldWithEnterShortcut(item -> paginatedGrid.getEditor().editItem(workflowPlaceholderEventHandler.onCreate(item)))
                 .allowedCharPatternAndPlaceholder(PlaceholderUtil.ALLOWED_CHARS_FOR_PLACEHOLDER_NAME).small())
-            .setEditorComponent(actions);
+            .setEditorComponent(actions)
+            .setAutoWidth(true)
+            .setFlexGrow(0);
 
         layout.add(paginatedGrid);
         return layout;
@@ -93,6 +99,7 @@ public final class WorkflowPlaceholderGrid extends Composite<VerticalLayout> {
 
     private Component createActionComponent(WorkflowPlaceholder workflowPlaceholder, Editor<WorkflowPlaceholder> editor) {
         final var layout = new HorizontalLayout();
+        layout.addClassName("cell-badges");
         final var editButton = new Button(VaadinIcon.EDIT.create());
         editButton.addThemeVariants(ButtonVariant.SMALL);
         editButton.addClickListener(_ -> {

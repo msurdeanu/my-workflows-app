@@ -53,7 +53,7 @@ public final class SshShellCommand extends AbstractCommand {
                 final var shell = new ExpectShell(task);
                 for (String command : commands) {
                     final var shellProcess = shell.executeCommand(command);
-                    shellProcess.drain();
+                    shellProcess.waitFor();
                     commandOutputBuilder.exitCode(shellProcess.getExitCode());
                     outputBuilder.append(shellProcess.getCommandOutput());
                 }

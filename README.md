@@ -32,9 +32,18 @@ All workflows are defined in YAML, and the tool provides an intuitive UI for wor
     * Run the script and view its output.
     * Use an editor with auto-completion to simplify writing workflow scripts.
     * Share the script together with its parameters.
-* Replay of a failed workflow run, starting from the command that failed.
+    * Hand it over as a read-only link, which shows the pipeline of the workflow instead of the editor: its commands
+      in the order they run, a few words on what each of them does and, while it runs, the command the run is at.
+* Replay of a failed workflow run, starting from the command that failed. A run can be replayed only by the user who
+  triggered it, so a run scheduled by a template's cron - which belongs to no user - cannot be replayed.
+* Each workflow run keeps track of the user who triggered it, and the runs page can be filtered down to your own runs.
 * Dedicated web pages for managing **workflow placeholders**, **workflow parameters**, **workflow definitions**,
   **workflow templates**, and **workflow runs**.
+* The filters of a page live in its URL, like `/workflow/runs?mine=true&template=3`, so a filtered page survives Back and
+  can be bookmarked or shared. A chip names each filter in use and removes it with a click.
+* A guide on the runs, templates, definitions, parameters, placeholders, libraries and development pages: a legend of
+  what the page shows, the steps of its main task and a few things worth knowing. It starts folded and is opened page
+  by page.
 * A dedicated web page for managing **Java libraries** at runtime.
 * A dedicated web page for writing **Markdown documentation**.
 * A dedicated web page for viewing and analyzing **statistics**.
@@ -306,8 +315,8 @@ Keyboard shortcuts are available in several views to make your work faster.
 
 * **Workflow Development** view:
     * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> = Run workflow
-    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>U</kbd> = Update workflow definition
-    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd> = Share workflow
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>U</kbd> = Save workflow definition. Available once the editor differs from the saved definition.
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd> = Share workflow. Opens a dialog with the link, where it can be made read-only and stripped of its parameters before it is copied.
 
 #### REST API
 
@@ -346,6 +355,9 @@ The following APIs are available:
 |--------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
 | `GET`  | `/api/v1/workflow-runs`      | Returns all workflow runs as a list of `WorkflowRunResponse` objects.                                                                             |
 | `GET`  | `/api/v1/workflow-runs/{id}` | Returns a single workflow run (selected by `id`, of type `String`) as a `WorkflowRunResponse` object. An exception is raised if nothing is found. |
+
+A `WorkflowRunResponse` carries the `userId` of the user who triggered the run. A run started through the REST API
+belongs to the owner of the `token`, while `userId` is `null` for a run scheduled by the cron of its template.
 
 ## Predefined command types
 

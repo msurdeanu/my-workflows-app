@@ -8,6 +8,7 @@ import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowTemplate;
 import org.myworkflows.domain.filter.WorkflowTemplateFilter;
 import org.myworkflows.repository.WorkflowTemplateRepository;
+import org.myworkflows.util.SecurityUtil;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
@@ -119,9 +120,11 @@ public class WorkflowTemplateService extends CacheableDataService<WorkflowTempla
     }
 
     public void scheduleNow(@NonNull WorkflowTemplate workflowTemplate) {
+        // The user is resolved here, on the calling thread, because the run itself is created by the scheduler.
+        final var userId = SecurityUtil.findCurrentUserId().orElse(null);
         lock.lock();
         try {
-            applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class).scheduleNowAsync(workflowTemplate);
+            applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class).scheduleNowAsync(workflowTemplate, userId);
         } finally {
             lock.unlock();
         }

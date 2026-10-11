@@ -26,7 +26,7 @@ public final class WorkflowParameterFilter implements Filter<WorkflowParameter> 
     public Predicate<WorkflowParameter> getFilterPredicate() {
         return isNotEmpty(nameCriteria)
                 ? item -> containsIgnoreCase(item.getName(), nameCriteria)
-                : item -> true;
+                : _ -> true;
     }
 
 }

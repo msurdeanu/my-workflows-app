@@ -23,11 +23,13 @@ import static java.util.Optional.ofNullable;
  * @author Mihai Surdeanu
  * @since 1.0
  */
-public final class StatisticTreeGrid extends Composite<VerticalLayout> {
+public final class StatisticTreeGrid extends Composite<VerticalLayout> implements HasResizeableWidth {
 
     private final Map<StatisticItem, List<StatisticItem>> statisticItemListMap;
 
     private final TreeGrid<StatisticItem> treeGrid = new TreeGrid<>();
+
+    private Breakpoint breakpoint = Breakpoint.DESKTOP;
 
     public StatisticTreeGrid(List<StatisticProvider> statisticProviders) {
         statisticItemListMap = buildAllStats(statisticProviders);
@@ -66,20 +68,41 @@ public final class StatisticTreeGrid extends Composite<VerticalLayout> {
         return layout;
     }
 
+    @Override
+    public void onWidthChange(Breakpoint breakpoint) {
+        this.breakpoint = breakpoint;
+        treeGrid.getDataProvider().refreshAll();
+    }
+
     private Map<StatisticItem, List<StatisticItem>> buildAllStats(List<StatisticProvider> statisticProviders) {
         return statisticProviders.stream()
             .map(StatisticProvider::getStatisticItemGroup)
             .collect(Collectors.toMap(StatisticItemGroup::getRoot, StatisticItemGroup::getLeafs, (it1, it2) -> it1));
     }
 
+    /**
+     * What a number means lives in its tooltip, which a finger cannot reach, so a phone prints the
+     * description under the value instead.
+     */
     private Component getComputedValue(StatisticItem statisticItem) {
         final var span = ofNullable(statisticItem.getValueTranslationKey())
             .map(key -> new Span(getTranslation(key, statisticItem.getValue())))
             .orElseGet(() -> new Span(statisticItem.getValueAsString()));
+        final var description = getTranslation(statisticItem.getDescription());
         Tooltip.forComponent(span)
-            .withText(getTranslation(statisticItem.getDescription()))
+            .withText(description)
             .withPosition(Tooltip.TooltipPosition.TOP);
-        return span;
+        if (!breakpoint.isPhone()) {
+            return span;
+        }
+
+        final var descriptionSpan = new Span(description);
+        descriptionSpan.addClassName("cell-secondary");
+        final var layout = new VerticalLayout(span, descriptionSpan);
+        layout.addClassName("phone-cell");
+        layout.setPadding(false);
+        layout.setSpacing(false);
+        return layout;
     }
 
 }

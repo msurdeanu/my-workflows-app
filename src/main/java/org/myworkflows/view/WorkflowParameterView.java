@@ -1,6 +1,7 @@
 package org.myworkflows.view;
 
-import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
@@ -12,9 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.handler.WorkflowParameterEventHandler;
 import org.myworkflows.domain.filter.WorkflowParameterFilter;
-import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.WorkflowParameterService;
 import org.myworkflows.view.component.BaseLayout;
+import org.myworkflows.view.component.PageFilter;
+import org.myworkflows.view.component.PageGuide;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowParameterGrid;
 
@@ -37,7 +39,7 @@ public class WorkflowParameterView extends ResponsiveLayout implements HasDynami
 
     private final WorkflowParameterService workflowParameterService;
 
-    public WorkflowParameterView(SettingProvider settingProvider, WorkflowParameterService workflowParameterService) {
+    public WorkflowParameterView(WorkflowParameterService workflowParameterService) {
         super();
         this.workflowParameterService = workflowParameterService;
 
@@ -49,9 +51,12 @@ public class WorkflowParameterView extends ResponsiveLayout implements HasDynami
         workflowParameterGrid = new WorkflowParameterGrid(this);
         workflowParameterGrid.setDataProvider(configurableFilterDataProvider);
 
-        add(createHeader(getTranslation("workflow-params.page.title"), createFilterByName()));
+        final var filterByName = createFilterByName();
+        add(createHeader(getTranslation("workflow-params.page.title"), filterByName));
+        add(createFilters(ROUTE,
+            PageFilter.text("name", filterByName, value -> getTranslation("workflow-params.filter.chip.name", value))));
         add(createContent(workflowParameterGrid));
-        add(createFooter(settingProvider));
+        add(createGuide());
     }
 
     @Override
@@ -77,12 +82,32 @@ public class WorkflowParameterView extends ResponsiveLayout implements HasDynami
         workflowParameterService.update(workflowParameter);
     }
 
-    private Component createFilterByName() {
+    private PageGuide createGuide() {
+        return createGuide("workflow-params")
+            .legend("value", PageGuide.badge(getTranslation("workflow-params.grid.value.column")))
+            .legend("edit", PageGuide.button(VaadinIcon.EDIT))
+            .legend("save", PageGuide.button(VaadinIcon.CHECK, ButtonVariant.SUCCESS))
+            .legend("cancel", PageGuide.button(VaadinIcon.CLOSE, ButtonVariant.ERROR))
+            .legend("delete", PageGuide.button(VaadinIcon.TRASH, ButtonVariant.ERROR))
+            .steps(3)
+            .note("formats", PageGuide.fields(
+                "true", getTranslation("workflow-parameter.type.b"),
+                "42", getTranslation("workflow-parameter.type.i"),
+                "3.14", getTranslation("workflow-parameter.type.f"),
+                "2026-01-31", getTranslation("workflow-parameter.type.d"),
+                "14:30", getTranslation("workflow-parameter.type.t"),
+                "red,green,blue", getTranslation("workflow-parameter.type.ss")))
+            .note("template")
+            .note("debug");
+    }
+
+    private TextField createFilterByName() {
         final var filterByNameTextField = new TextField();
         filterByNameTextField.setPlaceholder(getTranslation("workflow-params.filter.by-name.placeholder"));
         filterByNameTextField.setClearButtonVisible(true);
         filterByNameTextField.setValueChangeMode(ValueChangeMode.LAZY);
         filterByNameTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));
+        filterByNameTextField.addClassName("header-filter");
         filterByNameTextField.addValueChangeListener(event -> onFilterByName(event.getValue()));
         return filterByNameTextField;
     }

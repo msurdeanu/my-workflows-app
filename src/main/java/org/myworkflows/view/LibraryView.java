@@ -1,6 +1,7 @@
 package org.myworkflows.view;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.badge.BadgeVariant;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
@@ -17,10 +18,11 @@ import org.myworkflows.config.LibraryConfig;
 import org.myworkflows.domain.Library;
 import org.myworkflows.domain.filter.LibraryFilter;
 import org.myworkflows.domain.handler.LibraryEventHandler;
-import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.LibraryService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.LibraryGrid;
+import org.myworkflows.view.component.PageFilter;
+import org.myworkflows.view.component.PageGuide;
 import org.myworkflows.view.component.ResponsiveLayout;
 
 import java.io.InputStream;
@@ -43,7 +45,7 @@ public class LibraryView extends ResponsiveLayout implements HasDynamicTitle, Li
 
     private final LibraryService libraryService;
 
-    public LibraryView(SettingProvider settingProvider, LibraryService libraryService) {
+    public LibraryView(LibraryService libraryService) {
         super();
         this.libraryService = libraryService;
 
@@ -55,9 +57,20 @@ public class LibraryView extends ResponsiveLayout implements HasDynamicTitle, Li
         libraryGrid = new LibraryGrid();
         libraryGrid.setDataProvider(configurableFilterDataProvider);
 
-        add(createHeader(getTranslation("libs.page.title"), createUpload(), createFilterByFilePath()));
+        final var filterByFilePath = createFilterByFilePath();
+        add(createHeader(getTranslation("libs.page.title"), createUpload(), filterByFilePath));
+        add(createFilters(ROUTE,
+            PageFilter.text("path", filterByFilePath, value -> getTranslation("libs.filter.chip.path", value))));
         add(createContent(libraryGrid));
-        add(createFooter(settingProvider));
+        add(createGuide("libs")
+            .legend("path", PageGuide.link(getTranslation("libs.grid.filepath.column")))
+            .legend("loaded", PageGuide.badge(getTranslation("libs.grid.status.ok"), BadgeVariant.SUCCESS))
+            .legend("not-loaded", PageGuide.badge(getTranslation("libs.grid.status.nok"), BadgeVariant.ERROR))
+            .legend("upload", new Button(VaadinIcon.UPLOAD.create()))
+            .steps(3)
+            .note("directory")
+            .note("replace")
+            .note("remove"));
     }
 
     @Override
@@ -86,12 +99,13 @@ public class LibraryView extends ResponsiveLayout implements HasDynamicTitle, Li
         return uploadButton;
     }
 
-    private Component createFilterByFilePath() {
+    private TextField createFilterByFilePath() {
         final var filterByNameTextField = new TextField();
         filterByNameTextField.setPlaceholder(getTranslation("libs.filter.by-filename.placeholder"));
         filterByNameTextField.setClearButtonVisible(true);
         filterByNameTextField.setValueChangeMode(ValueChangeMode.LAZY);
         filterByNameTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));
+        filterByNameTextField.addClassName("header-filter");
         filterByNameTextField.addValueChangeListener(event -> onFilterByFilePath(event.getValue()));
         return filterByNameTextField;
     }

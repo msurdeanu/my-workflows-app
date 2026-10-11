@@ -1,8 +1,13 @@
 package org.myworkflows;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.Test;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -81,6 +86,41 @@ public final class EventBroadcasterTest {
         executorService.submit(() -> { }).get(30, TimeUnit.SECONDS);
         assertEquals(rounds, deliveries.get());
         executorService.shutdown();
+    }
+
+    @Test
+    public void whenConsumerFailsThenFailureIsLoggedAndOtherConsumersAreStillNotified() throws Exception {
+        // given a consumer that fails, registered before a healthy one
+        final var executorService = Executors.newSingleThreadExecutor();
+        final var eventBroadcaster = new EventBroadcaster(executorService);
+        final var event = WorkflowDefinitionOnProgressEvent.builder().workflowRun(new WorkflowRun()).build();
+        final var deliveries = new AtomicInteger();
+        final var logger = (Logger) LoggerFactory.getLogger(EventBroadcaster.class);
+        final var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        eventBroadcaster.register(notUsed -> {
+            throw new IllegalStateException("database is gone");
+        }, WorkflowDefinitionOnProgressEvent.class);
+        eventBroadcaster.register(notUsed -> deliveries.incrementAndGet(), WorkflowDefinitionOnProgressEvent.class);
+
+        try {
+            // when
+            eventBroadcaster.broadcast(event);
+            executorService.submit(() -> { }).get(30, TimeUnit.SECONDS);
+
+            // then the failure ends up in the log, together with its cause
+            final var errors = appender.list.stream().filter(item -> Level.ERROR.equals(item.getLevel())).toList();
+            assertEquals(1, errors.size());
+            assertTrue(errors.getFirst().getFormattedMessage().contains(WorkflowDefinitionOnProgressEvent.class.getName()));
+            assertEquals("database is gone", errors.getFirst().getThrowableProxy().getMessage());
+
+            // and the healthy consumer is not affected
+            assertEquals(1, deliveries.get());
+        } finally {
+            logger.detachAppender(appender);
+            executorService.shutdown();
+        }
     }
 
 }

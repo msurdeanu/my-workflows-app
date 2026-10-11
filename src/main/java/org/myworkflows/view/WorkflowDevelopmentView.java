@@ -1,11 +1,14 @@
 package org.myworkflows.view;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.networknt.schema.Error;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyModifier;
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
@@ -17,6 +20,8 @@ import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
@@ -36,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.config.ScriptEditorConfig;
+import org.myworkflows.config.UnsavedChangesConfig;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowParameter;
@@ -47,15 +53,20 @@ import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
-import org.myworkflows.provider.SettingProvider;
+import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.util.LangUtil;
+import org.myworkflows.util.SecurityUtil;
 import org.myworkflows.view.component.BaseLayout;
-import org.myworkflows.view.component.HasResizeableWidth;
+import org.myworkflows.view.component.Breakpoint;
+import org.myworkflows.view.component.PageGuide;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.ScriptEditorDialog;
 import org.myworkflows.view.component.WorkflowDevParamGrid;
+import org.myworkflows.view.component.WorkflowPipelinePanel;
 import org.myworkflows.view.component.WorkflowPrintGrid;
+import org.myworkflows.view.component.WorkflowShareDialog;
+import org.myworkflows.view.transformer.WorkflowDefinitionScriptToPipelineTransformer;
 import org.myworkflows.view.util.ClipboardUtil;
 import org.myworkflows.view.util.EditorAutoCompleteUtil;
 import org.myworkflows.view.util.RequestUtil;
@@ -64,6 +75,7 @@ import org.myworkflows.view.util.ScriptBlockUtil;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -71,6 +83,8 @@ import java.util.stream.Stream;
 import static com.vaadin.flow.component.Shortcuts.addShortcutListener;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
+import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.joining;
 import static org.myworkflows.config.SnippetConfig.JS_CODE;
 import static org.myworkflows.serializer.SerializerFactory.toPrettyString;
 import static org.myworkflows.util.Base64Util.base64Decode;
@@ -83,14 +97,18 @@ import static org.myworkflows.util.ListUtil.getValueAtIndex;
 @Slf4j
 @PermitAll
 @Route(value = WorkflowDevelopmentView.ROUTE, layout = BaseLayout.class)
-public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResizeableWidth, HasDynamicTitle, HasUrlParameter<Integer> {
+public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDynamicTitle, HasUrlParameter<Integer> {
 
     public static final String ROUTE = "workflow/dev";
     private static final String READ_ONLY = "ro";
+    private static final int ERROR_NOTIFICATION_DURATION = 10_000;
 
     private final AceEditor editor = new AceEditor();
     private final Span editorHelper = new Span();
     private final Div currentWorkflowStatus = new Div();
+    private final Badge unsavedChangesBadge = new Badge(getTranslation("workflow-development.unsaved.badge"));
+    private final Badge readOnlyBadge = new Badge(getTranslation("workflow-development.read-only.badge"), VaadinIcon.LOCK.create());
+    private final WorkflowPipelinePanel workflowPipelinePanel = new WorkflowPipelinePanel();
     private final WorkflowDevParamGrid workflowDevParamGrid = new WorkflowDevParamGrid();
     private final WorkflowPrintGrid workflowPrintGrid = new WorkflowPrintGrid();
     private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
@@ -100,12 +118,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     private final ApplicationManager applicationManager;
 
     private final SplitLayout splitLayout;
-    private final Button updateWorkflowButton;
+    private final Button saveWorkflowButton;
     private final Button shareWorkflowButton;
     private final Select<WorkflowDefinition> filterByDefinition;
 
     private final Map<EventType, Registration> registrations = new EnumMap<EventType, Registration>(EventType.class);
     private UUID lastSubmittedUuid;
+    private boolean unsavedChanges;
+    private boolean readOnly;
 
     public WorkflowDevelopmentView(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
@@ -123,21 +143,27 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             editor.getElement().executeJs(JS_CODE);
             editor.getElement().executeJs(ScriptEditorConfig.JS_CODE, getTranslation("workflow-development.script-editor.lens.java"),
                 getTranslation("workflow-development.script-editor.lens.groovy"));
+            editor.getElement().executeJs(UnsavedChangesConfig.JS_CODE);
         });
         EditorAutoCompleteUtil.apply(editor);
         attachShortcutsToEditor();
         attachScriptEditorToEditor();
+        attachUnsavedChangesToEditor();
 
         currentWorkflowStatus.addClassName("workflow-status");
         currentWorkflowStatus.setVisible(false);
+        unsavedChangesBadge.addThemeVariants(BadgeVariant.WARNING);
+        unsavedChangesBadge.setVisible(false);
+        readOnlyBadge.setVisible(false);
+        // a read-only link shows the pipeline of the workflow instead of the editor
+        workflowPipelinePanel.setVisible(false);
 
         filterByDefinition = createFilterByDefinition();
         shareWorkflowButton = createShareWorkflowButton();
-        updateWorkflowButton = createUpdateWorkflowButton();
+        saveWorkflowButton = createSaveWorkflowButton();
         splitLayout = createSplitLayout();
-        add(createHeader(getTranslation("workflow-development.page.title"), shareWorkflowButton, updateWorkflowButton, filterByDefinition),
-            createContent(splitLayout),
-            createFooter(applicationManager.getBeanOfType(SettingProvider.class)));
+        add(createHeader(getTranslation("workflow-development.page.title"), unsavedChangesBadge, readOnlyBadge, filterByDefinition),
+            createContent(splitLayout), createGuide());
     }
 
     @Override
@@ -159,13 +185,9 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
     }
 
     @Override
-    public void onSmallWidth() {
-        splitLayout.setOrientation(SplitLayout.Orientation.VERTICAL);
-    }
-
-    @Override
-    public void onBigWidth() {
-        splitLayout.setOrientation(SplitLayout.Orientation.HORIZONTAL);
+    public void onWidthChange(Breakpoint breakpoint) {
+        // editor and results side by side need a desktop, anything narrower stacks them
+        splitLayout.setOrientation(breakpoint == Breakpoint.DESKTOP ? SplitLayout.Orientation.HORIZONTAL : SplitLayout.Orientation.VERTICAL);
     }
 
     @Override
@@ -200,6 +222,37 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         super.onDetach(detachEvent);
     }
 
+    private PageGuide createGuide() {
+        final var status = new Div();
+        status.addClassNames("workflow-status", "success");
+        final var lens = new Span(getTranslation("workflow-development.script-editor.lens.java"));
+        lens.addClassName("page-guide-code");
+        return createFoldedGuide("workflow-development")
+            .legendTitle("workflow-development.guide.legend.title")
+            .legend("unsaved", PageGuide.badge(getTranslation("workflow-development.unsaved.badge"), BadgeVariant.WARNING))
+            .legend("status", status)
+            .legend("lens", lens)
+            .legend("run", createGuideButton("workflow-development.run.button", VaadinIcon.PLAY, ButtonVariant.PRIMARY), UserRole.ADMIN)
+            .legend("save", createGuideButton("workflow-development.save.button", VaadinIcon.CHECK), UserRole.ADMIN)
+            .legend("share", createGuideButton("workflow-development.share.button", VaadinIcon.LINK), UserRole.ADMIN)
+            .steps(5)
+            .note("shortcuts", PageGuide.fields(
+                "Alt+E", getTranslation("workflow-development.guide.notes.shortcuts.focus"),
+                "Ctrl+Alt+R", getTranslation("workflow-development.guide.notes.shortcuts.run"),
+                "Ctrl+Alt+U", getTranslation("workflow-development.guide.notes.shortcuts.save"),
+                "Ctrl+Alt+S", getTranslation("workflow-development.guide.notes.shortcuts.share"),
+                "Ctrl+Alt+F", getTranslation("workflow-development.guide.notes.shortcuts.reformat"),
+                "Ctrl+Alt+J", getTranslation("workflow-development.guide.notes.shortcuts.script")))
+            .note("read-only")
+            .note("runs");
+    }
+
+    private Button createGuideButton(String textKey, VaadinIcon icon, ButtonVariant... variants) {
+        final var button = PageGuide.button(icon, variants);
+        button.setText(getTranslation(textKey));
+        return button;
+    }
+
     private void attachShortcutsToEditor() {
         addShortcutListener(this, () -> editor.setWrap(!editor.isWrap()),
             Key.KEY_W, KeyModifier.CONTROL, KeyModifier.ALT).listenOn(editor);
@@ -215,6 +268,25 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
                 event.getEventData().get("event.detail.row").asInt()))
             .addEventData("event.detail.value")
             .addEventData("event.detail.row");
+    }
+
+    private void attachUnsavedChangesToEditor() {
+        editor.getElement().addEventListener("unsaved-change", event -> {
+            unsavedChanges = event.getEventData().get("event.detail.unsaved").asBoolean();
+            onUnsavedChanges();
+        }).addEventData("event.detail.unsaved");
+    }
+
+    private void onUnsavedChanges() {
+        // only an admin with a definition at hand has something to save
+        final var somethingToSave = unsavedChanges && isLoggedAsAdmin && filterByDefinition.getValue() != null;
+        saveWorkflowButton.setEnabled(somethingToSave);
+        unsavedChangesBadge.setVisible(somethingToSave);
+    }
+
+    private void markEditorAsSaved(String script) {
+        // the editor answers with an unsaved-change event, as its content may have changed again in the meantime
+        editor.getElement().executeJs(UnsavedChangesConfig.MARK_SAVED_JS_CODE, script);
     }
 
     private void openScriptEditor(String definition, int row) {
@@ -248,51 +320,86 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
             .getAll().toList());
         filterByDefinitionSelect.setPlaceholder(getTranslation("workflow-development.filter.by-template.placeholder"));
         filterByDefinitionSelect.setItemLabelGenerator(WorkflowDefinition::getName);
+        filterByDefinitionSelect.addClassName("header-filter");
         filterByDefinitionSelect.addValueChangeListener(event -> onFilterByDefinition(event.getValue()));
         return filterByDefinitionSelect;
     }
 
     private void onFilterByDefinition(WorkflowDefinition workflowDefinition) {
         filterByDefinition.setValue(workflowDefinition);
-        editor.setValue(toPrettyString(workflowDefinition.getScript(), StringUtils.EMPTY));
+        final var script = toPrettyString(workflowDefinition.getScript(), StringUtils.EMPTY);
+        editor.setValue(script);
+        markEditorAsSaved(script);
+        workflowPipelinePanel.setPipeline(workflowDefinition.getName(),
+            new WorkflowDefinitionScriptToPipelineTransformer().transform(workflowDefinition.getScript()));
         if (isLoggedAsAdmin) {
             shareWorkflowButton.setEnabled(true);
-            updateWorkflowButton.setEnabled(true);
         }
     }
 
     private Button createShareWorkflowButton() {
-        final var button = new Button(VaadinIcon.LINK.create());
+        final var button = new Button(getTranslation("workflow-development.share.button"), VaadinIcon.LINK.create());
         button.setTooltipText(getTranslation("workflow-development.share.button.tooltip"));
         button.setEnabled(false);
-        button.addClickListener(_ -> {
-            var url = ofNullable(filterByDefinition.getValue())
-                .map(item -> RouteConfiguration.forSessionScope().getUrl(WorkflowDevelopmentView.class, item.getId()))
-                .orElseGet(() -> RouteConfiguration.forSessionScope().getUrl(WorkflowDevelopmentView.class));
-            final var queryString = new QueryParameters(workflowDevParamGrid.getParametersForQuery()).getQueryString();
-            if (!queryString.isEmpty()) {
-                url = url + "?" + queryString + "&" + READ_ONLY;
-            } else {
-                url = url + "?" + READ_ONLY;
-            }
-            RequestUtil.getFullUrl(url).ifPresent(fullUrl -> {
-                ClipboardUtil.copyTo(getElement(), fullUrl);
-                Notification.show(getTranslation("workflow-development.clipboard.message"));
-            });
-        });
+        button.addClickListener(_ -> ofNullable(filterByDefinition.getValue()).ifPresent(this::openShareDialog));
         button.addClickShortcut(Key.KEY_S, KeyModifier.CONTROL, KeyModifier.ALT).resetFocusOnActiveElement();
         return button;
     }
 
-    private Button createUpdateWorkflowButton() {
-        final var button = new Button(VaadinIcon.EDIT.create());
-        button.setTooltipText(getTranslation("workflow-development.update.button.tooltip"));
+    private void openShareDialog(WorkflowDefinition workflowDefinition) {
+        final var parametersQuery = new QueryParameters(workflowDevParamGrid.getParametersForQuery()).getQueryString();
+        final var dialog = new WorkflowShareDialog(workflowDefinition.getName(),
+            (readOnly, withParameters) -> createShareLink(workflowDefinition, withParameters ? parametersQuery : StringUtils.EMPTY, readOnly),
+            !parametersQuery.isEmpty(), unsavedChanges);
+        dialog.addCopyListener(event -> {
+            ClipboardUtil.copyTo(getElement(), event.getLink());
+            Notification.show(getTranslation("workflow-development.clipboard.message"));
+        });
+        dialog.open();
+    }
+
+    private String createShareLink(WorkflowDefinition workflowDefinition, String parametersQuery, boolean readOnly) {
+        final var url = RouteConfiguration.forSessionScope().getUrl(WorkflowDevelopmentView.class, workflowDefinition.getId());
+        final var query = Stream.of(parametersQuery, readOnly ? READ_ONLY : StringUtils.EMPTY)
+            .filter(not(String::isEmpty))
+            .collect(joining("&"));
+        final var urlWithQuery = query.isEmpty() ? url : url + "?" + query;
+        return RequestUtil.getFullUrl(urlWithQuery).orElse(urlWithQuery);
+    }
+
+    private Button createSaveWorkflowButton() {
+        final var button = new Button(getTranslation("workflow-development.save.button"), VaadinIcon.CHECK.create());
+        button.setTooltipText(getTranslation("workflow-development.save.button.tooltip"));
         button.setEnabled(false);
-        button.addClickListener(_ -> ofNullable(filterByDefinition.getValue())
-            .ifPresent(workflowDefinition -> applicationManager.getBeanOfType(WorkflowDefinitionService.class)
-                .updateDefinition(workflowDefinition, editor.getValue())));
+        button.addClickListener(_ -> ofNullable(filterByDefinition.getValue()).ifPresent(this::saveWorkflowDefinition));
         button.addClickShortcut(Key.KEY_U, KeyModifier.CONTROL, KeyModifier.ALT).resetFocusOnActiveElement();
         return button;
+    }
+
+    private void saveWorkflowDefinition(WorkflowDefinition workflowDefinition) {
+        final var script = editor.getValue();
+        try {
+            applicationManager.getBeanOfType(WorkflowDefinitionService.class).updateDefinition(workflowDefinition, script);
+        } catch (WorkflowRuntimeException exception) {
+            Notification.show(getTranslation("workflow-development.save.error.message", describe(exception)), ERROR_NOTIFICATION_DURATION,
+                Notification.Position.BOTTOM_START).addThemeVariants(NotificationVariant.ERROR);
+            return;
+        }
+        markEditorAsSaved(script);
+        Notification.show(getTranslation("workflow-development.save.success.message", workflowDefinition.getName()));
+    }
+
+    private String describe(WorkflowRuntimeException exception) {
+        // a script which cannot be read is the usual reason, and the parser knows where it stopped
+        if (exception.getCause() instanceof JsonProcessingException cause) {
+            final var message = cause.getOriginalMessage();
+            // a syntax error names its line by itself, a value of the wrong type does not
+            return ofNullable(cause.getLocation())
+                .filter(location -> !message.contains("line " + location.getLineNr()))
+                .map(location -> getTranslation("workflow-development.save.error.location", message, location.getLineNr()))
+                .orElse(message);
+        }
+        return exception.getMessage();
     }
 
     private SplitLayout createSplitLayout() {
@@ -311,21 +418,27 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         runWorkflowButton.setIconAfterText(true);
         runWorkflowButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         runWorkflowButton.addClickListener(event -> {
-            final var workflowRun = new WorkflowRun(workflowDevParamGrid.getParametersAsMap());
+            final var workflowRun = new WorkflowRun(null, workflowDevParamGrid.getParametersAsMap(), SecurityUtil.findCurrentUserId().orElse(null));
             lastSubmittedUuid = workflowRun.getId();
+            workflowPipelinePanel.start(lastSubmittedUuid);
             applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
                 .workflowRun(workflowRun)
                 .workflowDefinitionScript(editor.getValue())
                 .build());
         });
         runWorkflowButton.addClickShortcut(Key.KEY_R, KeyModifier.CONTROL, KeyModifier.ALT).resetFocusOnActiveElement();
+        runWorkflowButton.setTooltipText(getTranslation("workflow-development.run.button.tooltip"));
         if (!isLoggedAsAdmin) {
             runWorkflowButton.setEnabled(false);
         }
-        runWorkflowButton.setWidthFull();
+        runWorkflowButton.addClassName("workflow-actions-run");
+
+        final var actions = new HorizontalLayout(runWorkflowButton, saveWorkflowButton, shareWorkflowButton);
+        actions.addClassName("workflow-actions");
+        actions.setWidthFull();
 
         editorHelper.addClassName("editor-helper");
-        layout.add(currentWorkflowStatus, editor, editorHelper, new Hr(), runWorkflowButton);
+        layout.add(currentWorkflowStatus, workflowPipelinePanel, editor, editorHelper, new Hr(), actions);
         layout.setFlexGrow(1, editor);
         return layout;
     }
@@ -362,12 +475,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
 
     private void updateWorkflowProgress(WorkflowRun workflowRun) {
         currentWorkflowStatus.removeAll();
+        // the editor may hold something else than the definition the pipeline was drawn from, unless it is read-only
+        final var position = readOnly ? workflowPipelinePanel.setProgress(workflowRun) : Optional.<String>empty();
         if (workflowRun.isRunning()) {
             setWorkflowStatus("running");
             currentWorkflowStatus.add(createStatusMessage(getTranslation("workflow-development.in-progress.message",
-                LangUtil.pluralize(getTranslation("workflow-development.command"), workflowRun.getLastSuccessfulIndex() + 1)
+                position.orElseGet(() -> LangUtil.pluralize(getTranslation("workflow-development.command"), workflowRun.getLastSuccessfulIndex() + 1)
                     .map(item -> getTranslation("workflow-development.in-progress.command-message", item))
-                    .orElse(StringUtils.EMPTY))));
+                    .orElse(StringUtils.EMPTY)))));
         } else {
             ofNullable(workflowRun.getFailureMessage()).ifPresentOrElse(error -> {
                 setWorkflowStatus("error");
@@ -414,10 +529,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasResi
         if (parameters.isEmpty()) {
             return;
         }
-        final var readOnly = ofNullable(parameters.get(READ_ONLY)).isPresent();
+        readOnly = ofNullable(parameters.get(READ_ONLY)).isPresent();
         editor.setReadOnly(readOnly);
-        updateWorkflowButton.setVisible(!readOnly);
+        saveWorkflowButton.setVisible(!readOnly);
         workflowDevParamGrid.setReadOnly(readOnly);
+        readOnlyBadge.setVisible(readOnly);
+        workflowPipelinePanel.setVisible(readOnly);
+        editor.setVisible(!readOnly);
+        editorHelper.setVisible(!readOnly);
         if (readOnly) {
             runWorkflowButton.setEnabled(true);
             splitLayout.setSplitterPosition(40);

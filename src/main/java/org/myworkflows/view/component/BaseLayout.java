@@ -21,10 +21,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.repository.MenuItemRepository;
 import org.myworkflows.view.transformer.MenuItemsToSideNavItemsTransformer;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.File;
 import java.util.List;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Mihai Surdeanu
@@ -34,10 +38,13 @@ import java.util.List;
 @PermitAll
 public class BaseLayout extends AppLayout {
 
-    public BaseLayout(AuthenticationContext authContext, SettingProvider settingProvider, MenuItemRepository menuItemRepository) {
+    private static final String UNKNOWN_VERSION = "dev";
+
+    public BaseLayout(AuthenticationContext authContext, SettingProvider settingProvider, MenuItemRepository menuItemRepository,
+                      ObjectProvider<BuildProperties> buildProperties) {
         createHeader(authContext, settingProvider);
 
-        addDrawerContent(new MenuItemsToSideNavItemsTransformer().transform(menuItemRepository.findByOrderByPosition()), settingProvider);
+        addDrawerContent(new MenuItemsToSideNavItemsTransformer().transform(menuItemRepository.findByOrderByPosition()), buildProperties);
     }
 
     private void createHeader(AuthenticationContext authContext, SettingProvider settingProvider) {
@@ -61,16 +68,17 @@ public class BaseLayout extends AppLayout {
         header.expand(logoLayout);
         header.setWidthFull();
 
-        addToNavbar(header);
+        // on a phone the bar renders at the bottom of the screen, within reach of a thumb
+        addToNavbar(true, header);
     }
 
-    private void addDrawerContent(List<SideNavItem> routerLinks, SettingProvider settingProvider) {
+    private void addDrawerContent(List<SideNavItem> routerLinks, ObjectProvider<BuildProperties> buildProperties) {
         final var mainMenu = new H4(getTranslation("app.name"));
         mainMenu.getStyle().set("text-align", "center");
         mainMenu.setWidthFull();
         final var header = new Header(mainMenu);
         final var scroller = new Scroller(createNavigation(routerLinks));
-        addToDrawer(header, scroller, createFooter(settingProvider));
+        addToDrawer(header, scroller, createFooter(buildProperties));
     }
 
     private SideNav createNavigation(List<SideNavItem> routerLinks) {
@@ -79,10 +87,17 @@ public class BaseLayout extends AppLayout {
         return appNav;
     }
 
-    private Footer createFooter(SettingProvider settingProvider) {
+    /**
+     * The version comes from the jar that is running - `build-info` writes the Maven version into
+     * `META-INF/build-info.properties` - rather than from a setting somebody has to keep in step with it.
+     */
+    private Footer createFooter(ObjectProvider<BuildProperties> buildProperties) {
+        final var version = ofNullable(buildProperties.getIfAvailable())
+            .map(BuildProperties::getVersion)
+            .orElse(UNKNOWN_VERSION);
         final var layout = new Footer();
         layout.addClassNames("flex", "items-center", "my-s", "px-m", "py-xs");
-        layout.add(new Span("v" + settingProvider.getOrDefault("version", "")));
+        layout.add(new Span("v" + version));
         return layout;
     }
 

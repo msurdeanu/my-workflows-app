@@ -45,8 +45,12 @@ public final class TextFieldWithEnterShortcut extends TextField {
         return this;
     }
 
-    public TextFieldWithEnterShortcut width(String width) {
-        setWidth(width);
+    /**
+     * Sized by `styles.css` as a page header filter, since an inline width cannot be overridden from a stylesheet.
+     */
+    public TextFieldWithEnterShortcut headerFilter() {
+        setWidth(null);
+        addClassName("header-filter");
         return this;
     }
 

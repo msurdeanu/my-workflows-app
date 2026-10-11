@@ -51,10 +51,12 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
 
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderName))
             .setHeader(getTranslation("workflow-definitions.grid.name.column"))
-            .setAutoWidth(true);
+            .setWidth("150px")
+            .setFlexGrow(1);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
             .setHeader(new TextFieldWithEnterShortcut(workflowDefinitionEventHandler::onCreate).small())
-            .setAutoWidth(true);
+            .setAutoWidth(true)
+            .setFlexGrow(0);
 
         layout.add(paginatedGrid);
         return layout;
@@ -81,6 +83,7 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
 
     private Component renderActions(WorkflowDefinition workflowDefinition) {
         final var layout = new HorizontalLayout();
+        layout.addClassName("cell-badges");
 
         final var editButton = new Button(new Icon(VaadinIcon.EDIT));
         editButton.setTooltipText(getTranslation("workflow-definitions.grid.actions.button.edit.title"));

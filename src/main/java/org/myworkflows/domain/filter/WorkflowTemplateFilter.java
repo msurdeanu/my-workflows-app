@@ -28,10 +28,10 @@ public final class WorkflowTemplateFilter implements Filter<WorkflowTemplate> {
     public Predicate<WorkflowTemplate> getFilterPredicate() {
         final Predicate<WorkflowTemplate> predicate = idCriteria > 0
             ? item -> item.getId() == idCriteria
-            : item -> true;
+            : _ -> true;
         return predicate.and(isNotEmpty(nameCriteria)
             ? item -> containsIgnoreCase(item.getName(), nameCriteria)
-            : item -> true);
+            : _ -> true);
     }
 
 }

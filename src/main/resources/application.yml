@@ -26,6 +26,13 @@ spring:
     url: jdbc:sqlite:database.db
     # Database driver
     driver-class-name: org.sqlite.JDBC
+    hikari:
+      data-source-properties:
+        # A transaction takes the write lock when it begins instead of when it first writes. SQLite refuses to
+        # upgrade a read lock while another connection is writing and fails at once with SQLITE_BUSY, so two
+        # transactions that read before writing - which is what saving an entity does - could not run at the
+        # same time: one of them lost its changes. Taking the lock upfront makes the second one wait instead.
+        "[transaction_mode]": IMMEDIATE
   mustache:
     check-template-location: false
   servlet:

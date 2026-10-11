@@ -22,10 +22,13 @@ import com.vaadin.flow.router.RouterLink;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.service.WorkflowRunService;
+import org.myworkflows.util.SecurityUtil;
 import org.myworkflows.view.WorkflowRunView;
 import org.myworkflows.view.WorkflowTemplateView;
 import org.myworkflows.view.component.html.StandardPaginatedGrid;
 import org.myworkflows.view.util.ClipboardUtil;
+
+import java.util.List;
 
 import static java.util.Optional.ofNullable;
 
@@ -39,6 +42,8 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
     private static final int SHORT_ID_LENGTH = 8;
 
     private final StandardPaginatedGrid<WorkflowRun, ?> paginatedGrid = new StandardPaginatedGrid<>();
+
+    private final Integer currentUserId = SecurityUtil.findCurrentUserId().orElse(null);
 
     private final WorkflowRunService workflowRunService;
 
@@ -55,23 +60,49 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         final var layout = super.initContent();
         layout.setSizeFull();
 
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderId))
+        final var narrowColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderPhoneCell))
+            .setHeader(getTranslation("workflow-runs.grid.run.column"));
+        final var idColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderId))
             .setHeader(getTranslation("workflow-runs.grid.id.column"))
             .setAutoWidth(true);
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderTemplateId))
-            .setHeader(getTranslation("workflow-runs.grid.template.column"))
+        final var userColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderUser))
+            .setHeader(getTranslation("workflow-runs.grid.user.column"))
             .setAutoWidth(true);
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderStatus))
+        // a template name can be arbitrarily long, so it gets a minimum and the extra space instead of its content width
+        final var templateColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderTemplateId))
+            .setHeader(getTranslation("workflow-runs.grid.template.column"))
+            .setWidth("150px")
+            .setFlexGrow(2);
+        final var statusColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderStatus))
             .setHeader(getTranslation("workflow-runs.grid.status.column"))
             .setAutoWidth(true);
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderDetails))
+        final var detailsColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderDetails))
             .setHeader(getTranslation("workflow-runs.grid.details.column"))
             .setAutoWidth(true);
-        paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
+        final var actionsColumn = paginatedGrid.addColumn(new ComponentRenderer<>(this::renderActions))
             .setHeader(getTranslation("workflow-runs.grid.actions.column"))
             .setAutoWidth(true);
+        paginatedGrid.setNarrowColumn(narrowColumn, List.of(idColumn, userColumn, templateColumn, statusColumn, detailsColumn, actionsColumn));
 
         layout.add(paginatedGrid);
+        return layout;
+    }
+
+    /**
+     * A phone shows the whole run in one cell: the id, then the user, the template and the status, then the run
+     * time and the actions.
+     */
+    private Component renderPhoneCell(WorkflowRun workflowRun) {
+        final var badges = new HorizontalLayout(renderUser(workflowRun), renderTemplateId(workflowRun), renderStatus(workflowRun));
+        badges.addClassName("cell-badges");
+        badges.setSpacing(true);
+        final var actions = new HorizontalLayout(renderDetails(workflowRun), renderActions(workflowRun));
+        actions.addClassName("cell-badges");
+        actions.setAlignItems(FlexComponent.Alignment.CENTER);
+        final var layout = new VerticalLayout(renderId(workflowRun), badges, actions);
+        layout.addClassName("phone-cell");
+        layout.setPadding(false);
+        layout.setSpacing(false);
         return layout;
     }
 
@@ -110,6 +141,19 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         });
     }
 
+    private Component renderUser(WorkflowRun workflowRun) {
+        final var badge = new Badge(workflowRunService.findUsername(workflowRun).orElseGet(() -> getTranslation(noUserLabelKey(workflowRun))));
+        badge.addThemeVariants(BadgeVariant.CONTRAST, BadgeVariant.SMALL);
+        return badge;
+    }
+
+    private String noUserLabelKey(WorkflowRun workflowRun) {
+        // a run of a template that belongs to no user was started by the cron of that template
+        return workflowRun.getUserId() == null && workflowRun.getWorkflowTemplateId() != null
+            ? "workflow-runs.grid.user.scheduler"
+            : "workflow-runs.grid.user.unknown";
+    }
+
     private Component renderStatus(WorkflowRun workflowRun) {
         if (workflowRun.isRunning()) {
             final var badge = new Badge(getTranslation("workflow-runs.grid.status.pending", workflowRun.getHumanReadableDuration()));
@@ -146,6 +190,7 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
 
     private Component renderActions(WorkflowRun workflowRun) {
         final var layout = new HorizontalLayout();
+        layout.addClassName("cell-badges");
         if (workflowRun.isRunning()) {
             final var cancelButton = new Button(VaadinIcon.CLOSE.create());
             cancelButton.addThemeVariants(ButtonVariant.SMALL);
@@ -156,7 +201,7 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
             deleteButton.addThemeVariants(ButtonVariant.SMALL);
             deleteButton.addClickListener(_ -> delete(workflowRun));
             layout.add(deleteButton);
-            if (workflowRun.isEligibleForReplay()) {
+            if (workflowRun.isReplayableBy(currentUserId)) {
                 final var replayButton = new Button(VaadinIcon.RECYCLE.create());
                 replayButton.addThemeVariants(ButtonVariant.SMALL);
                 replayButton.addClickListener(_ -> replay(workflowRun));

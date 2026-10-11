@@ -11,6 +11,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +34,9 @@ public class SecurityApiConfig {
                                                  UserTokenFilter userTokenFilter) throws Exception {
         final var httpSecurity = http
             .securityMatcher("/api/**")
+            // A call is authenticated by the token it carries, not by a session cookie, so there is nothing a
+            // forged request could ride on - while the CSRF check would reject every POST of an API client.
+            .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(item -> item.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/**").authenticated());

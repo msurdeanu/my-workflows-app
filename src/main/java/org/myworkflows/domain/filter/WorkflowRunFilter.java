@@ -26,14 +26,19 @@ public final class WorkflowRunFilter implements Filter<WorkflowRun> {
 
     private String runIdCriteria = StringUtils.EMPTY;
 
+    private Integer userIdCriteria;
+
     @Override
     public Predicate<WorkflowRun> getFilterPredicate() {
         final Predicate<WorkflowRun> predicate = templateIdCriteria > 0
             ? item -> templateIdCriteria == ofNullable(item.getWorkflowTemplateId()).orElse(0)
-            : item -> true;
+            : _ -> true;
         return predicate.and(isNotEmpty(runIdCriteria)
             ? item -> containsIgnoreCase(ofNullable(item.getId()).map(UUID::toString).orElse(StringUtils.EMPTY), runIdCriteria)
-            : item -> true);
+            : _ -> true)
+            .and(userIdCriteria != null
+                ? item -> userIdCriteria.equals(item.getUserId())
+                : _ -> true);
     }
 
 }

@@ -66,6 +66,216 @@
     font-size: var(--aura-font-size-xs);
 }
 
+/* run takes the room that save and share leave next to it */
+.workflow-actions {
+    flex-wrap: wrap;
+}
+
+.workflow-actions .workflow-actions-run {
+    flex: 1 1 140px;
+}
+
+/* the commands of a workflow as the stops of a line: what a read-only link shows instead of the editor */
+.workflow-pipeline {
+    flex: 1 1 0;
+    min-height: 0;
+    align-self: stretch;
+    box-sizing: border-box;
+    overflow: auto;
+    padding: var(--vaadin-padding-m, 12px);
+    border-radius: var(--vaadin-radius-l, 12px);
+    background: var(--vaadin-background-container);
+    line-height: 1.45;
+}
+
+.workflow-pipeline-intro {
+    margin-bottom: var(--vaadin-gap-m, 16px);
+    color: var(--vaadin-text-color-secondary);
+}
+
+.workflow-pipeline-intro strong {
+    color: var(--vaadin-text-color);
+}
+
+.workflow-pipeline-stops,
+.workflow-pipeline-subs {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.workflow-pipeline-stop,
+.workflow-pipeline-heading {
+    display: flex;
+    gap: 14px;
+}
+
+.workflow-pipeline-rail {
+    flex: 0 0 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.workflow-pipeline-dot {
+    flex: 0 0 28px;
+    box-sizing: border-box;
+    width: 28px;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--vaadin-border-color);
+    border-radius: 50%;
+    background: var(--vaadin-background-color);
+    font-size: var(--aura-font-size-xs);
+    font-weight: 700;
+    --vaadin-icon-size: 14px;
+}
+
+/* the final commands are told apart from the numbered ones by the shape of their stop */
+.workflow-pipeline-stop.final .workflow-pipeline-dot {
+    border-radius: var(--vaadin-radius-m, 8px);
+}
+
+.workflow-pipeline-line {
+    flex: 1;
+    min-height: 14px;
+    border-left: 3px solid var(--vaadin-border-color-secondary);
+}
+
+/* the line reaches the final commands whatever happens on the way, hence it is drawn apart */
+.workflow-pipeline-stop.last .workflow-pipeline-line,
+.workflow-pipeline-heading .workflow-pipeline-line {
+    border-left-style: dashed;
+}
+
+.workflow-pipeline-stop.terminal .workflow-pipeline-line {
+    visibility: hidden;
+}
+
+.workflow-pipeline .travelled .workflow-pipeline-line {
+    border-left-color: var(--aura-green-text);
+}
+
+.workflow-pipeline-stop.done .workflow-pipeline-dot {
+    border-color: var(--aura-green-text);
+    background: var(--aura-green-text);
+    color: var(--vaadin-background-color);
+}
+
+.workflow-pipeline-stop.running .workflow-pipeline-dot {
+    border-color: var(--aura-yellow-text);
+    background: color-mix(in srgb, var(--aura-yellow) 30%, var(--vaadin-background-color));
+    color: var(--aura-yellow-text);
+    animation: workflow-pipeline-pulse 1.6s ease-out infinite;
+}
+
+.workflow-pipeline-stop.failed .workflow-pipeline-dot {
+    border-color: var(--aura-red-text);
+    background: var(--aura-red-text);
+    color: var(--vaadin-background-color);
+}
+
+.workflow-pipeline-stop.skipped .workflow-pipeline-dot {
+    border-style: dashed;
+    background: none;
+    color: var(--vaadin-text-color-secondary);
+}
+
+.workflow-pipeline-stop.skipped .workflow-pipeline-name {
+    color: var(--vaadin-text-color-secondary);
+}
+
+@keyframes workflow-pipeline-pulse {
+    from {
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--aura-yellow-text) 45%, transparent);
+    }
+
+    to {
+        box-shadow: 0 0 0 8px transparent;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .workflow-pipeline-stop.running .workflow-pipeline-dot {
+        animation: none;
+    }
+}
+
+.workflow-pipeline-stop > div:last-child,
+.workflow-pipeline-heading > div:last-child {
+    flex: 1;
+    min-width: 0;
+    padding: 3px 0 16px;
+}
+
+.workflow-pipeline-title,
+.workflow-pipeline-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vaadin-gap-xs) var(--vaadin-gap-s);
+}
+
+.workflow-pipeline-name {
+    font-weight: 600;
+}
+
+.workflow-pipeline-heading-title {
+    font-size: var(--aura-font-size-xs);
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.workflow-pipeline-text,
+.workflow-pipeline-meta {
+    font-size: var(--aura-font-size-s);
+    color: var(--vaadin-text-color-secondary);
+    overflow-wrap: anywhere;
+}
+
+.workflow-pipeline-text {
+    margin-top: 2px;
+}
+
+.workflow-pipeline-meta {
+    margin-top: 6px;
+}
+
+.workflow-pipeline-code,
+.workflow-pipeline-condition {
+    color: var(--vaadin-text-color);
+}
+
+.workflow-pipeline-code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .92em;
+}
+
+.workflow-pipeline-text .workflow-pipeline-code {
+    margin-left: .3em;
+}
+
+.workflow-pipeline-meta .workflow-pipeline-code,
+.workflow-pipeline-condition {
+    padding: 0 6px;
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-s);
+    background: var(--vaadin-background-color);
+}
+
+/* the commands a command runs by itself branch off its stop */
+.workflow-pipeline-subs {
+    margin-top: 8px;
+    padding-left: 12px;
+    border-left: 2px solid var(--vaadin-border-color-secondary);
+    font-size: var(--aura-font-size-s);
+}
+
+.workflow-pipeline-subs li + li {
+    margin-top: 4px;
+}
+
 .text-error {
     color: var(--aura-red-text);
 }
@@ -96,34 +306,153 @@ footer > span {
     font-size: var(--aura-font-size-xs);
 }
 
-#responsiveLayout {
+/* badges, links and buttons inside a grid cell move onto a second line instead of
+   widening the column beyond the screen */
+.cell-badges {
+    flex-wrap: wrap;
+    row-gap: var(--vaadin-gap-xs);
+}
+
+/* a phone shows one column per grid: the values of a row are stacked inside a single cell */
+.phone-cell {
+    gap: var(--vaadin-gap-xs);
+    width: 100%;
+}
+
+.cell-secondary {
+    font-size: var(--aura-font-size-xs);
+    color: var(--vaadin-text-color-secondary);
+}
+
+.responsive-layout {
     display: flex;
     flex-direction: column;
 }
 
-#responsiveLayout .header-left {
-    width: 50%;
+.responsive-layout .header {
+    flex-wrap: wrap;
+}
+
+/* both halves share the header row evenly, but may shrink past their content instead of
+   widening the page - the filters wrap inside the right half instead */
+.responsive-layout .header-left,
+.responsive-layout .header-right {
+    flex: 1 1 0;
+    min-width: 0;
     margin-top: 10px;
+}
+
+.responsive-layout .header-left {
     padding-left: 25px;
 }
 
-#responsiveLayout .header-right {
-    width: 50%;
-    margin-top: 10px;
+.responsive-layout .header-right {
     padding-right: 25px;
 }
 
-#responsiveLayout .content {
-    flex: 1;
+/* a filter that is shorter than a field - a checkbox - is centered on the fields next to it */
+.responsive-layout .header-filters {
+    flex-wrap: wrap;
+    align-items: center;
 }
 
-#responsiveLayout .footer {
-    border-top: 1px solid color-mix(in srgb, var(--aura-neutral-light) 50%, transparent);
-    text-align: center;
-    font-size: var(--aura-font-size-xs);
-    padding: 10px;
-    width: 250px;
-    margin: 0 auto;
+.responsive-layout .content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* one removable chip per filter in use, under the header and aligned with its title */
+.responsive-layout .page-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vaadin-gap-xs) var(--vaadin-gap-s);
+    padding: 8px 25px 0;
+}
+
+.page-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 2px 2px 10px;
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: 999px;
+    background: var(--vaadin-background-container);
+    font-size: .85rem;
+}
+
+.page-filter-remove {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--vaadin-text-color-secondary);
+    cursor: pointer;
+    --vaadin-icon-size: 14px;
+}
+
+.page-filter-remove:hover {
+    background: var(--vaadin-border-color-secondary);
+    color: var(--vaadin-text-color);
+}
+
+.page-filter-remove:focus-visible {
+    outline: var(--vaadin-focus-ring-width) solid var(--vaadin-focus-ring-color);
+}
+
+@media (max-width: 640px) {
+    /* the title and the filters each take a full row, and the filters share that row */
+    .responsive-layout .header-left,
+    .responsive-layout .header-right {
+        flex-basis: 100%;
+        margin-top: var(--vaadin-gap-s);
+        padding-left: var(--vaadin-padding-s);
+        padding-right: var(--vaadin-padding-s);
+    }
+
+    .responsive-layout .header-left h3 {
+        margin: 0;
+    }
+
+    .responsive-layout .header-filter {
+        flex: 1 1 140px;
+        width: auto;
+    }
+
+    .responsive-layout .page-filters {
+        padding-inline: var(--vaadin-padding-s);
+    }
+
+    /* run gets a row of its own, save and share split the next one */
+    .workflow-actions .workflow-actions-run {
+        flex-basis: 100%;
+    }
+
+    .workflow-actions vaadin-button {
+        flex-grow: 1;
+    }
+
+    /* a finger needs more than the 22px a mouse is fine with */
+    .page-filter-remove {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* Aura has no `compact` grid variant and scales itself up on touch devices,
+       so the density the grids ask for is restored here */
+    vaadin-grid {
+        --vaadin-grid-cell-padding: var(--vaadin-padding-xs);
+    }
+
+    /* the icon buttons inside a cell are the smallest thing a finger has to hit */
+    .cell-badges vaadin-button {
+        min-width: 40px;
+        min-height: 40px;
+    }
 }
 
 /* Markdown editor/viewer: drop the add-on's opaque GitHub palette so the
@@ -166,4 +495,206 @@ markdown-editor .w-md-editor-toolbar li > button {
 
 markdown-editor .w-md-editor-preview {
     box-shadow: inset 1px 0 0 0 var(--color-border-default);
+}
+
+/* the guide of a page follows its grid: the content ends where the grid does instead of filling the screen */
+.responsive-layout.with-guide .content {
+    flex: 0 0 auto;
+}
+
+/* a content which fills the screen keeps a height worth working in once the guide under it is opened */
+.responsive-layout.with-folded-guide .content {
+    min-height: 480px;
+}
+
+.responsive-layout.with-folded-guide .page-guide {
+    margin-block: var(--vaadin-gap-s) var(--vaadin-gap-m, 16px);
+}
+
+.page-guide {
+    flex: 0 0 auto;
+    margin: var(--vaadin-gap-m, 16px) 25px 25px;
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-l, 12px);
+    background: var(--vaadin-background-container);
+}
+
+.page-guide-summary {
+    display: flex;
+    align-items: center;
+    gap: var(--vaadin-gap-m, 12px);
+    min-width: 0;
+}
+
+.page-guide-icon,
+.page-guide-step-number {
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--aura-accent-color) 14%, transparent);
+    color: var(--aura-accent-color);
+}
+
+.page-guide-icon {
+    flex: 0 0 36px;
+    height: 36px;
+    border-radius: var(--vaadin-radius-m, 8px);
+    --vaadin-icon-size: 18px;
+}
+
+.page-guide-heading {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.page-guide-title {
+    font-weight: 600;
+    color: var(--vaadin-text-color);
+}
+
+.page-guide-intro,
+.page-guide-text {
+    font-size: var(--aura-font-size-s);
+    font-weight: normal;
+    line-height: 1.45;
+    color: var(--vaadin-text-color-secondary);
+}
+
+/* the legend, the steps and the notes sit side by side, and under each other where they do not fit */
+.page-guide-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px 36px;
+    padding-block: var(--vaadin-gap-s) var(--vaadin-gap-m, 12px);
+}
+
+.page-guide-section {
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.page-guide-section h4 {
+    margin: 0 0 var(--vaadin-gap-m, 12px);
+    font-size: var(--aura-font-size-s);
+    font-weight: 600;
+    color: var(--vaadin-text-color-secondary);
+}
+
+/* a copy of what the grid shows, or the number of a step, next to its explanation */
+.page-guide-legend,
+.page-guide-steps {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: start;
+    gap: 14px;
+}
+
+.page-guide-sample {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    min-height: 40px;
+    padding: 4px 10px;
+}
+
+.page-guide-step-number {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-size: var(--aura-font-size-s);
+    font-weight: 700;
+}
+
+.page-guide-item-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+    font-weight: 600;
+}
+
+.page-guide-notes,
+.page-guide-note {
+    display: flex;
+    flex-direction: column;
+}
+
+.page-guide-notes {
+    gap: 14px;
+}
+
+.page-guide-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--vaadin-gap-s);
+    margin: 6px 0;
+}
+
+.page-guide-sample,
+.page-guide-field {
+    box-sizing: border-box;
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-m, 8px);
+    background: var(--vaadin-background-color);
+}
+
+.page-guide-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 6px 8px;
+}
+
+.page-guide-field-value,
+.page-guide-code,
+.page-guide code,
+.page-guide kbd {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.page-guide-field-value {
+    font-size: var(--aura-font-size-s);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.page-guide-field-name {
+    font-size: var(--aura-font-size-xs);
+    color: var(--vaadin-text-color-secondary);
+}
+
+.page-guide-code {
+    font-size: var(--aura-font-size-s);
+}
+
+/* the status of a run, cut down to its colours */
+.page-guide-sample .workflow-status {
+    align-self: center;
+    width: 44px;
+    height: 22px;
+    padding: 0;
+}
+
+.page-guide code,
+.page-guide kbd {
+    padding: 1px 6px;
+    border-radius: var(--vaadin-radius-s);
+    color: var(--vaadin-text-color);
+    font-size: .9em;
+}
+
+.page-guide code {
+    background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.page-guide kbd {
+    border: 1px solid var(--vaadin-border-color-secondary);
+    background: var(--vaadin-background-color);
+}
+
+@media (max-width: 640px) {
+    .page-guide {
+        margin-inline: var(--vaadin-padding-s);
+    }
 }

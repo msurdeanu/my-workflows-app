@@ -1,11 +1,11 @@
 package org.myworkflows.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.domain.event.EventListener;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Mihai Surdeanu
@@ -17,14 +17,23 @@ public class WorkflowRunProgressService implements EventListener<WorkflowDefinit
 
     private final ApplicationManager applicationManager;
 
-    @Transactional
+    private final TransactionTemplate transactionTemplate;
+
     @Override
     public void onEventReceived(WorkflowDefinitionOnProgressEvent event) {
         final var service = applicationManager.getBeanOfType(WorkflowRunService.class);
-        service.create(event.workflowRun(), event.persisted());
-        if (event.persisted()) {
-            service.deleteOldEntriesIfNeeded(false);
+        if (!event.persisted()) {
+            // A run in progress lives in the cache only. No transaction is opened for it, because a transaction
+            // takes the write lock of the database as soon as it begins: every command of every run would
+            // queue behind the writers, and would fail together with them while the database is locked.
+            service.create(event.workflowRun(), false);
+            return;
         }
+
+        transactionTemplate.executeWithoutResult(_ -> {
+            service.create(event.workflowRun(), true);
+            service.deleteOldEntriesIfNeeded(false);
+        });
     }
 
     @Override

@@ -40,7 +40,7 @@ Plus the **cache access pattern** `$(varName:Type.class)` which gets rewritten i
 ### Persistence layer
 
 - SQLite via `org.xerial:sqlite-jdbc` + `hibernate-community-dialects` (`SQLiteDialect`)
-- Schema is owned by **Flyway** migrations (`V1__bootstrap.sql` … `V4__sb4java25.sql`). `spring.jpa.hibernate.ddl-auto=none` — never let Hibernate generate schema.
+- Schema is owned by **Flyway** migrations (`V1__bootstrap.sql` … `V6__workflow_run_user.sql`). `spring.jpa.hibernate.ddl-auto=none` — never let Hibernate generate schema.
 - Spring Boot 4 requires `spring-boot-starter-flyway` explicitly (the autoconfig was extracted from `spring-boot-autoconfigure`).
 - `WorkflowRun.id` is a `UUID` stored as `BLOB` (16 bytes, big-endian) using `@JdbcTypeCode(SqlTypes.BINARY)`. Hibernate 7 forbids `@AttributeConverter` on `@Id` fields.
 - Other domain types use `@Convert` with custom `AttributeConverter`s in `converter/` (e.g. `WorkflowDefinitionScriptToStringConverter` serializes the YAML script blob).
@@ -59,7 +59,7 @@ Plus the **cache access pattern** `$(varName:Type.class)` which gets rewritten i
 
 ### UI layer (`view/`)
 
-Each top-level Vaadin route is a single class in `view/`. Forms and grids reuse components from `view/component/`. `view/transformer/` adapts domain objects to UI representations. `KeyboardUtil` centralizes the dev-page shortcuts documented in the README. The Ace editor wrapper (`de.f0rce:ace`) is used in `WorkflowDevelopmentView`.
+Each top-level Vaadin route is a single class in `view/`. Forms and grids reuse components from `view/component/`. `view/transformer/` adapts domain objects to UI representations. `KeyboardUtil` centralizes the dev-page shortcuts documented in the README. A grid page registers its filters with `ResponsiveLayout.createFilters(ROUTE, PageFilter...)`: `PageFilters` then mirrors them into the URL query parameters (via `replaceState`, never a push) and the session, and renders the removable chips; a filter carried by the path (`workflow/templates/42`) is handed over with `setPathFilterValues` from `setParameter`. A page gets the guide under its grid from `ResponsiveLayout.createGuide(page)`, added after the content: `PageGuide` reads every text from the translations under `<page>.guide` (legend, steps, notes) and takes only the sample components from the view. Every guide starts folded. A page whose content fills the screen instead of ending with a grid (`WorkflowDevelopmentView`) uses `createFoldedGuide(page)`, which keeps a minimum height for that content once the guide is opened. The Ace editor wrapper (`de.f0rce:ace`) is used in `WorkflowDevelopmentView`. Opened from a read-only link (`?ro`), that view shows a `WorkflowPipelinePanel` instead of the editor, which is hidden: `WorkflowDefinitionScriptToPipelineTransformer` turns the script of the definition into a `WorkflowPipeline`, whose `progressOf(WorkflowRun)` gives the status of every command from `lastSuccessfulIndex`, `lastSuccessfulFinallyIndex` and the failure of the run. A new command type needs its `workflow-pipeline.command.<class>.label` and `.text` translations, plus a `.detail` one if it is added to `DETAIL_INPUTS`.
 
 ### REST API (`restapi/`)
 

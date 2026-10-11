@@ -26,7 +26,7 @@ public final class WorkflowPlaceholderFilter implements Filter<WorkflowPlacehold
     public Predicate<WorkflowPlaceholder> getFilterPredicate() {
         return isNotEmpty(nameCriteria)
             ? item -> containsIgnoreCase(item.getName(), nameCriteria)
-            : item -> true;
+            : _ -> true;
     }
 
 }

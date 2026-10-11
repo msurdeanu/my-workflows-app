@@ -54,7 +54,13 @@ public final class EventBroadcaster {
             if (millisDelay > 0) {
                 safeSleep(millisDelay);
             }
-            consumer.accept(event);
+            try {
+                consumer.accept(event);
+            } catch (Exception exception) {
+                // Nobody waits for the outcome of a consumer, so a failure that is not logged here would only
+                // reach the standard error of the process and would be missing from the application log.
+                log.error("A consumer failed to handle an event of type '{}'.", event.getClass().getName(), exception);
+            }
         }));
     }
 

@@ -39,10 +39,12 @@ public final class LibraryGrid extends Composite<VerticalLayout> {
 
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderFilePath))
             .setHeader(getTranslation("libs.grid.filepath.column"))
-            .setAutoWidth(true);
+            .setWidth("150px")
+            .setFlexGrow(1);
         paginatedGrid.addColumn(new ComponentRenderer<>(this::renderStatus))
             .setHeader(getTranslation("libs.grid.status.column"))
-            .setAutoWidth(true);
+            .setAutoWidth(true)
+            .setFlexGrow(0);
 
         layout.add(paginatedGrid);
         return layout;

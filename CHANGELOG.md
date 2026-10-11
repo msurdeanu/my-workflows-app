@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.0 (2026-10-11)
+
+### Features
+
+* Mobile-friendly UI (ported from my-stocks-app):
+  * Page headers wrap instead of scrolling sideways; below 640px the title and the filters take a full row each.
+  * Grid cells wrap their content, and grid density is tightened on phones (the `compact` variant no longer exists in Vaadin 25).
+  * Below 640px the runs, templates and prints grids show a single stacked column per row; the parameter grids keep their name column pinned.
+  * A new `Breakpoint` (phone / tablet / desktop) replaces `onBigWidth`/`onSmallWidth`; components are told only when the tier changes.
+  * On a phone a tap on a print opens its row actions, which now include showing or hiding its details.
+  * The app bar moves to the bottom of the screen on touch devices, the paginator shows fewer buttons and cell icon buttons get a 40px touch target.
+  * Dialogs are sized in viewport terms, so they fit a phone screen.
+  * Statistics descriptions are printed under their values on a phone, since tooltips are unreachable by touch.
+* Each workflow run records the user who triggered it (`V6` migration adds `workflow_runs.user_id`, a foreign key to `users`):
+  * Set for runs started from the development page, from a template's "run now" action and through the REST API; empty for runs scheduled by a template's cron.
+  * The runs grid shows a "Triggered by" column and the runs page can be filtered down to the runs of the current user.
+  * A failed run can be replayed only by the user who triggered it; runs without a user cannot be replayed.
+  * `WorkflowRunResponse` exposes the new `userId` field.
+* Filters live in the URL (ported from my-stocks-app). On the runs, templates, definitions, parameters, placeholders and libraries pages, every filter in use is written into the address, like `/workflow/runs?mine=true&template=3`:
+  * Back returns to the page filtered as it was left, and a filtered page can be bookmarked or shared.
+  * Each page also remembers its filters for the rest of the session, so opening it again from the menu finds them as they were.
+  * Under the header, a chip names each filter in use. Its `×` removes that filter, and *Reset filters* removes them all.
+  * On the templates and definitions pages, the chip of the item a link pointed to (`Template #42`) is the way back to the whole list.
+  * The old links with the filter in the path, like `/workflow/runs/<run id>` or `/workflow/templates/42`, still work; the address is rewritten to the new form on arrival.
+* A guide under the grid of the runs, templates, definitions, parameters, placeholders and libraries pages, and under the editor of the development page, explains the page it is on:
+  * A legend shows a copy of everything the grid draws - a badge, an icon, a button - next to what it means and, where it matters, the role it needs.
+  * Numbered steps walk through the main task of the page, and *Good to know* collects what is easy to miss, like the six fields of a cron expression or how a value of each parameter type is written.
+  * The guide starts folded, as a bar under the grid or the editor, so that it takes no room until it is asked for. It is opened from its header, and the browser remembers per page whether it was.
+* Saving and sharing on the development page are easier to find:
+  * `Save` and `Share` are labelled buttons next to `Run`, under the editor, and each tooltip names its shortcut. The header keeps only the definition to work on.
+  * `Save` is available only while the editor differs from the saved definition, and an *Unsaved changes* badge next to the definition says so.
+  * A save is confirmed by a notification, and a definition that cannot be read is reported with the reason and its line.
+  * `Share` opens a dialog showing the link before it is copied. The link can be made editable or stripped of its parameters, and the dialog warns that unsaved changes are not part of it.
+* A read-only link to the development page shows the pipeline of the workflow instead of its editor:
+  * The commands are drawn as the stops of a line, in the order they run: the name of each command, its type in plain words, the one input that says the most about it - when the definition spells it out - the variables it stores and the conditions it depends on. Commands run by a `loop` or a `waitUntilSubPasses` branch off their stop.
+  * The final commands end the line, apart from the others, as they run whatever happens before them.
+  * While the workflow runs, the line follows it: the commands that passed are checked, the one that is running pulses, a failed one is marked and the ones after it are shown as not reached. The status above the pipeline names the command the run is at.
+  * The definition itself is no longer shown to whoever opens such a link, and a *Read-only* badge in the header says what kind of link was opened.
+  * A run now keeps track of how far its final commands got, and its progress is published as soon as a command fails instead of after the first final command.
+* The per-page footer is removed.
+* The version in the drawer is read from the jar (`build-info`) instead of the `version` setting, which is dropped by the `V5` migration.
+
+### Bug fixes
+
+* REST API `POST` calls (`schedule-now` on a definition or a template) were rejected by the CSRF check. The check is now disabled for `/api/**`, where a call is authenticated by its `token` and not by a session.
+* Workflow runs that finished at the same moment could be lost from the database with `SQLITE_BUSY`, and the same applied to any two concurrent writes. Transactions now take the SQLite write lock when they begin (`transaction_mode=IMMEDIATE`), so a concurrent write waits instead of failing. A transaction is opened only for saving a finished run, no longer for every progress update of a running one.
+* A failure of an event consumer - saving a finished workflow run, for instance - reached only the standard error of the process. It is now written to the application log, together with its cause.
+* A failed REST API call was answered with a redirect to the login page instead of its error status. A missing or an invalid `token` now gets `401`, and an error raised while serving a call - an unknown id, for instance - gets `500`.
+
 ## 1.3.3 (2026-09-19)
 
 ### Features

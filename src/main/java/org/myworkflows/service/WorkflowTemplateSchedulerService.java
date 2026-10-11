@@ -47,8 +47,9 @@ public final class WorkflowTemplateSchedulerService {
             unschedule(workflowTemplate);
             // The task is created only once the previous one is gone and while holding the lock, so that it
             // cannot start running before it is registered and therefore become impossible to cancel.
+            // A run started by the cron belongs to no user.
             final var scheduledTask = applicationManager.getBeanOfType(TaskScheduler.class)
-                .schedule(new WorkflowDefinitionScriptRunnable(applicationManager, workflowTemplate),
+                .schedule(new WorkflowDefinitionScriptRunnable(applicationManager, workflowTemplate, null),
                     new CronTrigger(workflowTemplate.getCron(),
                         TimeZone.getTimeZone(TimeZone.getDefault().getID())));
             scheduledFutureMap.put(workflowTemplate.getId(), scheduledTask);
@@ -60,9 +61,9 @@ public final class WorkflowTemplateSchedulerService {
             workflowTemplate.getId(), workflowTemplate.getCron());
     }
 
-    public void scheduleNowAsync(WorkflowTemplate workflowTemplate) {
+    public void scheduleNowAsync(WorkflowTemplate workflowTemplate, Integer userId) {
         applicationManager.getBeanOfType(TaskScheduler.class)
-            .schedule(new WorkflowDefinitionScriptRunnable(applicationManager, workflowTemplate), Instant.now());
+            .schedule(new WorkflowDefinitionScriptRunnable(applicationManager, workflowTemplate, userId), Instant.now());
     }
 
     public void unschedule(WorkflowTemplate workflowTemplate) {

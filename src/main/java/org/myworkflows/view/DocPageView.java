@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.DocPage;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.handler.DocPageEventHandler;
-import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.DocPageService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.DeleteConfirmDialog;
@@ -58,7 +57,7 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
 
     private boolean editable;
 
-    public DocPageView(SettingProvider settingProvider, DocPageService docPageService) {
+    public DocPageView(DocPageService docPageService) {
         this.docPageService = docPageService;
 
         docPageService.getAllNames().forEach(name -> {
@@ -76,12 +75,12 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
         Component header;
         if (isLoggedAsAdmin) {
             header = createHeader(getTranslation("doc-pages.page.title"), createSwitchModeButton(),
-                new TextFieldWithEnterShortcut(this::onCreate).width("200px"));
+                new TextFieldWithEnterShortcut(this::onCreate).headerFilter());
         } else {
             header = createHeader(getTranslation("doc-pages.page.title"), createSwitchModeButton());
         }
 
-        add(header, createContent(tabs, tabContent), createFooter(settingProvider));
+        add(header, createContent(tabs, tabContent));
     }
 
     @Override

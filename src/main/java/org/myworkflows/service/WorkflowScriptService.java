@@ -118,6 +118,11 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
                 .forEach(index -> applicationManager.getBeanOfType(EventBroadcaster.class)
                     .broadcast(WorkflowDefinitionOnProgressEvent.of(workflowRun, false)));
         } finally {
+            if (workflowRun.getFailureMessage() != null && !workflowDefinitionScript.getFinallyCommands().isEmpty()) {
+                // a failed command is followed by no progress of its own, and the final commands may take a while
+                applicationManager.getBeanOfType(EventBroadcaster.class)
+                    .broadcast(WorkflowDefinitionOnProgressEvent.of(workflowRun, false));
+            }
             workflowDefinitionScript.getFinallyCommands().stream()
                 .takeWhile(command -> runCommandAndMarkAsFailedIfNeeded(Integer.MAX_VALUE, command, workflowRun, workflowDefinitionScript))
                 .forEach(command -> applicationManager.getBeanOfType(EventBroadcaster.class)
@@ -139,6 +144,8 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
             abstractCommand.run(workflowRun);
             if (commandIndex < Integer.MAX_VALUE) {
                 workflowRun.incrementLastSuccessfulIndex();
+            } else {
+                workflowRun.incrementLastSuccessfulFinallyIndex();
             }
             return true;
         } catch (Exception exception) {

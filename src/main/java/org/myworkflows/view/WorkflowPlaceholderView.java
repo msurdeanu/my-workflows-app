@@ -1,6 +1,8 @@
 package org.myworkflows.view;
 
-import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
@@ -12,9 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.domain.WorkflowPlaceholder;
 import org.myworkflows.domain.filter.WorkflowPlaceholderFilter;
 import org.myworkflows.domain.handler.WorkflowPlaceholderEventHandler;
-import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.service.WorkflowPlaceholderService;
 import org.myworkflows.view.component.BaseLayout;
+import org.myworkflows.view.component.PageFilter;
+import org.myworkflows.view.component.PageGuide;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowPlaceholderGrid;
 
@@ -37,7 +40,7 @@ public class WorkflowPlaceholderView extends ResponsiveLayout implements HasDyna
 
     private final WorkflowPlaceholderService workflowPlaceholderService;
 
-    public WorkflowPlaceholderView(SettingProvider settingProvider, WorkflowPlaceholderService workflowPlaceholderService) {
+    public WorkflowPlaceholderView(WorkflowPlaceholderService workflowPlaceholderService) {
         super();
         this.workflowPlaceholderService = workflowPlaceholderService;
 
@@ -49,9 +52,12 @@ public class WorkflowPlaceholderView extends ResponsiveLayout implements HasDyna
         workflowPlaceholderGrid = new WorkflowPlaceholderGrid(this);
         workflowPlaceholderGrid.setDataProvider(configurableFilterDataProvider);
 
-        add(createHeader(getTranslation("workflow-placeholders.page.title"), createFilterByName()));
+        final var filterByName = createFilterByName();
+        add(createHeader(getTranslation("workflow-placeholders.page.title"), filterByName));
+        add(createFilters(ROUTE,
+            PageFilter.text("name", filterByName, value -> getTranslation("workflow-placeholders.filter.chip.name", value))));
         add(createContent(workflowPlaceholderGrid));
-        add(createFooter(settingProvider));
+        add(createGuide());
     }
 
     @Override
@@ -77,12 +83,28 @@ public class WorkflowPlaceholderView extends ResponsiveLayout implements HasDyna
         workflowPlaceholderService.update(workflowPlaceholder);
     }
 
-    private Component createFilterByName() {
+    private PageGuide createGuide() {
+        final var reference = new Span("$$(NAME)");
+        reference.addClassName("page-guide-code");
+        return createGuide("workflow-placeholders")
+            .legend("reference", reference)
+            .legend("edit", PageGuide.button(VaadinIcon.EDIT))
+            .legend("save", PageGuide.button(VaadinIcon.CHECK, ButtonVariant.SUCCESS))
+            .legend("cancel", PageGuide.button(VaadinIcon.CLOSE, ButtonVariant.ERROR))
+            .legend("delete", PageGuide.button(VaadinIcon.TRASH, ButtonVariant.ERROR))
+            .steps(3)
+            .note("resolved")
+            .note("missing")
+            .note("parameters");
+    }
+
+    private TextField createFilterByName() {
         final var filterByNameTextField = new TextField();
         filterByNameTextField.setPlaceholder(getTranslation("workflow-placeholders.filter.by-name.placeholder"));
         filterByNameTextField.setClearButtonVisible(true);
         filterByNameTextField.setValueChangeMode(ValueChangeMode.LAZY);
         filterByNameTextField.setValueChangeTimeout((int) TimeUnit.SECONDS.toMillis(1));
+        filterByNameTextField.addClassName("header-filter");
         filterByNameTextField.addValueChangeListener(event -> onFilterByName(event.getValue()));
         return filterByNameTextField;
     }

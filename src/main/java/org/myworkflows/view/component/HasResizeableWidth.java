@@ -6,18 +6,11 @@ package org.myworkflows.view.component;
  */
 public interface HasResizeableWidth {
 
-    default void onBigWidth() {
-    }
-
-    default void onSmallWidth() {
-    }
-
-    default void adjustByWidth(int width) {
-        if (width > 900) {
-            onBigWidth();
-        } else {
-            onSmallWidth();
-        }
+    /**
+     * Called on every component below a {@link ResponsiveLayout} (or a {@link ResizableComposite}) when the screen
+     * moves to another {@link Breakpoint}, never on intermediate widths.
+     */
+    default void onWidthChange(Breakpoint breakpoint) {
     }
 
 }
