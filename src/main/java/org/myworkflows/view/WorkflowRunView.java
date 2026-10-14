@@ -1,5 +1,7 @@
 package org.myworkflows.view;
 
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.badge.BadgeVariant;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -16,11 +18,14 @@ import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.ApplicationManager;
+import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowTemplate;
+import org.myworkflows.domain.event.WorkflowRunOnChangeEvent;
 import org.myworkflows.domain.filter.WorkflowRunFilter;
 import org.myworkflows.service.WorkflowRunService;
 import org.myworkflows.service.WorkflowTemplateService;
@@ -57,8 +62,13 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
 
     private final List<WorkflowTemplate> workflowTemplates;
 
+    private final EventBroadcaster eventBroadcaster;
+
+    private Registration workflowRunChangeRegistration;
+
     public WorkflowRunView(ApplicationManager applicationManager) {
         workflowTemplates = applicationManager.getBeanOfType(WorkflowTemplateService.class).getAll().toList();
+        eventBroadcaster = applicationManager.getBeanOfType(EventBroadcaster.class);
 
         final var workflowRunService = applicationManager.getBeanOfType(WorkflowRunService.class);
 
@@ -99,6 +109,23 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
         setPathFilterValues(runId != null ? Map.of("id", runId) : Map.of());
     }
 
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        final var ui = attachEvent.getUI();
+        // whoever starts a run - the cron of a template, another user, the REST API - the grid follows it without a reload
+        workflowRunChangeRegistration = eventBroadcaster.register(event -> {
+            final var workflowRunChangeEvent = (WorkflowRunOnChangeEvent) event;
+            ui.access(() -> workflowRunGrid.onRunChange(workflowRunChangeEvent.workflowRun(), workflowRunChangeEvent.completed()));
+        }, WorkflowRunOnChangeEvent.class);
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        workflowRunChangeRegistration.remove();
+        super.onDetach(detachEvent);
+    }
+
     /**
      * @return the template with the id spelled by the query parameter, or {@code null} when there is no such template.
      */
@@ -119,15 +146,19 @@ public class WorkflowRunView extends ResponsiveLayout implements HasDynamicTitle
             .legend("user", PageGuide.badge(getTranslation("workflow-runs.grid.user.scheduler"), BadgeVariant.CONTRAST))
             .legend("template", PageGuide.link(getTranslation("workflow-runs.grid.template.column")))
             .legend("pending", PageGuide.badge(getTranslation("workflow-runs.grid.status.pending"), BadgeVariant.CONTRAST))
+            .legend("approval", PageGuide.badge(getTranslation("workflow-runs.grid.status.approval"), BadgeVariant.WARNING))
+            .legend("paused", PageGuide.badge(getTranslation("workflow-runs.grid.status.paused"), BadgeVariant.WARNING))
             .legend("success", PageGuide.badge(getTranslation("workflow-runs.grid.status.success", "240 ms"), BadgeVariant.SUCCESS))
             .legend("error", PageGuide.badge(getTranslation("workflow-runs.grid.status.error", "240 ms"), BadgeVariant.ERROR))
             .legend("details", details)
+            .legend("decide", PageGuide.button(VaadinIcon.USER_CHECK, ButtonVariant.PRIMARY))
             .legend("cancel", PageGuide.button(VaadinIcon.CLOSE))
             .legend("delete", PageGuide.button(VaadinIcon.TRASH))
             .legend("replay", PageGuide.button(VaadinIcon.RECYCLE))
             .steps(4)
             .note("filters")
             .note("replay")
+            .note("approval")
             .note("history");
     }
 

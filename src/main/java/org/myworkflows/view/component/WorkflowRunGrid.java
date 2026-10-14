@@ -28,7 +28,10 @@ import org.myworkflows.view.WorkflowTemplateView;
 import org.myworkflows.view.component.html.StandardPaginatedGrid;
 import org.myworkflows.view.util.ClipboardUtil;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static java.util.Optional.ofNullable;
 
@@ -40,8 +43,17 @@ import static java.util.Optional.ofNullable;
 public final class WorkflowRunGrid extends Composite<VerticalLayout> {
 
     private static final int SHORT_ID_LENGTH = 8;
+    private static final String STATUS_PENDING = "workflow-runs.grid.status.pending";
+    private static final String STATUS_APPROVAL = "workflow-runs.grid.status.approval";
+    private static final String STATUS_PAUSED = "workflow-runs.grid.status.paused";
 
     private final StandardPaginatedGrid<WorkflowRun, ?> paginatedGrid = new StandardPaginatedGrid<>();
+
+    /**
+     * The runs in progress this grid was told about, each with what its row was drawn as: running, waiting for an
+     * approval or paused.
+     */
+    private final Map<UUID, String> followedRuns = new HashMap<>();
 
     private final Integer currentUserId = SecurityUtil.findCurrentUserId().orElse(null);
 
@@ -53,6 +65,28 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
 
     public void setDataProvider(DataProvider<WorkflowRun, ?> dataProvider) {
         paginatedGrid.setDataProvider(dataProvider);
+    }
+
+    /**
+     * Follows a run that changed without this page asking for it. A run that starts - or starts again, when it is
+     * replayed - adds a row or turns one back to running, so the page on display is read again. A completed run
+     * redraws its own row and nothing else, and so does a run which starts or stops to wait - for an approval, or to
+     * be told how to go on while it is debugged. A command that passed changes nothing a row shows.
+     */
+    public void onRunChange(WorkflowRun workflowRun, boolean completed) {
+        if (completed) {
+            followedRuns.remove(workflowRun.getId());
+            paginatedGrid.getDataProvider().refreshItem(workflowRun);
+            return;
+        }
+
+        final var statusKey = findStatusKeyOfRunInProgress(workflowRun);
+        final var drawnStatusKey = followedRuns.put(workflowRun.getId(), statusKey);
+        if (drawnStatusKey == null) {
+            paginatedGrid.refreshCurrentPage();
+        } else if (!drawnStatusKey.equals(statusKey)) {
+            paginatedGrid.getDataProvider().refreshItem(workflowRun);
+        }
     }
 
     @Override
@@ -154,10 +188,22 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
             : "workflow-runs.grid.user.unknown";
     }
 
+    /**
+     * @return the translation which says what a run in progress is doing. A run which waits for somebody - to approve
+     *     it, or to tell it how to go on - stands out from the ones which only need time.
+     */
+    private String findStatusKeyOfRunInProgress(WorkflowRun workflowRun) {
+        if (workflowRun.isWaitingForApproval()) {
+            return STATUS_APPROVAL;
+        }
+        return workflowRun.isPaused() ? STATUS_PAUSED : STATUS_PENDING;
+    }
+
     private Component renderStatus(WorkflowRun workflowRun) {
         if (workflowRun.isRunning()) {
-            final var badge = new Badge(getTranslation("workflow-runs.grid.status.pending", workflowRun.getHumanReadableDuration()));
-            badge.addThemeVariants(BadgeVariant.CONTRAST, BadgeVariant.SMALL);
+            final var statusKey = findStatusKeyOfRunInProgress(workflowRun);
+            final var badge = new Badge(getTranslation(statusKey));
+            badge.addThemeVariants(STATUS_PENDING.equals(statusKey) ? BadgeVariant.CONTRAST : BadgeVariant.WARNING, BadgeVariant.SMALL);
             return badge;
         }
 
@@ -192,6 +238,14 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         final var layout = new HorizontalLayout();
         layout.addClassName("cell-badges");
         if (workflowRun.isRunning()) {
+            if (workflowRun.isWaitingForApproval()) {
+                final var approvalButton = new Button(VaadinIcon.USER_CHECK.create());
+                approvalButton.addThemeVariants(ButtonVariant.SMALL, ButtonVariant.PRIMARY);
+                approvalButton.setTooltipText(getTranslation("workflow-runs.grid.approval.tooltip"));
+                approvalButton.setAriaLabel(getTranslation("workflow-runs.grid.approval.tooltip"));
+                approvalButton.addClickListener(_ -> openApproval(workflowRun));
+                layout.add(approvalButton);
+            }
             final var cancelButton = new Button(VaadinIcon.CLOSE.create());
             cancelButton.addThemeVariants(ButtonVariant.SMALL);
             cancelButton.addClickListener(_ -> cancel(workflowRun));
@@ -216,6 +270,15 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
             Notification.show(getTranslation("workflow-runs.grid.run.cancelled"));
             paginatedGrid.getDataProvider().refreshItem(workflowRun);
         }
+    }
+
+    private void openApproval(WorkflowRun workflowRun) {
+        // the approval is the one the run waits for now, which the row may not have been drawn for
+        ofNullable(workflowRun.getApproval()).ifPresentOrElse(approval -> new WorkflowApprovalDialog(workflowRun, approval, workflowRunService).open(),
+            () -> {
+                Notification.show(getTranslation("dialog.approval.gone.message"));
+                paginatedGrid.getDataProvider().refreshItem(workflowRun);
+            });
     }
 
     private void delete(WorkflowRun workflowRun) {

@@ -6,6 +6,8 @@ import org.myworkflows.domain.RuntimeEvaluator;
 import org.myworkflows.domain.WorkflowDefinitionScript;
 import org.myworkflows.domain.command.AbstractCommand;
 import org.myworkflows.domain.command.AbstractSubCommand;
+import org.myworkflows.domain.command.ApprovalCommand;
+import org.myworkflows.domain.command.CommandType;
 import org.myworkflows.domain.command.DatabaseCommand;
 import org.myworkflows.domain.command.GroovyCommand;
 import org.myworkflows.domain.command.HttpRequestCommand;
@@ -16,16 +18,13 @@ import org.myworkflows.domain.command.SleepCommand;
 import org.myworkflows.domain.command.SshExecCommand;
 import org.myworkflows.domain.command.SshShellCommand;
 import org.myworkflows.domain.command.WaitUntilSubPassesCommand;
-import org.myworkflows.domain.command.api.ExecutionMethod;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Arrays.stream;
 import static java.util.Map.entry;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -42,6 +41,7 @@ public final class WorkflowDefinitionScriptToPipelineTransformer implements Tran
      * The input which says the most about a command, by the type of the command.
      */
     static final Map<String, String> DETAIL_INPUTS = Map.ofEntries(
+        entry(ApprovalCommand.PREFIX, "message"),
         entry(DatabaseCommand.PREFIX, "url"),
         entry(GroovyCommand.PREFIX, "method"),
         entry(HttpRequestCommand.PREFIX, "url"),
@@ -78,12 +78,7 @@ public final class WorkflowDefinitionScriptToPipelineTransformer implements Tran
     }
 
     private String findType(AbstractCommand command) {
-        return stream(command.getClass().getDeclaredMethods())
-            .map(method -> method.getAnnotation(ExecutionMethod.class))
-            .filter(Objects::nonNull)
-            .map(ExecutionMethod::prefix)
-            .findFirst()
-            .orElse(StringUtils.EMPTY);
+        return ofNullable(CommandType.nameOf(command)).orElse(StringUtils.EMPTY);
     }
 
     private String findDetail(AbstractCommand command, String type) {

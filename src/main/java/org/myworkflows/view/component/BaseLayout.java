@@ -20,6 +20,7 @@ import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.repository.MenuItemRepository;
+import org.myworkflows.view.ProfileView;
 import org.myworkflows.view.transformer.MenuItemsToSideNavItemsTransformer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.info.BuildProperties;
@@ -60,6 +61,7 @@ public class BaseLayout extends AppLayout {
                 avatar.setTooltipEnabled(true);
                 final var contextMenu = new ContextMenu(avatar);
                 contextMenu.setOpenOnClick(true);
+                contextMenu.addItem(getTranslation("menu.main.profile"), _ -> getUI().ifPresent(ui -> ui.navigate(ProfileView.class)));
                 contextMenu.addItem(getTranslation("menu.main.logout"), _ -> authContext.logout());
                 return avatar;
             })

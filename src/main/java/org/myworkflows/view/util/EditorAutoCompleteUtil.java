@@ -3,20 +3,23 @@ package org.myworkflows.view.util;
 import de.f0rce.ace.AceEditor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.myworkflows.domain.command.ApprovalCommand;
+import org.myworkflows.domain.command.CommandType;
 import org.myworkflows.domain.command.DatabaseCommand;
 import org.myworkflows.domain.command.GroovyCommand;
 import org.myworkflows.domain.command.HttpRequestCommand;
 import org.myworkflows.domain.command.JavaCommand;
 import org.myworkflows.domain.command.LoopCommand;
 import org.myworkflows.domain.command.MailCommand;
-import org.myworkflows.domain.command.NothingCommand;
 import org.myworkflows.domain.command.PrintCommand;
 import org.myworkflows.domain.command.SleepCommand;
 import org.myworkflows.domain.command.SshExecCommand;
 import org.myworkflows.domain.command.SshShellCommand;
 import org.myworkflows.domain.command.WaitUntilSubPassesCommand;
+import org.myworkflows.holder.CommandTypeHolder;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,14 +32,11 @@ import java.util.Map;
 public final class EditorAutoCompleteUtil {
 
     private static final List<String> WORKFLOW_KEYWORDS = new ArrayList<>();
-    private static final List<String> COMMAND_CLASSES = new ArrayList<>();
     private static final Map<String, List<String>> COMMAND_INPUTS_COMPLETER = new LinkedHashMap<>();
 
     static {
         WORKFLOW_KEYWORDS.addAll(List.of("class", "name", "value", "ifs", "inputs", "asserts", "outputs", "commands", "subcommands", "finallyCommands"));
-        COMMAND_CLASSES.addAll(List.of(DatabaseCommand.PREFIX, GroovyCommand.PREFIX, HttpRequestCommand.PREFIX, JavaCommand.PREFIX,
-            LoopCommand.PREFIX, MailCommand.PREFIX, NothingCommand.PREFIX, PrintCommand.PREFIX, SleepCommand.PREFIX,
-            SshExecCommand.PREFIX, SshShellCommand.PREFIX, WaitUntilSubPassesCommand.PREFIX));
+        COMMAND_INPUTS_COMPLETER.put(ApprovalCommand.PREFIX, List.of("message", "timeout"));
         COMMAND_INPUTS_COMPLETER.put(DatabaseCommand.PREFIX, List.of("url", "query"));
         COMMAND_INPUTS_COMPLETER.put(MailCommand.PREFIX, List.of("from", "to", "cc", "bcc", "subject", "body", "props", "bodyType", "username", "password"));
         COMMAND_INPUTS_COMPLETER.put(GroovyCommand.PREFIX, List.of("script", "method"));
@@ -51,9 +51,23 @@ public final class EditorAutoCompleteUtil {
     }
 
     public static void apply(AceEditor editor) {
+        final var commandTypes = CommandTypeHolder.INSTANCE.getAll();
         editor.addStaticWordCompleter(WORKFLOW_KEYWORDS, editor.getTranslation("workflow-development.auto-complete.workflow-keyword"), true);
-        editor.addStaticWordCompleter(COMMAND_CLASSES, editor.getTranslation("workflow-development.auto-complete.command-class"), true);
-        editor.addDynamicWordCompleter(COMMAND_INPUTS_COMPLETER, ".", editor.getTranslation("workflow-development.auto-complete.command-input"), true);
+        editor.addStaticWordCompleter(commandTypes.stream().map(CommandType::name).toList(),
+            editor.getTranslation("workflow-development.auto-complete.command-class"), true);
+        editor.addDynamicWordCompleter(findCommandInputs(commandTypes), ".", editor.getTranslation("workflow-development.auto-complete.command-input"), true);
+    }
+
+    /**
+     * @return the inputs to offer after the name of a command type: the ones listed here for a command of the
+     *     application, and the parameters of its method for a command brought by a library.
+     */
+    private static Map<String, List<String>> findCommandInputs(Collection<CommandType> commandTypes) {
+        final var commandInputs = new LinkedHashMap<>(COMMAND_INPUTS_COMPLETER);
+        commandTypes.stream()
+            .filter(commandType -> !commandType.builtIn() && !commandType.inputs().isEmpty())
+            .forEach(commandType -> commandInputs.put(commandType.name(), commandType.inputNames()));
+        return commandInputs;
     }
 
 }

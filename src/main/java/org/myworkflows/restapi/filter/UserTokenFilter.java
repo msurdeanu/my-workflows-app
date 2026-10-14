@@ -5,8 +5,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.myworkflows.repository.UserRepository;
+import org.myworkflows.service.UserTokenService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,11 @@ import java.util.Collections;
 @ConditionalOnProperty(name = "my-workflows.config.feature.restApiEnabled", havingValue = "true")
 public class UserTokenFilter extends OncePerRequestFilter {
 
-    private final UserRepository userRepository;
+    private static final String BEARER = "Bearer";
+
+    private static final String BEARER_PREFIX = BEARER + " ";
+
+    private final UserTokenService userTokenService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -35,14 +40,16 @@ public class UserTokenFilter extends OncePerRequestFilter {
             return;
         }
 
-        final var token = request.getParameter("token");
+        final var token = findToken(request);
         if (token == null || token.isBlank()) {
+            response.setHeader(HttpHeaders.WWW_AUTHENTICATE, BEARER);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "API Key is missing");
             return;
         }
 
-        final var user = userRepository.findByToken(token);
-        if (user.isEmpty() || !user.get().isEnabled()) {
+        final var user = userTokenService.findUserOf(token);
+        if (user.isEmpty()) {
+            response.setHeader(HttpHeaders.WWW_AUTHENTICATE, BEARER + " error=\"invalid_token\"");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid API Key");
             return;
         }
@@ -55,6 +62,18 @@ public class UserTokenFilter extends OncePerRequestFilter {
             // The chain is stateless, so the authentication must not survive on the thread handling the request.
             SecurityContextHolder.clearContext();
         }
+    }
+
+    /**
+     * The token is read from the {@code Authorization} header and from nowhere else. The {@code token} URL parameter
+     * the calls used to carry is ignored on purpose: an access log and a proxy write a URL down, token included.
+     */
+    private String findToken(HttpServletRequest request) {
+        final var authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authorization != null && authorization.regionMatches(true, 0, BEARER_PREFIX, 0, BEARER_PREFIX.length())) {
+            return authorization.substring(BEARER_PREFIX.length()).trim();
+        }
+        return null;
     }
 
 }

@@ -6,8 +6,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.myworkflows.ApplicationManager;
+import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
+import org.myworkflows.domain.event.WorkflowRunOnChangeEvent;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.SimpleTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -38,11 +40,15 @@ public final class WorkflowRunProgressServiceTest {
     @Mock
     private PlatformTransactionManager transactionManager;
 
+    @Mock
+    private EventBroadcaster eventBroadcaster;
+
     private WorkflowRunProgressService workflowRunProgressService;
 
     @BeforeEach
     public void init() {
         when(applicationManager.getBeanOfType(WorkflowRunService.class)).thenReturn(workflowRunService);
+        when(applicationManager.getBeanOfType(EventBroadcaster.class)).thenReturn(eventBroadcaster);
         workflowRunProgressService = new WorkflowRunProgressService(applicationManager, new TransactionTemplate(transactionManager));
     }
 
@@ -61,6 +67,20 @@ public final class WorkflowRunProgressServiceTest {
     }
 
     @Test
+    public void whenRunIsInProgressThenItsChangeIsPublishedOnceItIsInTheCache() {
+        // given
+        final var workflowRun = new WorkflowRun();
+
+        // when
+        workflowRunProgressService.onEventReceived(WorkflowDefinitionOnProgressEvent.of(workflowRun, false));
+
+        // then whoever lists the runs is told after the run can be found there
+        final var inOrder = inOrder(workflowRunService, eventBroadcaster);
+        inOrder.verify(workflowRunService).create(workflowRun, false);
+        inOrder.verify(eventBroadcaster).broadcast(new WorkflowRunOnChangeEvent(workflowRun, false));
+    }
+
+    @Test
     public void whenRunIsCompletedThenRunIsSavedAndOldRunsAreDeletedInsideTheSameTransaction() {
         // given
         final var workflowRun = new WorkflowRun();
@@ -70,12 +90,13 @@ public final class WorkflowRunProgressServiceTest {
         // when
         workflowRunProgressService.onEventReceived(WorkflowDefinitionOnProgressEvent.of(workflowRun, true));
 
-        // then
-        final var inOrder = inOrder(transactionManager, workflowRunService);
+        // then its change is published only once the transaction is over
+        final var inOrder = inOrder(transactionManager, workflowRunService, eventBroadcaster);
         inOrder.verify(transactionManager).getTransaction(any());
         inOrder.verify(workflowRunService).create(workflowRun, true);
         inOrder.verify(workflowRunService).deleteOldEntriesIfNeeded(false);
         inOrder.verify(transactionManager).commit(transactionStatus);
+        inOrder.verify(eventBroadcaster).broadcast(new WorkflowRunOnChangeEvent(workflowRun, true));
     }
 
     @Test
@@ -92,6 +113,8 @@ public final class WorkflowRunProgressServiceTest {
         verify(transactionManager).rollback(transactionStatus);
         verify(transactionManager, never()).commit(any());
         verify(workflowRunService, never()).deleteOldEntriesIfNeeded(anyBoolean());
+        // the run is over all the same, so a list showing it as running must still hear about it
+        verify(eventBroadcaster).broadcast(new WorkflowRunOnChangeEvent(workflowRun, true));
     }
 
 }

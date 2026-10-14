@@ -11,6 +11,7 @@ import org.myworkflows.service.loader.LibraryServiceLoader;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -61,6 +62,45 @@ public class LibraryService extends CacheableDataService<Library, LibraryFilter>
         }
     }
 
+    /**
+     * Deletes the file of a library, which is not listed anymore from then on. The libraries are unloaded before and
+     * loaded again afterwards, whatever {@code reload-after-upload} says: a JAR which is loaded cannot be deleted on
+     * Windows, and anywhere else its classes would go missing one by one, as they are asked for.
+     */
+    public void delete(Library library) {
+        final var libraryConfig = applicationManager.getBeanOfType(LibraryConfig.class);
+        final var baseDirectory = Path.of(libraryConfig.getBaseDirectory()).toAbsolutePath().normalize();
+        final var filePath = Path.of(library.filePath()).toAbsolutePath().normalize();
+        // Whatever the page is told to delete, nothing but a library of the configured base directory goes away.
+        if (!baseDirectory.equals(filePath.getParent()) || !filePath.getFileName().toString().endsWith(LibraryConfig.JAR_EXTENSION)) {
+            throw new WorkflowRuntimeException("File '" + library.filePath() + "' is not a library of the base directory.");
+        }
+
+        final var libraryServiceLoader = applicationManager.getBeanOfType(LibraryServiceLoader.class);
+        lock.lock();
+        try {
+            libraryServiceLoader.unload();
+            deleteFile(library, filePath);
+        } finally {
+            // the other libraries come back even when this one could not be deleted
+            try {
+                libraryServiceLoader.load();
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
+    private void deleteFile(Library library, Path filePath) {
+        try {
+            // a file which is already gone is what was asked for
+            Files.deleteIfExists(filePath);
+            cache.evict(library.filePath());
+        } catch (IOException exception) {
+            throw new WorkflowRuntimeException(exception);
+        }
+    }
+
     private String sanitizeFileName(String fileName) {
         final var name = ofNullable(fileName)
             .map(item -> item.substring(Math.max(item.lastIndexOf('/'), item.lastIndexOf('\\')) + 1))
@@ -79,8 +119,14 @@ public class LibraryService extends CacheableDataService<Library, LibraryFilter>
     private void reloadLibrariesIfNeeded(LibraryConfig libraryConfig) {
         if (libraryConfig.isReloadAfterUpload()) {
             final var libraryServiceLoader = applicationManager.getBeanOfType(LibraryServiceLoader.class);
-            libraryServiceLoader.unload();
-            libraryServiceLoader.load();
+            // one reload at a time, a delete included: the loader keeps a single class loader
+            lock.lock();
+            try {
+                libraryServiceLoader.unload();
+                libraryServiceLoader.load();
+            } finally {
+                lock.unlock();
+            }
         }
     }
 

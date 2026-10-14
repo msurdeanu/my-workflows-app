@@ -1,6 +1,7 @@
 package org.myworkflows.view;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.Error;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -25,6 +26,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.function.SerializableConsumer;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.HasUrlParameter;
@@ -40,13 +42,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
+import org.myworkflows.config.DebugGutterConfig;
 import org.myworkflows.config.ScriptEditorConfig;
 import org.myworkflows.config.UnsavedChangesConfig;
+import org.myworkflows.domain.UserAccountDetails;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
+import org.myworkflows.domain.WorkflowDefinitionScript;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
 import org.myworkflows.domain.WorkflowRun;
+import org.myworkflows.domain.WorkflowRunApproval;
+import org.myworkflows.domain.WorkflowRunDebugger;
+import org.myworkflows.domain.WorkflowRunPause;
 import org.myworkflows.domain.event.EditorTipOnSubmitEvent;
 import org.myworkflows.domain.event.EventType;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
@@ -55,6 +63,8 @@ import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.service.WorkflowDefinitionService;
+import org.myworkflows.service.WorkflowRunService;
+import org.myworkflows.service.WorkflowScriptService;
 import org.myworkflows.util.LangUtil;
 import org.myworkflows.util.SecurityUtil;
 import org.myworkflows.view.component.BaseLayout;
@@ -62,20 +72,29 @@ import org.myworkflows.view.component.Breakpoint;
 import org.myworkflows.view.component.PageGuide;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.ScriptEditorDialog;
+import org.myworkflows.view.component.WorkflowApprovalDialog;
 import org.myworkflows.view.component.WorkflowDevParamGrid;
 import org.myworkflows.view.component.WorkflowPipelinePanel;
 import org.myworkflows.view.component.WorkflowPrintGrid;
 import org.myworkflows.view.component.WorkflowShareDialog;
+import org.myworkflows.view.component.WorkflowVariableGrid;
 import org.myworkflows.view.transformer.WorkflowDefinitionScriptToPipelineTransformer;
 import org.myworkflows.view.util.ClipboardUtil;
 import org.myworkflows.view.util.EditorAutoCompleteUtil;
+import org.myworkflows.view.util.EditorSnippetUtil;
 import org.myworkflows.view.util.RequestUtil;
 import org.myworkflows.view.util.ScriptBlockUtil;
+import org.myworkflows.view.util.ScriptCommand;
+import org.myworkflows.view.util.ScriptCommandUtil;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -85,7 +104,7 @@ import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.joining;
-import static org.myworkflows.config.SnippetConfig.JS_CODE;
+import static org.myworkflows.serializer.SerializerFactory.toObject;
 import static org.myworkflows.serializer.SerializerFactory.toPrettyString;
 import static org.myworkflows.util.Base64Util.base64Decode;
 import static org.myworkflows.util.ListUtil.getValueAtIndex;
@@ -103,6 +122,12 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     private static final String READ_ONLY = "ro";
     private static final int ERROR_NOTIFICATION_DURATION = 10_000;
 
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    private static final String CLEAR_COMMAND_MARK_JS = "this.setDebugCommand && this.setDebugCommand(-1, -1, '')";
+    private static final String PAUSED = "paused";
+    private static final String FAILED = "failed";
+    private static final int NO_ROW = -1;
+
     private final AceEditor editor = new AceEditor();
     private final Span editorHelper = new Span();
     private final Div currentWorkflowStatus = new Div();
@@ -110,10 +135,20 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     private final Badge readOnlyBadge = new Badge(getTranslation("workflow-development.read-only.badge"), VaadinIcon.LOCK.create());
     private final WorkflowPipelinePanel workflowPipelinePanel = new WorkflowPipelinePanel();
     private final WorkflowDevParamGrid workflowDevParamGrid = new WorkflowDevParamGrid();
+    private final WorkflowVariableGrid workflowVariableGrid = new WorkflowVariableGrid();
     private final WorkflowPrintGrid workflowPrintGrid = new WorkflowPrintGrid();
+    private final Details variableDetails = new Details(getTranslation("workflow-development.variables.label"), workflowVariableGrid);
     private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
+    private final String currentUsername = SecurityUtil.findCurrentAccount().map(UserAccountDetails::getUsername).orElse(null);
     private final Button runWorkflowButton = new Button(getTranslation("workflow-development.run.button"),
         new Icon(VaadinIcon.PLAY));
+    private final Button debugWorkflowButton = new Button(getTranslation("workflow-development.debug.button"),
+        new Icon(VaadinIcon.BUG));
+    /**
+     * The buttons the status offers for the run it is about. A run is told one thing at a time, so they all go off
+     * once one of them is clicked.
+     */
+    private final List<Button> statusActions = new ArrayList<>();
 
     private final ApplicationManager applicationManager;
 
@@ -124,6 +159,19 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
 
     private final Map<EventType, Registration> registrations = new EnumMap<EventType, Registration>(EventType.class);
     private UUID lastSubmittedUuid;
+    /**
+     * The last run started from this page. It is kept as it is in memory, with everything it holds, to be told how to
+     * go on while it is paused and to be started again from one of its commands once it is over.
+     */
+    private WorkflowRun followedRun;
+    /**
+     * Whether that run was started with Debug, and pauses at the breakpoints of the editor.
+     */
+    private boolean debugging;
+    /**
+     * The command the editor marks: the one the run is paused before, or the one it failed at.
+     */
+    private CommandMark commandMark;
     private boolean unsavedChanges;
     private boolean readOnly;
 
@@ -140,15 +188,17 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         editor.setUseWorker(true);
         editor.setLiveAutocompletion(true);
         editor.addAceReadyListener(_ -> {
-            editor.getElement().executeJs(JS_CODE);
+            EditorSnippetUtil.apply(editor);
             editor.getElement().executeJs(ScriptEditorConfig.JS_CODE, getTranslation("workflow-development.script-editor.lens.java"),
                 getTranslation("workflow-development.script-editor.lens.groovy"));
             editor.getElement().executeJs(UnsavedChangesConfig.JS_CODE);
+            editor.getElement().executeJs(DebugGutterConfig.JS_CODE);
         });
         EditorAutoCompleteUtil.apply(editor);
         attachShortcutsToEditor();
         attachScriptEditorToEditor();
         attachUnsavedChangesToEditor();
+        attachBreakpointsToEditor();
 
         currentWorkflowStatus.addClassName("workflow-status");
         currentWorkflowStatus.setVisible(false);
@@ -157,6 +207,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         readOnlyBadge.setVisible(false);
         // a read-only link shows the pipeline of the workflow instead of the editor
         workflowPipelinePanel.setVisible(false);
+        // what a run holds is for whoever can read its definition and run it: an admin, in the editor
+        variableDetails.setVisible(isLoggedAsAdmin);
 
         filterByDefinition = createFilterByDefinition();
         shareWorkflowButton = createShareWorkflowButton();
@@ -219,6 +271,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         registrations.values().forEach(Registration::remove);
+        // nobody is left to tell a paused run how to go on
+        stopPausedRun();
         super.onDetach(detachEvent);
     }
 
@@ -227,22 +281,31 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         status.addClassNames("workflow-status", "success");
         final var lens = new Span(getTranslation("workflow-development.script-editor.lens.java"));
         lens.addClassName("page-guide-code");
+        final var breakpoint = new Span();
+        breakpoint.addClassName("workflow-breakpoint");
         return createFoldedGuide("workflow-development")
             .legendTitle("workflow-development.guide.legend.title")
             .legend("unsaved", PageGuide.badge(getTranslation("workflow-development.unsaved.badge"), BadgeVariant.WARNING))
             .legend("status", status)
             .legend("lens", lens)
             .legend("run", createGuideButton("workflow-development.run.button", VaadinIcon.PLAY, ButtonVariant.PRIMARY), UserRole.ADMIN)
+            .legend("debug", createGuideButton("workflow-development.debug.button", VaadinIcon.BUG), UserRole.ADMIN)
+            .legend("breakpoint", breakpoint, UserRole.ADMIN)
             .legend("save", createGuideButton("workflow-development.save.button", VaadinIcon.CHECK), UserRole.ADMIN)
             .legend("share", createGuideButton("workflow-development.share.button", VaadinIcon.LINK), UserRole.ADMIN)
             .steps(5)
             .note("shortcuts", PageGuide.fields(
                 "Alt+E", getTranslation("workflow-development.guide.notes.shortcuts.focus"),
                 "Ctrl+Alt+R", getTranslation("workflow-development.guide.notes.shortcuts.run"),
+                "Ctrl+Alt+D", getTranslation("workflow-development.guide.notes.shortcuts.debug"),
                 "Ctrl+Alt+U", getTranslation("workflow-development.guide.notes.shortcuts.save"),
                 "Ctrl+Alt+S", getTranslation("workflow-development.guide.notes.shortcuts.share"),
                 "Ctrl+Alt+F", getTranslation("workflow-development.guide.notes.shortcuts.reformat"),
                 "Ctrl+Alt+J", getTranslation("workflow-development.guide.notes.shortcuts.script")))
+            .note("debugging", PageGuide.fields(
+                "Ctrl+Alt+N", getTranslation("workflow-development.guide.notes.debugging.step"),
+                "Ctrl+Alt+G", getTranslation("workflow-development.guide.notes.debugging.continue"),
+                "Ctrl+Alt+H", getTranslation("workflow-development.guide.notes.debugging.from-cursor")))
             .note("read-only")
             .note("runs");
     }
@@ -256,10 +319,91 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     private void attachShortcutsToEditor() {
         addShortcutListener(this, () -> editor.setWrap(!editor.isWrap()),
             Key.KEY_W, KeyModifier.CONTROL, KeyModifier.ALT).listenOn(editor);
-        addShortcutListener(this, () -> {
-            final var currentValue = editor.getValue();
-            editor.setValue(toPrettyString(currentValue, currentValue));
-        }, Key.KEY_F, KeyModifier.CONTROL, KeyModifier.ALT).listenOn(editor).resetFocusOnActiveElement();
+        addShortcutListener(this, this::reformat, Key.KEY_F, KeyModifier.CONTROL, KeyModifier.ALT).listenOn(editor).resetFocusOnActiveElement();
+    }
+
+    private void reformat() {
+        withEditorState(state -> {
+            final var breakpoints = ScriptCommandUtil.findIndexesByRows(ScriptCommandUtil.locate(state.value()), state.breakpoints());
+            final var script = toPrettyString(state.value(), state.value());
+            editor.setValue(script);
+            // the editor replaces its whole content, which leaves nothing where it was: every mark is drawn again
+            showBreakpoints(ScriptCommandUtil.locate(script), breakpoints);
+            showCommandMark(script);
+        });
+    }
+
+    private void attachBreakpointsToEditor() {
+        editor.getElement().addEventListener("breakpoint-toggle", event -> toggleBreakpoint(
+                event.getEventData().get("event.detail.row").asInt(),
+                readEditorState(event.getEventData().get("event.detail.state").asString())))
+            .addEventData("event.detail.row")
+            .addEventData("event.detail.state");
+    }
+
+    /**
+     * Sets or removes the breakpoint of the command the given row belongs to. A breakpoint is drawn on the first line of
+     * its command, whichever of its lines was clicked, as a run can pause only between two commands.
+     */
+    private void toggleBreakpoint(int row, EditorState state) {
+        // debugging is for whoever can read the definition and run it: an admin, in the editor
+        if (!isLoggedAsAdmin || readOnly) {
+            return;
+        }
+        final var commands = ScriptCommandUtil.locate(state.value());
+        ScriptCommandUtil.findByRow(commands, row).ifPresent(command -> {
+            if (command.finalCommand()) {
+                Notification.show(getTranslation("workflow-development.debug.final-command.message"));
+                return;
+            }
+            final var breakpoints = new HashSet<>(ScriptCommandUtil.findIndexesByRows(commands, state.breakpoints()));
+            if (!breakpoints.remove(command.index())) {
+                breakpoints.add(command.index());
+            }
+            showBreakpoints(commands, breakpoints);
+            // a run which is on its way learns about it at once, instead of the next time it is told how to go on
+            if (debugging) {
+                ofNullable(followedRun).map(WorkflowRun::getDebugger).ifPresent(debugger -> debugger.setBreakpoints(breakpoints));
+            }
+        });
+    }
+
+    private void showBreakpoints(List<ScriptCommand> commands, Set<Integer> breakpoints) {
+        final var rows = breakpoints.stream()
+            .flatMap(index -> ScriptCommandUtil.findByIndex(commands, index).stream())
+            .map(ScriptCommand::firstRow)
+            .filter(row -> row >= 0)
+            .map(String::valueOf)
+            .collect(joining(","));
+        editor.getElement().executeJs("this.setBreakpointRows && this.setBreakpointRows($0)", rows);
+    }
+
+    /**
+     * Reads the editor as it is in the browser right now - its content, the row of its cursor and the rows of its
+     * breakpoints - and hands it over. The server knows neither the cursor nor the breakpoints, and it learns about the
+     * content only when the editor loses the focus.
+     */
+    private void withEditorState(SerializableConsumer<EditorState> action) {
+        editor.getElement().executeJs("return this.debugState ? this.debugState() : ''")
+            .then(String.class, stateAsJson -> action.accept(readEditorState(stateAsJson)), error -> {
+                log.warn("The state of the workflow editor could not be read: {}", error);
+                action.accept(new EditorState(editor.getValue(), NO_ROW, List.of()));
+            });
+    }
+
+    private EditorState readEditorState(String stateAsJson) {
+        try {
+            final var state = JSON_MAPPER.readTree(StringUtils.defaultString(stateAsJson));
+            if (state != null && state.hasNonNull("value")) {
+                final var breakpoints = new ArrayList<Integer>();
+                state.path("breakpoints").forEach(row -> breakpoints.add(row.asInt()));
+                return new EditorState(state.path("value").asText(), state.path("cursor").asInt(NO_ROW), breakpoints);
+            }
+        } catch (JsonProcessingException exception) {
+            log.warn("The state of the workflow editor could not be read.", exception);
+        }
+        // the editor is not ready yet: what the server knows about it has to do
+        return new EditorState(editor.getValue(), NO_ROW, List.of());
     }
 
     private void attachScriptEditorToEditor() {
@@ -327,6 +471,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
 
     private void onFilterByDefinition(WorkflowDefinition workflowDefinition) {
         filterByDefinition.setValue(workflowDefinition);
+        // the run of another definition can neither go on nor start again with the script of this one
+        forgetRun();
         final var script = toPrettyString(workflowDefinition.getScript(), StringUtils.EMPTY);
         editor.setValue(script);
         markEditorAsSaved(script);
@@ -402,6 +548,15 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         return exception.getMessage();
     }
 
+    private String describe(Error validationMessage) {
+        return validationMessage.getInstanceLocation() == null ? validationMessage.getMessage() : validationMessage.toString();
+    }
+
+    private String describe(List<Error> validationMessages) {
+        final var first = describe(validationMessages.getFirst());
+        return validationMessages.size() == 1 ? first : getTranslation("workflow-development.debug.invalid.more", first, validationMessages.size() - 1);
+    }
+
     private SplitLayout createSplitLayout() {
         final var layout = new SplitLayout(createLeft(), createRight());
         layout.setSplitterPosition(50);
@@ -417,23 +572,22 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
 
         runWorkflowButton.setIconAfterText(true);
         runWorkflowButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        runWorkflowButton.addClickListener(event -> {
-            final var workflowRun = new WorkflowRun(null, workflowDevParamGrid.getParametersAsMap(), SecurityUtil.findCurrentUserId().orElse(null));
-            lastSubmittedUuid = workflowRun.getId();
-            workflowPipelinePanel.start(lastSubmittedUuid);
-            applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
-                .workflowRun(workflowRun)
-                .workflowDefinitionScript(editor.getValue())
-                .build());
-        });
+        // whoever only has a read-only link is shown neither the definition nor what its run holds
+        runWorkflowButton.addClickListener(_ -> start(editor.getValue(), readOnly ? null : WorkflowRunDebugger.watching(), false));
         runWorkflowButton.addClickShortcut(Key.KEY_R, KeyModifier.CONTROL, KeyModifier.ALT).resetFocusOnActiveElement();
         runWorkflowButton.setTooltipText(getTranslation("workflow-development.run.button.tooltip"));
-        if (!isLoggedAsAdmin) {
-            runWorkflowButton.setEnabled(false);
-        }
         runWorkflowButton.addClassName("workflow-actions-run");
 
-        final var actions = new HorizontalLayout(runWorkflowButton, saveWorkflowButton, shareWorkflowButton);
+        debugWorkflowButton.addClickListener(_ -> withEditorState(state -> start(state.value(), WorkflowRunDebugger.pausingBefore(
+            ScriptCommandUtil.findIndexesByRows(ScriptCommandUtil.locate(state.value()), state.breakpoints())), true)));
+        debugWorkflowButton.addClickShortcut(Key.KEY_D, KeyModifier.CONTROL, KeyModifier.ALT).setBrowserDefaultAllowed(false);
+        debugWorkflowButton.setTooltipText(getTranslation("workflow-development.debug.button.tooltip"));
+        if (!isLoggedAsAdmin) {
+            runWorkflowButton.setEnabled(false);
+            debugWorkflowButton.setEnabled(false);
+        }
+
+        final var actions = new HorizontalLayout(runWorkflowButton, debugWorkflowButton, saveWorkflowButton, shareWorkflowButton);
         actions.addClassName("workflow-actions");
         actions.setWidthFull();
 
@@ -451,21 +605,186 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         inputDetails.setOpened(true);
         inputDetails.setWidthFull();
 
+        variableDetails.setOpened(true);
+        variableDetails.setWidthFull();
+
         final var printDetails = new Details(getTranslation("workflow-development.print.label"), workflowPrintGrid);
         printDetails.setOpened(true);
         printDetails.setWidthFull();
 
-        layout.add(inputDetails, printDetails);
+        layout.add(inputDetails, variableDetails, printDetails);
         return layout;
+    }
+
+    /**
+     * Starts a run of the given script from its first command.
+     *
+     * @param debugger who follows the run: nobody, somebody who looks at what it held once it is over, or somebody who
+     *     makes it pause on its way.
+     * @param debug whether the run pauses at the breakpoints of the editor.
+     */
+    private void start(String script, WorkflowRunDebugger debugger, boolean debug) {
+        stopPausedRun();
+        final var workflowRun = new WorkflowRun(null, workflowDevParamGrid.getParametersAsMap(), SecurityUtil.findCurrentUserId().orElse(null));
+        workflowRun.setDebugger(debugger);
+        followedRun = workflowRun;
+        debugging = debug;
+        lastSubmittedUuid = workflowRun.getId();
+        workflowPipelinePanel.start(lastSubmittedUuid);
+        workflowVariableGrid.setItems(List.of());
+        applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
+            .workflowRun(workflowRun)
+            .workflowDefinitionScript(script)
+            .build());
+    }
+
+    private void stopPausedRun() {
+        ofNullable(followedRun).map(WorkflowRun::getPause)
+            .ifPresent(pause -> pause.resume(WorkflowRunPause.Resume.stop(currentUsername)));
+    }
+
+    private void forgetRun() {
+        stopPausedRun();
+        followedRun = null;
+        lastSubmittedUuid = null;
+        statusActions.clear();
+        currentWorkflowStatus.setVisible(false);
+        workflowVariableGrid.setItems(List.of());
+        workflowPrintGrid.setItems(List.of());
+        markCommand(null);
+        showBreakpoints(List.of(), Set.of());
+    }
+
+    /**
+     * Tells the run which is paused how to go on, with the script and the breakpoints the editor has by now.
+     *
+     * @param fromCursor whether the run goes on with the command the cursor is in, instead of the one it is paused before.
+     */
+    private void resume(WorkflowRun workflowRun, WorkflowRunPause pause, WorkflowRunPause.Action action, boolean fromCursor) {
+        withEditorState(state -> {
+            final var commands = ScriptCommandUtil.locate(state.value());
+            final var commandIndex = fromCursor ? findCommandIndexAtCursor(commands, state) : Optional.of(pause.getCommandIndex());
+            final var resume = commandIndex.flatMap(index -> readScript(state.value()).map(script -> new WorkflowRunPause.Resume(action, index, script,
+                ScriptCommandUtil.findIndexesByRows(commands, state.breakpoints()), currentUsername)));
+            if (resume.isEmpty()) {
+                // the run was told nothing, so the buttons are needed again
+                updateWorkflowProgress(workflowRun);
+            } else if (!applicationManager.getBeanOfType(WorkflowRunService.class).resume(workflowRun, pause, resume.get())) {
+                onRunNotPausedAnymore(workflowRun);
+            }
+        });
+    }
+
+    private void stop(WorkflowRun workflowRun, WorkflowRunPause pause) {
+        if (!applicationManager.getBeanOfType(WorkflowRunService.class).resume(workflowRun, pause, WorkflowRunPause.Resume.stop(currentUsername))) {
+            onRunNotPausedAnymore(workflowRun);
+        }
+    }
+
+    private void onRunNotPausedAnymore(WorkflowRun workflowRun) {
+        // the pause timed out, or the run was cancelled from the runs page
+        Notification.show(getTranslation("workflow-development.debug.not-paused.message"));
+        updateWorkflowProgress(workflowRun);
+    }
+
+    /**
+     * Starts the run which is over again, with the script and the breakpoints the editor has by now and with everything
+     * the run held when it ended.
+     *
+     * @param commandIndex the command to start from, or nothing for the command the cursor is in.
+     */
+    private void runFrom(WorkflowRun workflowRun, Integer commandIndex) {
+        withEditorState(state -> {
+            final var commands = ScriptCommandUtil.locate(state.value());
+            final var index = commandIndex != null ? Optional.of(commandIndex) : findCommandIndexAtCursor(commands, state);
+            final var script = index.flatMap(_ -> readScript(state.value()));
+            final var breakpoints = debugging ? ScriptCommandUtil.findIndexesByRows(commands, state.breakpoints()) : Set.<Integer>of();
+            if (script.isEmpty()) {
+                updateWorkflowProgress(workflowRun);
+            } else if (applicationManager.getBeanOfType(WorkflowRunService.class).runFrom(workflowRun, index.get(), script.get(), breakpoints)) {
+                // the run says how far it is once it starts: until then, nothing else can be asked of it
+                currentWorkflowStatus.removeAll();
+                statusActions.clear();
+                setWorkflowStatus("running");
+                currentWorkflowStatus.add(createStatusMessage(getTranslation("workflow-development.in-progress.message", StringUtils.EMPTY)));
+                markCommand(null);
+            } else {
+                Notification.show(getTranslation("workflow-development.debug.not-started.message"));
+                updateWorkflowProgress(workflowRun);
+            }
+        });
+    }
+
+    private Optional<Integer> findCommandIndexAtCursor(List<ScriptCommand> commands, EditorState state) {
+        final var command = ScriptCommandUtil.findByRow(commands, state.cursor());
+        if (command.isEmpty()) {
+            Notification.show(getTranslation("workflow-development.debug.no-command.message"));
+        } else if (command.get().finalCommand()) {
+            Notification.show(getTranslation("workflow-development.debug.final-command.message"));
+        }
+        return command.filter(item -> !item.finalCommand()).map(ScriptCommand::index);
+    }
+
+    /**
+     * @return the script as a run can take it over, or nothing - after saying why - when it cannot be run as it is.
+     */
+    private Optional<WorkflowDefinitionScript> readScript(String scriptAsString) {
+        final var validationMessages = applicationManager.getBeanOfType(WorkflowScriptService.class).validate(scriptAsString);
+        try {
+            if (validationMessages.isEmpty()) {
+                return Optional.of(toObject(scriptAsString, WorkflowDefinitionScript.class));
+            }
+            showError(getTranslation("workflow-development.debug.invalid.message", describe(validationMessages)));
+        } catch (WorkflowRuntimeException exception) {
+            showError(getTranslation("workflow-development.debug.invalid.message", describe(exception)));
+        }
+        return Optional.empty();
+    }
+
+    private void showError(String text) {
+        Notification.show(text, ERROR_NOTIFICATION_DURATION, Notification.Position.BOTTOM_START).addThemeVariants(NotificationVariant.ERROR);
+    }
+
+    /**
+     * Marks, in the editor, the command the run is paused before or failed at - or no command at all.
+     */
+    private void markCommand(CommandMark mark) {
+        if (Objects.equals(mark, commandMark)) {
+            return;
+        }
+        commandMark = mark;
+        if (mark == null) {
+            editor.getElement().executeJs(CLEAR_COMMAND_MARK_JS);
+        } else {
+            withEditorState(state -> showCommandMark(state.value()));
+        }
+    }
+
+    /**
+     * Draws the mark on the lines its command is written on in the given script, which the editor holds.
+     */
+    private void showCommandMark(String script) {
+        final var command = ofNullable(commandMark)
+            .flatMap(mark -> ScriptCommandUtil.findByIndex(ScriptCommandUtil.locate(script), mark.commandIndex()))
+            .filter(item -> item.firstRow() >= 0);
+        if (command.isEmpty()) {
+            editor.getElement().executeJs(CLEAR_COMMAND_MARK_JS);
+            return;
+        }
+        // the whole command the run stands before is highlighted, but only the first line of the one it failed at
+        final var firstRow = command.get().firstRow();
+        final var lastRow = PAUSED.equals(commandMark.kind()) ? command.get().lastRow() : firstRow;
+        editor.getElement().executeJs("this.setDebugCommand && this.setDebugCommand($0, $1, $2)", firstRow, lastRow, commandMark.kind());
     }
 
     private void updateWorkflowProgress(List<Error> validationMessages) {
         currentWorkflowStatus.removeAll();
+        statusActions.clear();
         setWorkflowStatus("error");
         final var message = new Div(new Span(getTranslation("workflow-development.validation.message")));
         message.addClassName("workflow-status-message");
         final var listItems = validationMessages.stream()
-            .map(error -> error.getInstanceLocation() == null ? error.getMessage() : error.toString())
+            .map(this::describe)
             .map(ListItem::new)
             .toList();
         message.add(new UnorderedList(listItems.toArray(new ListItem[0])));
@@ -475,9 +794,21 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
 
     private void updateWorkflowProgress(WorkflowRun workflowRun) {
         currentWorkflowStatus.removeAll();
+        statusActions.clear();
         // the editor may hold something else than the definition the pipeline was drawn from, unless it is read-only
         final var position = readOnly ? workflowPipelinePanel.setProgress(workflowRun) : Optional.<String>empty();
-        if (workflowRun.isRunning()) {
+        final var approval = workflowRun.getApproval();
+        final var pause = workflowRun.getPause();
+        if (workflowRun.isRunning() && pause != null) {
+            setWorkflowStatus(PAUSED);
+            currentWorkflowStatus.add(createStatusMessage(getTranslation("workflow-development.paused.message", pause.getCommandIndex() + 1,
+                pause.getCommandName())));
+            addPausedActions(workflowRun, pause);
+        } else if (workflowRun.isRunning() && approval != null) {
+            setWorkflowStatus("running");
+            currentWorkflowStatus.add(createStatusMessage(getTranslation("workflow-development.approval.message", approval.getCommandName())),
+                createApprovalButton(workflowRun, approval));
+        } else if (workflowRun.isRunning()) {
             setWorkflowStatus("running");
             currentWorkflowStatus.add(createStatusMessage(getTranslation("workflow-development.in-progress.message",
                 position.orElseGet(() -> LangUtil.pluralize(getTranslation("workflow-development.command"), workflowRun.getLastSuccessfulIndex() + 1)
@@ -493,14 +824,103 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
                 currentWorkflowStatus.add(createStatusMessage(getTranslation("workflow-development.success.message",
                     workflowRun.getHumanReadableDuration())));
             });
+            addEndedActions(workflowRun);
         }
 
         currentWorkflowStatus.add(createCopyWorkflowIdButton(workflowRun));
         currentWorkflowStatus.setVisible(true);
+        showDebugger(workflowRun);
+    }
+
+    /**
+     * Shows what only a run with a debugger has: what it held the last time it stood still, and - marked in the editor -
+     * the command it is paused before or failed at.
+     */
+    private void showDebugger(WorkflowRun workflowRun) {
+        final var debugger = workflowRun.getDebugger();
+        if (debugger == null) {
+            return;
+        }
+        final var pause = workflowRun.getPause();
+        if (!workflowRun.isRunning()) {
+            workflowVariableGrid.setItems(debugger.getVariables());
+            markCommand(findFailedCommandIndex(workflowRun)
+                .map(index -> new CommandMark(workflowRun.getFailureMessage(), index, FAILED))
+                .orElse(null));
+        } else if (pause != null) {
+            workflowVariableGrid.setItems(debugger.getVariables());
+            markCommand(new CommandMark(pause, pause.getCommandIndex(), PAUSED));
+        } else {
+            markCommand(null);
+        }
+    }
+
+    private void addPausedActions(WorkflowRun workflowRun, WorkflowRunPause pause) {
+        currentWorkflowStatus.add(
+            createStatusAction("step", VaadinIcon.STEP_FORWARD, Key.KEY_N, () -> resume(workflowRun, pause, WorkflowRunPause.Action.STEP, false),
+                ButtonVariant.PRIMARY),
+            createStatusAction("continue", VaadinIcon.FAST_FORWARD, Key.KEY_G,
+                () -> resume(workflowRun, pause, WorkflowRunPause.Action.CONTINUE, false)),
+            createStatusAction("from-cursor", VaadinIcon.CURSOR, Key.KEY_H,
+                () -> resume(workflowRun, pause, WorkflowRunPause.Action.CONTINUE, true)),
+            createStatusAction("stop", VaadinIcon.STOP, null, () -> stop(workflowRun, pause), ButtonVariant.ERROR));
+    }
+
+    /**
+     * A run which is over can be started again from one of its commands, as long as it has a debugger: it is then a run
+     * of this page, kept with everything it held.
+     */
+    private void addEndedActions(WorkflowRun workflowRun) {
+        if (workflowRun.getDebugger() == null) {
+            return;
+        }
+        findFailedCommandIndex(workflowRun).ifPresent(index -> currentWorkflowStatus.add(createStatusAction("from-command",
+            getTranslation("workflow-development.from-command.button", index + 1), VaadinIcon.ROTATE_RIGHT, null, () -> runFrom(workflowRun, index),
+            ButtonVariant.PRIMARY)));
+        currentWorkflowStatus.add(createStatusAction("from-cursor", VaadinIcon.CURSOR, Key.KEY_H, () -> runFrom(workflowRun, null)));
+    }
+
+    /**
+     * @return the command the run did not get past: the one which failed, or the one it was paused before when it was
+     *     stopped. It is nothing for a run which passed, or which failed at one of its final commands.
+     */
+    private Optional<Integer> findFailedCommandIndex(WorkflowRun workflowRun) {
+        final var index = workflowRun.getLastSuccessfulIndex() + 1;
+        return ofNullable(workflowRun.getFailureMessage())
+            .flatMap(_ -> ofNullable(workflowRun.getScript()))
+            .filter(script -> index < script.getCommands().size())
+            .map(_ -> index);
+    }
+
+    private Button createStatusAction(String key, VaadinIcon icon, Key shortcut, Runnable action, ButtonVariant... variants) {
+        return createStatusAction(key, getTranslation("workflow-development." + key + ".button"), icon, shortcut, action, variants);
+    }
+
+    /**
+     * @param key what the button does, which names its translations.
+     * @param shortcut the key which clicks the button together with Ctrl and Alt, or nothing.
+     */
+    private Button createStatusAction(String key, String text, VaadinIcon icon, Key shortcut, Runnable action, ButtonVariant... variants) {
+        final var button = new Button(text, icon.create());
+        button.addThemeVariants(ButtonVariant.SMALL);
+        button.addThemeVariants(variants);
+        button.addClassName("workflow-status-action");
+        button.setTooltipText(getTranslation("workflow-development." + key + ".button.tooltip"));
+        button.addClickListener(_ -> {
+            // the buttons come back with the status the run answers with
+            statusActions.forEach(statusAction -> statusAction.setEnabled(false));
+            action.run();
+        });
+        if (shortcut != null) {
+            // Ctrl + Alt is AltGr on Windows: without this, the editor would also type what the keyboard has behind the key
+            button.addClickShortcut(shortcut, KeyModifier.CONTROL, KeyModifier.ALT).setBrowserDefaultAllowed(false);
+        }
+        statusActions.add(button);
+        return button;
     }
 
     private void setWorkflowStatus(String status) {
-        currentWorkflowStatus.removeClassNames("error", "running", "success");
+        currentWorkflowStatus.removeClassNames("error", "running", "success", PAUSED);
         currentWorkflowStatus.addClassName(status);
     }
 
@@ -508,6 +928,15 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         final var message = new Div(new Span(text));
         message.addClassName("workflow-status-message");
         return message;
+    }
+
+    private Button createApprovalButton(WorkflowRun workflowRun, WorkflowRunApproval approval) {
+        final var button = new Button(getTranslation("workflow-development.approval.button"), VaadinIcon.USER_CHECK.create());
+        button.addThemeVariants(ButtonVariant.PRIMARY, ButtonVariant.SMALL);
+        button.addClassName("workflow-status-action");
+        button.addClickListener(_ -> new WorkflowApprovalDialog(workflowRun, approval,
+            applicationManager.getBeanOfType(WorkflowRunService.class)).open());
+        return button;
     }
 
     private Button createCopyWorkflowIdButton(WorkflowRun workflowRun) {
@@ -532,6 +961,9 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         readOnly = ofNullable(parameters.get(READ_ONLY)).isPresent();
         editor.setReadOnly(readOnly);
         saveWorkflowButton.setVisible(!readOnly);
+        // a run is debugged in the editor, by whoever can read what it holds: a read-only link hides both
+        debugWorkflowButton.setVisible(!readOnly);
+        variableDetails.setVisible(!readOnly && isLoggedAsAdmin);
         workflowDevParamGrid.setReadOnly(readOnly);
         readOnlyBadge.setVisible(readOnly);
         workflowPipelinePanel.setVisible(readOnly);
@@ -556,6 +988,25 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
                 .<Stream<WorkflowParameter>>map(_ -> Stream.empty())
                 .orElseGet(() -> Stream.of(WorkflowParameter.of(names.get(index), workflowParameterType, value)));
         }).toList());
+    }
+
+    /**
+     * The editor as it is in the browser. Rows are 0-based.
+     *
+     * @param cursor the row of the cursor, or a row no editor has when it is not known.
+     * @param breakpoints the rows of the breakpoints, each of them on a line of the command it stands for.
+     */
+    private record EditorState(String value, int cursor, List<Integer> breakpoints) {
+
+    }
+
+    /**
+     * @param owner what the mark is drawn for: the pause of a run, or the failure of one. Another pause before the same
+     *     command is another mark, as the definition may have been edited in between.
+     * @param kind how the command is marked: as the one the run is paused before, or as the one it failed at.
+     */
+    private record CommandMark(Object owner, int commandIndex, String kind) {
+
     }
 
 }

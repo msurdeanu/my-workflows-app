@@ -2,6 +2,79 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.1 (2026-10-14)
+
+### Features
+
+* The runs page updates by itself, through the server push that was already enabled:
+  * A run that starts - from the cron of a template, from another user or through the REST API - shows up as *still in progress* without a reload, and so does a run that is replayed.
+  * Once a run is over, its badge turns into the outcome and its actions change, without the other rows being redrawn.
+  * The page on display is kept: on the third page of the grid, a new run moves the rows by one instead of sending the user back to the first page.
+  * A new `WorkflowRunOnChangeEvent` is published once a run is written to the cache - and to the database, when it is completed - so that a list is never read before the run is in it.
+* User management (`V7` migration adds `users.password_change_required` and the *Users* menu entry):
+  * A *Users* page, for admins: add a user, disable or enable one, give or take the admin role, and reset a password. A user cannot be deleted or renamed, so the runs they started keep their name.
+  * A new or a reset password is generated, shown once to the admin and temporary: its user sees nothing but their profile until they have chosen one of their own.
+  * The two default accounts, `user` and `admin`, are asked for a new password too, as long as they have the one they were installed with.
+  * A *Profile* page for every user, under the avatar: change the password - with the current one at hand - and manage the API tokens, see below.
+  * Nobody changes their own account on the *Users* page, so there is always an enabled admin left.
+  * A user who was disabled, whose role changed or whose password was replaced is signed out the next time they open a page. Changing your own password keeps the session you changed it from and ends the other ones.
+* API tokens in a header, several per user (`V8` and `V9` migrations: a `user_tokens` table replaces `users.token`):
+  * A REST API call carries its token in the `Authorization: Bearer` header. **Breaking:** the `token` URL parameter - which access logs and proxies write down - is no longer read, so a call which still sends `?token=` gets `401` until it is changed to send the header.
+  * A user has as many tokens as they create on their profile. Each one has a name and either expires after 7, 30, 90 or 365 days or works until it is revoked there. An expired token is refused.
+  * A token is shown once, when it is created: only its SHA-256 digest is saved, so it can neither be shown again nor read from the database.
+  * The token every user had so far keeps working, under the name `default` and without an expiry. It cannot be shown anymore either, and a new user starts without a token.
+  * A call without a token, or with one which is not accepted, gets a `WWW-Authenticate: Bearer` header with its `401`.
+* A snippet per command and a command reference, both written from the commands themselves:
+  * In the editor, typing the `class` of a command - `sleep`, `sshExec` - offers a snippet of that command: its `name`, its `class` and one entry of `inputs` per required input, which shows the type it expects until it is typed over. A command which runs other commands comes with its `subcommands`.
+  * *Documentation* has a *Command reference* page (`/doc-pages/command-reference`): for every command, what it does, its inputs with their type, whether they are required and their default value, the type of its output and an example. It cannot be edited, as it is written again every time it is opened.
+  * A command brought by a library gets its snippet and its entry in the reference without anything to declare: `CommandType` now reads the type, the `required` flag and the `defaultValue` of every `@ExecutionParam`, and what the method returns.
+* Library management on the *Libraries* page:
+  * Every library shows the size of its file, the date it was last written and the start of its SHA-256 checksum, which a click copies in full. They are read when the libraries are loaded, so they describe what is loaded.
+  * An admin deletes a library with the button of its row, after a confirmation which names the commands the library brings. The file is removed from the libraries directory and the other libraries are loaded again at once, whatever `reload-after-upload` says: a JAR which is in use cannot be removed.
+  * On a phone, a library is shown in one cell, like the rows of the other grids.
+* A manual approval step, as a new `approval` command:
+  * The run stays at the command until a user approves or rejects it. Any logged-in user can answer, and the first answer counts.
+  * The runs page shows such a run as *waiting for approval*, with a button which opens what the run asks for (`approval.message`) and the two answers. A run started from the development page is answered from its status as well, and the pipeline of a read-only link describes the step.
+  * An approved run goes on, and the name of who approved is the output of the command. A rejected run fails at the command, with the name of who rejected it in its error message, and so does a run nobody answered within `approval.timeout` (one hour by default). The `finallyCommands` run in both cases.
+  * A run which waits can be cancelled like any run in progress, and like any of them it is lost when the application restarts.
+* Commands as plugins: a JAR of the libraries directory can bring command types of its own.
+  * A command is a class which extends `AbstractCommand` and is named in `META-INF/services/org.myworkflows.domain.command.AbstractCommand`. Its name and its inputs are read from its `@ExecutionMethod`.
+  * Its `class` is accepted by the schema, the editor completes its name and its inputs, the *Libraries* page lists the commands of each library and the pipeline of a read-only link shows it under its name.
+  * The command types are no longer a fixed list in `@JsonSubTypes` and in `workflow_schema.json`: both are filled in from `CommandTypeHolder`, which also knows the commands of the application.
+  * A command cannot take the name of another one. A command which cannot be used is left out and reported in the application log, without keeping the other ones from loading.
+  * A workflow definition which uses a command that is not known anymore - its library was removed - is still read at startup and kept as it was written. Its runs fail at that command, with a message which names the unknown `class`. Saving a script with an unknown `class` from the development page is refused, as before.
+* Step-by-step debugging on the development page, for an admin in the editor:
+  * A click next to a line number, on any line of a command, sets the breakpoint of that command - a red dot on its first line - and another click removes it. Breakpoints follow their command while the definition is edited and reformatted, and are not saved with it.
+  * *Debug* (<kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>D</kbd>) runs the script and pauses before the first command which has a breakpoint, or before the first command when there is none. *Run* pauses nowhere, as before.
+  * A paused run turns the status blue, with *Step*, *Continue*, *From cursor* and *Stop*, and the editor marks the command the run stands before. The runs page shows such a run as *paused*.
+  * A new *Variables* panel lists everything the run holds - name, type and value - each time it pauses and when it ends, after a plain *Run* as well. What was added or changed since the time before comes first, with a badge.
+  * Every way to go on reads the script from the editor again, so a command can be fixed before it runs. A script which is not a valid workflow leaves the run paused and says why.
+  * A run which is over starts again from any command, with everything it held: *From cursor* from the command the cursor is in, *From command N* from the command it did not get past. The commands before it are not run again.
+  * A run pauses only before a command listed under `commands`, for an hour at most, and is stopped when its user leaves the page or chooses another definition. The time it spent paused is no part of its duration.
+  * Choosing another definition now clears the status and the prints of the run of the previous one.
+* Viewers for printed values, under *Workflow Prints* and in the prints of a run:
+  * A map or a list opens as a **tree**: its first level is open, a level below is drawn when it is opened, and a level with more than 100 entries shows them 100 at a time.
+  * A text which holds a JSON object or array opens as **formatted JSON**, with line numbers and a colour per kind of value.
+  * A result set - the output of a `database` command - opens as a **table**, 100 rows at a time. Up to 1000 rows are read; the table says how many the result set has.
+  * Tabs above the value switch between these views and its text, and *Copy* copies what is on display: a tree as JSON, a table as CSV. A plain value is shown as before, without tabs.
+  * The row of such a value says what it is and how much it holds - `map · 6 keys`, `result set · 250 rows × 5 columns` - instead of the first 48 characters of its text.
+  * Whatever sits under a key or in a column whose name contains `password` is masked, at any depth and in every view. Until now only the name of the printed variable was looked at, so a secret inside a printed map was shown.
+  * A value with more than 10000 entries, all levels counted, is still shown as its text only.
+* Import and export, on a new *Import and export* page for admins (`V10` migration adds its menu entry, after *Libraries*):
+  * **Export:** templates, definitions, parameters and placeholders are ticked and written to one YAML file or to a zip archive, which holds a file per definition - its script alone - and per template. What a ticked item needs is ticked with it and says why: the definitions and the parameters of a template, the placeholders a definition names as `$$(NAME)`.
+  * **Import:** a file is compared with what the instance holds before anything is saved. Every item is *New*, *Different* or *Same*; a new one is created or skipped and a different one is overwritten or kept, for all of them at once or row by row. The page then lists what was created, overwritten and left alone, with a link to each item, and what is left to do.
+  * A file names everything it refers to, as an id means nothing on another instance: an item is matched with the one which goes by its name. Two definitions, or two templates, of the same name are refused by an export, and so is a file which names something two items of the instance go by.
+  * A parameter which is meant for one template (`timeout.42`) is exported with that template only, under the name its workflow gets it by, and is saved under the id of the template it is imported into.
+  * The value of a *Password* parameter, and of anything whose name contains `password`, stays out of the file unless it is asked for. An item which is already there keeps its value; the value of a new one is typed while the file is reviewed, or later.
+  * A template an import creates is paused, so that its cron fires only once somebody has looked at it. A template which was already there keeps its activation.
+  * An import saves everything which was chosen in one transaction or nothing at all, and nothing when the instance changed while the choices were made.
+  * A definition which uses a command no library of the instance brings is imported as it is written and reported as such. It fails at that command when it runs.
+
+### Bug fixes
+
+* Cancelling a run showed the key `workflow-runs.grid.run.cancelled` instead of a message: its translation was missing.
+* On a phone, the name and the start of a printed value were put into the page as markup, so a value which held HTML was drawn as HTML. Both are escaped now.
+
 ## 2.0 (2026-10-11)
 
 ### Features

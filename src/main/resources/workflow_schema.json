@@ -33,20 +33,7 @@
           "description": "The name of the command."
         },
         "class": {
-          "enum": [
-            "database",
-            "mail",
-            "groovy",
-            "httpRequest",
-            "java",
-            "loop",
-            "nothing",
-            "print",
-            "sleep",
-            "sshExec",
-            "sshShell",
-            "waitUntilSubPasses"
-          ]
+          "$comment": "The accepted values are added when the schema is loaded: one for every command type of the application and of its libraries."
         },
         "subcommands": {
           "type": "array",
@@ -79,36 +66,7 @@
           }
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "class": {
-                "const": "loop"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "subcommands"
-            ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "class": {
-                "const": "waitUntilSubPasses"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "subcommands"
-            ]
-          }
-        }
-      ],
+      "$comment": "A command type which runs other commands gets its rule under allOf when the schema is loaded: its subcommands are required.",
       "additionalProperties": false
     },
     "expression": {

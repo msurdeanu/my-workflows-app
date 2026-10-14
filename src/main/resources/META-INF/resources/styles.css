@@ -24,6 +24,8 @@
     align-self: stretch;
     box-sizing: border-box;
     display: flex;
+    /* a paused run comes with four buttons, which move under the message when they do not fit next to it */
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--vaadin-padding-s);
 }
@@ -33,13 +35,17 @@
 }
 
 .workflow-status-message {
-    flex: 1;
+    flex: 1 1 240px;
     min-width: 0;
 }
 
 .workflow-status-copy {
     flex-shrink: 0;
     color: inherit;
+}
+
+.workflow-status-action {
+    flex-shrink: 0;
 }
 
 .workflow-status ul {
@@ -60,6 +66,21 @@
 .workflow-status.success {
     background-color: color-mix(in srgb, var(--aura-green) 22%, transparent);
     color: var(--aura-green-text);
+}
+
+/* a run which stands before a command waits for its user, which no other status does */
+.workflow-status.paused {
+    background-color: color-mix(in srgb, var(--aura-blue) 22%, transparent);
+    color: var(--aura-blue-text);
+}
+
+/* the dot the editor draws next to the first line of a command a run pauses before, as the guide of the page shows it */
+.workflow-breakpoint {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--aura-red);
 }
 
 .editor-helper {
@@ -299,6 +320,213 @@
     overflow: auto;
 }
 
+/* a printed value under its row: the tabs which choose how it is shown, then the value itself */
+.workflow-print-viewer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-s);
+    min-width: 0;
+}
+
+.workflow-print-toolbar,
+.workflow-print-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--vaadin-gap-xs) var(--vaadin-gap-m, 12px);
+}
+
+.workflow-print-toolbar {
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.workflow-print-info {
+    font-size: var(--aura-font-size-s);
+    color: var(--vaadin-text-color-secondary);
+}
+
+/* a value never grows past this: what does not fit is scrolled inside its own box, both ways */
+.workflow-print-tree,
+.workflow-print-json,
+.workflow-print-table {
+    box-sizing: border-box;
+    max-height: 340px;
+    overflow: auto;
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-m, 8px);
+    background: var(--vaadin-background-color);
+    font-size: var(--aura-font-size-s);
+}
+
+.workflow-print-branch > summary,
+.workflow-print-leaf,
+.workflow-print-json {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    line-height: 1.7;
+}
+
+.workflow-print-tree {
+    padding: var(--vaadin-padding-s) var(--vaadin-padding-m, 12px);
+}
+
+/* the arrow of a branch is drawn here, so that what holds nothing else can be lined up with it */
+.workflow-print-branch > summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.workflow-print-branch > summary::-webkit-details-marker {
+    display: none;
+}
+
+.workflow-print-branch > summary::before {
+    content: "";
+    display: inline-block;
+    margin-right: 8px;
+    border-style: solid;
+    border-width: 4px 0 4px 6px;
+    border-color: transparent transparent transparent var(--vaadin-text-color-secondary);
+}
+
+.workflow-print-branch[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.workflow-print-branch > summary:focus-visible {
+    outline: var(--vaadin-focus-ring-width) solid var(--vaadin-focus-ring-color);
+}
+
+.workflow-print-leaf {
+    padding-left: 14px;
+    overflow-wrap: anywhere;
+}
+
+.workflow-print-children {
+    padding-left: 18px;
+}
+
+.workflow-print-size {
+    margin-left: 8px;
+}
+
+.workflow-print-key,
+.workflow-print-index {
+    font-weight: 600;
+}
+
+/* what a value is, told by its colour: the same in a tree, in JSON and in a table */
+.workflow-print-key {
+    color: var(--aura-blue-text);
+}
+
+.workflow-print-string {
+    color: var(--aura-green-text);
+}
+
+.workflow-print-number {
+    color: var(--aura-orange-text);
+}
+
+.workflow-print-literal {
+    color: var(--aura-purple-text);
+}
+
+.workflow-print-index,
+.workflow-print-size,
+.workflow-print-mark,
+.workflow-print-masked {
+    color: var(--vaadin-text-color-secondary);
+}
+
+.workflow-print-json pre {
+    margin: 0;
+    padding: var(--vaadin-padding-s) var(--vaadin-padding-m, 12px) var(--vaadin-padding-s) 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    white-space: pre;
+    counter-reset: workflow-print-line;
+}
+
+/* the number of a line is drawn, not written: it is left out when the JSON is selected and copied */
+.workflow-print-line::before {
+    counter-increment: workflow-print-line;
+    content: counter(workflow-print-line);
+    display: inline-block;
+    box-sizing: border-box;
+    min-width: 44px;
+    padding-right: 12px;
+    color: var(--vaadin-text-color-secondary);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+}
+
+/* a table is as wide as its rows are when they are written on one line: on a narrow screen it is scrolled sideways
+   instead of being squeezed, and only a long text is broken */
+.workflow-print-table table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.workflow-print-table th,
+.workflow-print-table td {
+    max-width: 28em;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--vaadin-border-color-secondary);
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+/* the names of the columns stay in sight while the rows are scrolled */
+.workflow-print-table th {
+    position: sticky;
+    top: 0;
+    background: color-mix(in srgb, var(--vaadin-text-color) 6%, var(--vaadin-background-color));
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.workflow-print-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+/* in a table a text is the usual thing, so it keeps the colour of the page and only what is not a text stands out */
+.workflow-print-table .workflow-print-string,
+.workflow-print-table .workflow-print-number {
+    color: inherit;
+}
+
+.workflow-print-table .workflow-print-number,
+.workflow-print-table .workflow-print-index {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: normal;
+}
+
+.workflow-print-table .workflow-print-literal {
+    font-style: italic;
+}
+
+.workflow-print-more {
+    margin: var(--vaadin-padding-xs);
+}
+
+@media (max-width: 640px) {
+    /* the tabs and the button which copies are what has to fit on one line */
+    .workflow-print-info {
+        display: none;
+    }
+
+    /* a branch is opened with a finger */
+    .workflow-print-branch > summary {
+        padding-block: var(--vaadin-padding-xs);
+    }
+}
+
 footer > span {
     width: 100%;
     display: block;
@@ -322,6 +550,71 @@ footer > span {
 .cell-secondary {
     font-size: var(--aura-font-size-xs);
     color: var(--vaadin-text-color-secondary);
+}
+
+/* the profile is a column of short forms, which would look lost across the whole screen */
+.profile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-m, 16px);
+    max-width: 520px;
+    padding: var(--vaadin-padding-s) 25px 25px;
+    box-sizing: border-box;
+}
+
+.profile-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--vaadin-gap-s);
+    margin-top: var(--vaadin-gap-s);
+}
+
+.profile-section h4 {
+    margin: 0;
+}
+
+.profile-text {
+    font-size: var(--aura-font-size-s);
+    color: var(--vaadin-text-color-secondary);
+}
+
+.profile-tokens {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-s);
+    width: 100%;
+}
+
+/* a token of the profile: what it is on the left, the button which revokes it on the right */
+.profile-token {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vaadin-gap-s);
+}
+
+/* what an approval asks for is written by the author of the workflow, line breaks included */
+.workflow-approval-message {
+    font-weight: 600;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* the start of a checksum is compared with another one, character by character */
+.library-checksum {
+    font-family: monospace;
+}
+
+/* a temporary password is read by one person and typed by another: every character has to be told apart */
+.user-password input {
+    font-family: monospace;
+}
+
+@media (max-width: 640px) {
+    .profile {
+        padding-inline: var(--vaadin-padding-s);
+    }
 }
 
 .responsive-layout {
@@ -697,4 +990,299 @@ markdown-editor .w-md-editor-preview {
     .page-guide {
         margin-inline: var(--vaadin-padding-s);
     }
+}
+
+/* the page which exports and imports: its two tabs, then the panel of the one which is chosen, in line with the title */
+.transfer,
+.transfer-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-m, 16px);
+    min-width: 0;
+}
+
+.transfer {
+    padding: 0 25px 8px;
+}
+
+.transfer h4 {
+    margin: 0;
+}
+
+/* a title above a checkbox or a summary, drawn like the label of the group of choices next to it */
+.transfer-label {
+    font-weight: 500;
+    line-height: 20px;
+    color: var(--vaadin-text-color);
+}
+
+/* a checkbox, or a group of choices, above the sentence which says what it means */
+.transfer-option,
+.transfer-ready {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--vaadin-gap-xs);
+    min-width: 0;
+}
+
+.transfer-ready {
+    gap: var(--vaadin-gap-s);
+}
+
+.transfer code {
+    padding: 1px 6px;
+    border-radius: var(--vaadin-radius-s);
+    background: color-mix(in srgb, currentColor 8%, transparent);
+    color: var(--vaadin-text-color);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .9em;
+    overflow-wrap: anywhere;
+}
+
+/* the four kinds side by side in two columns, and under each other where they do not fit */
+.transfer-columns {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.transfer-column {
+    flex: 1 1 420px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-m, 16px);
+}
+
+.transfer-section,
+.transfer-file,
+.transfer-table,
+.transfer-list {
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-l, 12px);
+}
+
+.transfer-section {
+    overflow: hidden;
+}
+
+.transfer-section-header,
+.transfer-row {
+    display: flex;
+    align-items: center;
+    gap: var(--vaadin-gap-xs) var(--vaadin-gap-s);
+    box-sizing: border-box;
+    min-height: 44px;
+}
+
+.transfer-section-header {
+    padding: 0 6px 0 14px;
+    background: var(--vaadin-background-container);
+}
+
+.transfer-section-header vaadin-button {
+    margin-left: auto;
+}
+
+/* what an item is and what needs it moves under its name where the two do not fit on one line */
+.transfer-row {
+    flex-wrap: wrap;
+    padding: 4px 14px;
+    border-top: 1px solid var(--vaadin-border-color-secondary);
+}
+
+.transfer-row-info {
+    margin-left: auto;
+    font-size: var(--aura-font-size-s);
+    color: var(--vaadin-text-color-secondary);
+    text-align: right;
+}
+
+.transfer-empty {
+    padding: 12px 14px;
+    border-top: 1px solid var(--vaadin-border-color-secondary);
+}
+
+/* how the file is written, or how it is read: the choices next to each other, then under each other */
+.transfer-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 32px;
+    padding: 16px 18px;
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-l, 12px);
+    background: var(--vaadin-background-container);
+}
+
+.transfer-options > * {
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.transfer-file-name {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: var(--aura-font-size-s);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* the file which is being imported: what it is on the left, the button which lets go of it on the right */
+.transfer-file,
+.transfer-todo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vaadin-gap-s) var(--vaadin-gap-m, 14px);
+    padding: 12px 14px;
+}
+
+.transfer-file-facts {
+    flex: 1 1 320px;
+    min-width: 0;
+}
+
+.transfer-counts,
+.transfer-footer,
+.transfer-outcome,
+.transfer-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vaadin-gap-xs) var(--vaadin-gap-s);
+}
+
+.transfer-look {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    font-size: var(--aura-font-size-s);
+    font-weight: 600;
+    color: var(--aura-yellow-text);
+    --vaadin-icon-size: 16px;
+}
+
+/* the items of a file are read across, so the table is scrolled sideways on a narrow screen instead of being squeezed */
+.transfer-table {
+    overflow-x: auto;
+}
+
+.transfer-table table {
+    width: 100%;
+    min-width: 780px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.transfer-table th,
+.transfer-table td {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--vaadin-border-color-secondary);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.transfer-table thead th {
+    font-size: var(--aura-font-size-s);
+    font-weight: 600;
+    color: var(--vaadin-text-color-secondary);
+    white-space: nowrap;
+}
+
+.transfer-table .transfer-group th {
+    background: var(--vaadin-background-container);
+    font-size: var(--aura-font-size-s);
+    font-weight: 600;
+}
+
+.transfer-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.transfer-action {
+    width: 150px;
+}
+
+.transfer-notes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-xs);
+    min-width: 220px;
+}
+
+.transfer-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vaadin-gap-xs) var(--vaadin-gap-s);
+    font-size: var(--aura-font-size-s);
+    color: var(--vaadin-text-color-secondary);
+    --vaadin-icon-size: 16px;
+}
+
+.transfer-note > span {
+    flex: 1 1 200px;
+    min-width: 0;
+}
+
+.transfer-note > vaadin-icon {
+    flex: none;
+}
+
+.transfer-note.warning,
+.transfer-todo > vaadin-icon {
+    color: var(--aura-yellow-text);
+}
+
+.transfer-note.error {
+    color: var(--aura-red-text);
+}
+
+.transfer-footer-text {
+    flex: 1 1 320px;
+    min-width: 0;
+}
+
+.transfer-todo + .transfer-todo,
+.transfer-outcome + .transfer-outcome {
+    border-top: 1px solid var(--vaadin-border-color-secondary);
+}
+
+.transfer-todo > vaadin-icon {
+    flex: none;
+    --vaadin-icon-size: 16px;
+}
+
+.transfer-outcome {
+    padding: 10px 14px;
+}
+
+.transfer-outcome-title {
+    flex: 0 0 170px;
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .transfer {
+        padding-inline: var(--vaadin-padding-s);
+    }
+
+    /* the name of a group of items takes a line of its own, above the items */
+    .transfer-outcome-title {
+        flex-basis: 100%;
+    }
+}
+
+/* what needs no attention - an item which is the same, a value which stays behind - is grey: the contrast variant of a
+   badge has the colours of the default one in Aura */
+vaadin-badge.transfer-neutral {
+    color: var(--vaadin-text-color-secondary);
+    background-color: color-mix(in srgb, currentColor 8%, transparent);
+    border-color: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.transfer-value {
+    max-width: 260px;
 }

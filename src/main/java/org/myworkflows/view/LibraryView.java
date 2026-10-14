@@ -3,7 +3,10 @@ package org.myworkflows.view;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.badge.BadgeVariant;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadVariant;
@@ -16,8 +19,10 @@ import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.config.LibraryConfig;
 import org.myworkflows.domain.Library;
+import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.filter.LibraryFilter;
 import org.myworkflows.domain.handler.LibraryEventHandler;
+import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.service.LibraryService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.LibraryGrid;
@@ -39,6 +44,8 @@ public class LibraryView extends ResponsiveLayout implements HasDynamicTitle, Li
 
     public static final String ROUTE = "libs";
 
+    private static final int ERROR_NOTIFICATION_DURATION = 10_000;
+
     private final LibraryFilter libraryFilter = new LibraryFilter();
 
     private final LibraryGrid libraryGrid;
@@ -54,7 +61,7 @@ public class LibraryView extends ResponsiveLayout implements HasDynamicTitle, Li
             .withConfigurableFilter();
         configurableFilterDataProvider.setFilter(libraryFilter);
 
-        libraryGrid = new LibraryGrid();
+        libraryGrid = new LibraryGrid(this);
         libraryGrid.setDataProvider(configurableFilterDataProvider);
 
         final var filterByFilePath = createFilterByFilePath();
@@ -66,11 +73,16 @@ public class LibraryView extends ResponsiveLayout implements HasDynamicTitle, Li
             .legend("path", PageGuide.link(getTranslation("libs.grid.filepath.column")))
             .legend("loaded", PageGuide.badge(getTranslation("libs.grid.status.ok"), BadgeVariant.SUCCESS))
             .legend("not-loaded", PageGuide.badge(getTranslation("libs.grid.status.nok"), BadgeVariant.ERROR))
+            .legend("command", PageGuide.badge("myCommand", BadgeVariant.CONTRAST))
+            .legend("checksum", createChecksumSample())
             .legend("upload", new Button(VaadinIcon.UPLOAD.create()))
+            .legend("delete", PageGuide.button(VaadinIcon.TRASH, ButtonVariant.ERROR), UserRole.ADMIN)
             .steps(3)
             .note("directory")
+            .note("commands")
             .note("replace")
-            .note("remove"));
+            .note("remove")
+            .note("facts"));
     }
 
     @Override
@@ -81,6 +93,31 @@ public class LibraryView extends ResponsiveLayout implements HasDynamicTitle, Li
     @Override
     public void onUpload(String fileName, InputStream inputStream) {
         libraryService.upload(fileName, inputStream);
+    }
+
+    /**
+     * Whatever comes out of it, the libraries are read again: a delete which failed has still loaded them anew.
+     */
+    @Override
+    public void onDelete(Library library) {
+        try {
+            libraryService.delete(library);
+            Notification.show(getTranslation("libs.delete.done.message", library.fileName()));
+        } catch (WorkflowRuntimeException exception) {
+            log.warn("Library '{}' could not be deleted.", library.filePath(), exception);
+            Notification.show(getTranslation("libs.delete.failed.message", library.fileName(), exception.getMessage()), ERROR_NOTIFICATION_DURATION,
+                    Notification.Position.BOTTOM_START)
+                .addThemeVariants(NotificationVariant.ERROR);
+        } finally {
+            libraryGrid.refreshPage();
+        }
+    }
+
+    private Component createChecksumSample() {
+        final var sample = new Button("9f86d081884c", VaadinIcon.COPY.create());
+        sample.addClassName("library-checksum");
+        sample.addThemeVariants(ButtonVariant.SMALL, ButtonVariant.TERTIARY);
+        return sample;
     }
 
     private Component createUpload() {

@@ -11,6 +11,8 @@ import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.WorkflowRun;
+import org.myworkflows.domain.command.CommandType;
+import org.myworkflows.holder.CommandTypeHolder;
 import org.myworkflows.util.LangUtil;
 import org.myworkflows.view.transformer.WorkflowPipeline;
 import org.myworkflows.view.transformer.WorkflowPipeline.Status;
@@ -186,7 +188,21 @@ public final class WorkflowPipelinePanel extends Div {
     }
 
     private String findTypeLabel(Step step) {
-        return getTranslation("workflow-pipeline.command." + step.type() + ".label");
+        // a command brought by a library has no translation: it goes by the name its definition gives it
+        return isBuiltIn(step) ? getTranslation("workflow-pipeline.command." + step.type() + ".label") : step.type();
+    }
+
+    private String findTypeText(Step step) {
+        if (isBuiltIn(step)) {
+            return getTranslation("workflow-pipeline.command." + step.type() + ".text");
+        }
+        return getTranslation(CommandTypeHolder.INSTANCE.find(step.type()).isPresent()
+            ? "workflow-pipeline.plugin-command.text"
+            : "workflow-pipeline.unknown-command.text");
+    }
+
+    private boolean isBuiltIn(Step step) {
+        return CommandTypeHolder.INSTANCE.find(step.type()).filter(CommandType::builtIn).isPresent();
     }
 
     /**
@@ -261,11 +277,11 @@ public final class WorkflowPipelinePanel extends Div {
         }
 
         private Div createText(Step step) {
-            final var prefix = "workflow-pipeline.command." + step.type();
             if (step.detail().isEmpty()) {
-                return createDiv("workflow-pipeline-text", getTranslation(prefix + ".text"));
+                return createDiv("workflow-pipeline-text", findTypeText(step));
             }
-            final var text = new Div(new Span(getTranslation(prefix + ".detail")), createSpan("workflow-pipeline-code", step.detail()));
+            final var text = new Div(new Span(getTranslation("workflow-pipeline.command." + step.type() + ".detail")),
+                createSpan("workflow-pipeline-code", step.detail()));
             text.addClassName("workflow-pipeline-text");
             return text;
         }

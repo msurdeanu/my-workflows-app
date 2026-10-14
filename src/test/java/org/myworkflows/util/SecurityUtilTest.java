@@ -61,6 +61,28 @@ public final class SecurityUtilTest {
         assertEquals(Optional.of(9), SecurityUtil.findCurrentUserId());
     }
 
+    @Test
+    public void whenAPageIsServedThenTheAccountOfTheSessionIsFound() {
+        // given
+        final var userAccountDetails = new UserAccountDetails(createUser(7));
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userAccountDetails, null, List.of()));
+
+        // when and then
+        assertEquals(Optional.of(userAccountDetails), SecurityUtil.findCurrentAccount());
+    }
+
+    @Test
+    public void whenThereIsNoSessionThenNoAccountIsFound() {
+        // given nobody
+        assertEquals(Optional.empty(), SecurityUtil.findCurrentAccount());
+
+        // given a REST API call, which carries the user itself
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(createUser(9), null, List.of()));
+
+        // when and then
+        assertEquals(Optional.empty(), SecurityUtil.findCurrentAccount());
+    }
+
     private User createUser(int id) {
         final var user = mock(User.class);
         when(user.getId()).thenReturn(id);

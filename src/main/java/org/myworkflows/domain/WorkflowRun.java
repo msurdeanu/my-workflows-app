@@ -16,13 +16,14 @@ import org.hibernate.type.SqlTypes;
 import org.myworkflows.converter.SetOfStringToStringConverter;
 import org.myworkflows.converter.WorkflowDefinitionScriptToStringConverter;
 import org.myworkflows.converter.WorkflowRunCacheToByteArrayConverter;
+import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.holder.file.BinaryFileSource;
 import org.myworkflows.util.ExceptionUtil;
+import org.myworkflows.util.LangUtil;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -31,10 +32,8 @@ import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static java.lang.String.join;
 import static java.util.Optional.ofNullable;
 import static org.myworkflows.holder.file.FileSourceHolder.INSTANCE;
-import static org.myworkflows.util.LangUtil.pluralize;
 
 /**
  * @author Mihai Surdeanu
@@ -98,6 +97,37 @@ public class WorkflowRun {
     @Transient
     private Future<?> future;
 
+    /**
+     * What the run waits for while it stands at an approval command. It is not saved, as a run in progress lives in
+     * the cache only.
+     */
+    @Getter
+    @Transient
+    private volatile WorkflowRunApproval approval;
+
+    /**
+     * What the run waits for while it is paused before one of its commands. It is not saved either.
+     */
+    @Getter
+    @Transient
+    private volatile WorkflowRunPause pause;
+
+    /**
+     * Who says where the run pauses, for a run started from the development page. Any other run has none.
+     */
+    @Getter
+    @Setter
+    @Transient
+    private volatile WorkflowRunDebugger debugger;
+
+    /**
+     * Told when the run changes while one of its commands is still running, which no progress of a command announces.
+     */
+    @Setter
+    @Transient
+    private Runnable changeListener = () -> {
+    };
+
     public WorkflowRun() {
         this(null, null);
     }
@@ -141,15 +171,7 @@ public class WorkflowRun {
             return duration + " ms";
         }
 
-        final var parts = new ArrayList<String>(3);
-        var remainingDuration = Duration.ofMillis(duration);
-        pluralize("hr", remainingDuration.toHours()).ifPresent(parts::add);
-        remainingDuration = remainingDuration.minusHours(remainingDuration.toHours());
-        pluralize("min", remainingDuration.toMinutes()).ifPresent(parts::add);
-        remainingDuration = remainingDuration.minusMinutes(remainingDuration.toMinutes());
-        pluralize("sec", remainingDuration.toSeconds()).ifPresent(parts::add);
-
-        return join(" and ", parts);
+        return LangUtil.describe(Duration.ofMillis(duration));
     }
 
     public void markAsFailed(Throwable throwable, WorkflowDefinitionScript script) {
@@ -159,6 +181,13 @@ public class WorkflowRun {
 
     public void markAsCompleted(long duration) {
         this.duration = duration;
+    }
+
+    /**
+     * @return whether the run is over. A run which was just told to start again is not, even before it does.
+     */
+    public boolean isCompleted() {
+        return duration >= 0;
     }
 
     public boolean isDebugModeEnabled() {
@@ -171,6 +200,61 @@ public class WorkflowRun {
 
     public boolean cancelAndInterruptIfRunning() {
         return isRunning() && future.cancel(true);
+    }
+
+    public boolean isWaitingForApproval() {
+        return approval != null;
+    }
+
+    /**
+     * Keeps the run where it is until a user approves it. Whoever follows the run is told when it starts to wait and
+     * when it stops, as nothing else about the run changes in between.
+     *
+     * @return the name of the user who approved.
+     * @throws WorkflowRuntimeException when the run is rejected, or when nobody decides within the given time.
+     * @throws InterruptedException when the run is cancelled while it waits.
+     */
+    public String awaitApproval(String commandName, String message, Duration timeout) throws InterruptedException {
+        final var pendingApproval = new WorkflowRunApproval(commandName, message, Instant.now().plus(timeout));
+        approval = pendingApproval;
+        changeListener.run();
+        try {
+            return pendingApproval.await();
+        } finally {
+            approval = null;
+            changeListener.run();
+        }
+    }
+
+    public boolean isPaused() {
+        return pause != null;
+    }
+
+    /**
+     * Keeps the run before the given command until somebody tells it how to go on. Whoever follows the run is told when
+     * it starts to wait and when it stops, as for an approval, and finds what the run holds in its debugger.
+     *
+     * @return what the run was told, which is to stop when nobody answered in the given time.
+     * @throws InterruptedException when the run is cancelled while it is paused.
+     */
+    public WorkflowRunPause.Resume awaitResume(int commandIndex, String commandName, Duration timeout) throws InterruptedException {
+        final var pendingPause = new WorkflowRunPause(commandIndex, commandName, Instant.now().plus(timeout));
+        ofNullable(debugger).ifPresent(item -> item.snapshot(cache));
+        pause = pendingPause;
+        changeListener.run();
+        try {
+            return pendingPause.await();
+        } finally {
+            pause = null;
+            changeListener.run();
+        }
+    }
+
+    /**
+     * Makes the given command the next one to run: the commands before it are taken as passed, whether they ran or not.
+     */
+    public void moveTo(int commandIndex) {
+        lastSuccessfulIndex = Math.max(commandIndex, 0) - 1;
     }
 
     public boolean isEligibleForReplay() {

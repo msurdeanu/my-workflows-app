@@ -2,6 +2,7 @@ package org.myworkflows.view.component.html;
 
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.data.provider.Query;
 import org.myworkflows.view.component.Breakpoint;
 import org.myworkflows.view.component.HasResizeableWidth;
 import org.vaadin.klaudeta.PaginatedGrid;
@@ -51,6 +52,19 @@ public final class StandardPaginatedGrid<T, F> extends PaginatedGrid<T, F> imple
         wideColumns.clear();
         wideColumns.addAll(columns);
         applyBreakpoint(Breakpoint.DESKTOP);
+    }
+
+    /**
+     * Reads the page on display again, for a grid whose items changed without the user asking for it. Unlike
+     * {@link #refreshPaginator()}, which starts over from the first page, it leaves the user where they are.
+     */
+    public void refreshCurrentPage() {
+        final var page = getPage();
+        refreshPaginator(Math.max(page, 1));
+        if (page > 1 && getDataProvider().size(new Query<>()) == 0) {
+            // the items became fewer and took this page with them
+            refreshPaginator();
+        }
     }
 
     @Override

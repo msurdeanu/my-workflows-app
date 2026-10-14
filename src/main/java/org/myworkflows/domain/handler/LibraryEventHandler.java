@@ -1,5 +1,7 @@
 package org.myworkflows.domain.handler;
 
+import org.myworkflows.domain.Library;
+
 import java.io.InputStream;
 
 /**
@@ -9,5 +11,7 @@ import java.io.InputStream;
 public interface LibraryEventHandler {
 
     void onUpload(String fileName, InputStream inputStream);
+
+    void onDelete(Library library);
 
 }

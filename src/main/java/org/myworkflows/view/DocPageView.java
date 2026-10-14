@@ -5,6 +5,7 @@ import com.flowingcode.vaadin.addons.markdown.MarkdownViewer;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -23,11 +24,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.DocPage;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.handler.DocPageEventHandler;
+import org.myworkflows.holder.CommandTypeHolder;
 import org.myworkflows.service.DocPageService;
 import org.myworkflows.view.component.BaseLayout;
 import org.myworkflows.view.component.DeleteConfirmDialog;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.html.TextFieldWithEnterShortcut;
+import org.myworkflows.view.transformer.CommandTypesToReferenceTransformer;
 
 import java.util.HashMap;
 import java.util.List;
@@ -47,9 +50,12 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
 
     private static final String EDIT_MODE = "em";
 
+    private static final String COMMAND_REFERENCE = "command-reference";
+
     private final Tabs tabs = new Tabs();
     private final Map<String, Tab> tabMap = new HashMap<>();
     private final VerticalLayout tabContent = new VerticalLayout();
+    private final Tab commandReferenceTab = createTab(COMMAND_REFERENCE, getTranslation("doc-pages.command-reference.title"));
 
     private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
 
@@ -61,14 +67,14 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
         this.docPageService = docPageService;
 
         docPageService.getAllNames().forEach(name -> {
-            final var tab = new Tab();
-            final var layout = new HorizontalLayout(new Span(name), createShareIcon(name));
-            layout.setSpacing(true);
-            tab.add(layout);
-            tab.setId(name);
+            final var tab = createTab(name, name);
             tabMap.put(name, tab);
             tabs.add(tab);
         });
+        // the page which is written by the application comes after the ones written by the admins, and a page of
+        // theirs which happens to have its name keeps the link it had
+        tabMap.putIfAbsent(COMMAND_REFERENCE, commandReferenceTab);
+        tabs.add(commandReferenceTab);
         tabs.addSelectedChangeListener(event -> setTabContent(event.getSelectedTab()));
         setTabContent(tabs.getSelectedTab());
 
@@ -123,6 +129,10 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
 
     private void setTabContent(Tab tab) {
         tabContent.removeAll();
+        if (tab == commandReferenceTab) {
+            tabContent.add(createCommandReference());
+            return;
+        }
 
         ofNullable(tab).flatMap(Component::getId).flatMap(docPageService::findByName).ifPresent(docPage -> {
             if (editable) {
@@ -162,10 +172,40 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
     }
 
     private Component createMarkdownViewer(DocPage docPage) {
+        return createMarkdownViewer(docPage.getValue());
+    }
+
+    private Component createMarkdownViewer(String markdown) {
         final var markdownViewer = new MarkdownViewer();
         markdownViewer.setSizeFull();
-        markdownViewer.setContent(docPage.getValue());
+        markdownViewer.setContent(markdown);
         return markdownViewer;
+    }
+
+    /**
+     * The reference of the commands is not a page somebody wrote: it is written again every time it is shown, from the
+     * commands which are known by then, so it follows the libraries. There is nothing to edit about it.
+     */
+    private Component createCommandReference() {
+        final var markdownViewer = createMarkdownViewer(new CommandTypesToReferenceTransformer(this::getTranslation)
+            .transform(CommandTypeHolder.INSTANCE.getAll()));
+        if (!editable) {
+            return markdownViewer;
+        }
+        final var generatedNotice = new Div(getTranslation("doc-pages.command-reference.generated.message"));
+        generatedNotice.addClassName("profile-text");
+        final var layout = new VerticalLayout(generatedNotice, markdownViewer);
+        layout.setPadding(false);
+        return layout;
+    }
+
+    private Tab createTab(String name, String title) {
+        final var tab = new Tab();
+        final var layout = new HorizontalLayout(new Span(title), createShareIcon(name));
+        layout.setSpacing(true);
+        tab.add(layout);
+        tab.setId(name);
+        return tab;
     }
 
     private Component createShareIcon(String name) {

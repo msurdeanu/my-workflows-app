@@ -3,9 +3,9 @@ package org.myworkflows.domain.command;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,21 +36,10 @@ import static java.util.stream.IntStream.range;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "class")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = DatabaseCommand.class, name = DatabaseCommand.PREFIX),
-    @JsonSubTypes.Type(value = MailCommand.class, name = MailCommand.PREFIX),
-    @JsonSubTypes.Type(value = GroovyCommand.class, name = GroovyCommand.PREFIX),
-    @JsonSubTypes.Type(value = HttpRequestCommand.class, name = HttpRequestCommand.PREFIX),
-    @JsonSubTypes.Type(value = JavaCommand.class, name = JavaCommand.PREFIX),
-    @JsonSubTypes.Type(value = LoopCommand.class, name = LoopCommand.PREFIX),
-    @JsonSubTypes.Type(value = NothingCommand.class, name = NothingCommand.PREFIX),
-    @JsonSubTypes.Type(value = PrintCommand.class, name = PrintCommand.PREFIX),
-    @JsonSubTypes.Type(value = SleepCommand.class, name = SleepCommand.PREFIX),
-    @JsonSubTypes.Type(value = SshExecCommand.class, name = SshExecCommand.PREFIX),
-    @JsonSubTypes.Type(value = SshShellCommand.class, name = SshShellCommand.PREFIX),
-    @JsonSubTypes.Type(value = WaitUntilSubPassesCommand.class, name = WaitUntilSubPassesCommand.PREFIX)
-})
+// the class behind a "class" field is looked up among the command types known when a definition is read, so that a
+// library can bring its own; the field is also handed over to the command, for the one which stands for an unknown type
+@JsonTypeInfo(use = JsonTypeInfo.Id.CUSTOM, property = "class", visible = true)
+@JsonTypeIdResolver(CommandTypeIdResolver.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class AbstractCommand {
 

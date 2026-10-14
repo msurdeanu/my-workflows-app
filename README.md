@@ -24,6 +24,11 @@ All workflows are defined in YAML, and the tool provides an intuitive UI for wor
 
 * **Modern, responsive UI** for a better user experience.
 * **Authentication** and **authorization** enabled by default for secure access.
+* A dedicated web page for managing **users**, for admins: add a user, disable one, make one an admin or reset a
+  password. A new or a reset password is temporary and shown once; its user is asked for one of their own at login, and
+  so are the two default accounts, `user` and `admin`, as long as they have the password they were installed with.
+* A **profile** page for every user, under the avatar: change the password, create named API tokens - with an expiry,
+  if wanted - and revoke them.
 * **Vaadin Push** enabled: using WebSockets, the server can send real-time updates to the client.
 * **Persistence layer** powered by **SQLite** for reliable data storage.
 * A dedicated page for **workflow definition script development**, which lets you:
@@ -34,18 +39,35 @@ All workflows are defined in YAML, and the tool provides an intuitive UI for wor
     * Share the script together with its parameters.
     * Hand it over as a read-only link, which shows the pipeline of the workflow instead of the editor: its commands
       in the order they run, a few words on what each of them does and, while it runs, the command the run is at.
+* **Step-by-step debugging** on that page: a breakpoint next to a line number pauses a run before a command, with
+  everything the run holds on display. From there the run steps one command at a time, carries on, or runs from another
+  command - with the script as the editor has it by then, so a command can be fixed without running the ones before it
+  again.
+* **Viewers for printed values**: a map or a list is read as a tree, a text which holds JSON as formatted JSON and the
+  result set of a query as a table, with its text one tab away.
 * Replay of a failed workflow run, starting from the command that failed. A run can be replayed only by the user who
   triggered it, so a run scheduled by a template's cron - which belongs to no user - cannot be replayed.
+* A **manual approval** step: an `approval` command keeps a run where it is until a user approves or rejects it, on the
+  runs page or on the development page. It gives up after a timeout.
 * Each workflow run keeps track of the user who triggered it, and the runs page can be filtered down to your own runs.
+* The runs page follows the runs by itself: a run started by a cron, by another user or through the REST API shows up
+  without a reload, and its badge turns into the outcome once it is over.
 * Dedicated web pages for managing **workflow placeholders**, **workflow parameters**, **workflow definitions**,
   **workflow templates**, and **workflow runs**.
+* **Import and export**, for admins: templates, definitions, parameters and placeholders are written to a YAML file or
+  to a zip archive and read on another instance, where every item is compared with what is already there before
+  anything is saved. See [Import and export](#import-and-export).
 * The filters of a page live in its URL, like `/workflow/runs?mine=true&template=3`, so a filtered page survives Back and
   can be bookmarked or shared. A chip names each filter in use and removes it with a click.
-* A guide on the runs, templates, definitions, parameters, placeholders, libraries and development pages: a legend of
-  what the page shows, the steps of its main task and a few things worth knowing. It starts folded and is opened page
-  by page.
+* A guide on the runs, templates, definitions, parameters, placeholders, libraries, import and export and development
+  pages: a legend of what the page shows, the steps of its main task and a few things worth knowing. It starts folded
+  and is opened page by page.
 * A dedicated web page for managing **Java libraries** at runtime.
-* A dedicated web page for writing **Markdown documentation**.
+* **Commands as plugins**: a library can bring command types of its own, which are then used in a workflow like the
+  predefined ones.
+* A dedicated web page for writing **Markdown documentation**. Its *Command reference* page is written by the
+  application: every command a workflow can use - the ones brought by the libraries included - with its inputs, their
+  type and default value, its output and an example.
 * A dedicated web page for viewing and analyzing **statistics**.
 * A dedicated web page for editing application **settings**.
 
@@ -141,6 +163,10 @@ The editor provides:
   * type `input` to insert a snippet for an input expression with `name`, `class`, and `value`.
   * type `assert` to insert a snippet for an assert expression with `name`, `class`, and `value`.
   * type `output` to insert a snippet for an output expression with `name`, `class`, and `value`.
+  * type the `class` of a command - `sleep`, `httpRequest`, `sshExec`... - to insert that command with its `name`, its
+    `class` and one entry of `inputs` per required input, each showing the type it expects until it is typed over. A
+    command which runs other commands (`loop`, `waitUntilSubPasses`) comes with its `subcommands` too. The snippets
+    are written from the commands themselves, so a command brought by a library has one as well.
 * **Key bindings**
   * <kbd>Alt</kbd> + <kbd>E</kbd> = Focus the editor.
   * <kbd>Ctrl</kbd> + <kbd>A</kbd> = Select all code. Requires editor focus.
@@ -273,8 +299,49 @@ the workflow is running.
 
 #### How to debug workflow runs?
 
-To debug a workflow run, inject a parameter named `debug` of type `boolean` and set it to `true`.
-With the debug flag enabled, the run also prints the resolved type and value of every command parameter.
+##### Step by step, on the development page
+
+An admin can go through a workflow one command at a time on the **Workflow Development** page:
+
+1. Click next to a line number, on any line of a command: a red dot on the first line of that command is its
+   **breakpoint**. Click again to remove it. Breakpoints follow their command while you edit, and they are not saved
+   with the definition.
+2. Click **Debug** instead of *Run*. The run pauses before the first command which has a breakpoint, or before the very
+   first command when there is no breakpoint. *Run* pauses nowhere, whatever the breakpoints.
+3. While the run is paused, the editor marks the command it stands before and **Variables** lists everything the run
+   holds - name, type and value - with what the last step added or changed on top. A value whose name contains
+   `password` is masked, as it is when it is printed.
+4. Tell the run how to go on:
+    * **Step** runs the command it stands before, then pauses again.
+    * **Continue** runs to the next breakpoint, or to the end.
+    * **From cursor** carries on from the command the cursor is in, with the variables as they are: the commands in
+      between are skipped, or run again when the cursor is further up.
+    * **Stop** ends the run as failed. Its `finallyCommands` still run.
+
+Every one of these reads the script from the editor again, so a command can be changed before it runs: fix the command
+the run stands before, click *Step*, and the fixed command is the one that runs. A script which is not a valid workflow
+leaves the run paused and says why.
+
+Once a run is over - debugged or not - it can be started again the same way: **From cursor** starts it from the
+command the cursor is in, and **From command N** from the command it did not get past. Both keep everything the
+run held when it ended, so the commands that already passed are not run again. This is what the *replay* of the runs
+page does, but with the script as it is in the editor now.
+
+A few limits:
+
+* A run pauses only before a command listed under `commands`. A breakpoint on a subcommand of a `loop` or of a
+  `waitUntilSubPasses` pauses before the whole command, and the `finallyCommands` are never paused.
+* The run goes on by the number of its commands: after adding or removing a command above the pause, the run stands
+  before the same number, which is then another command.
+* A pause lasts an hour at most, and ends when its user leaves the page: the run is then stopped. Like any run in
+  progress, a paused run is lost when the application restarts.
+* Only a run started from the development page, in the editor, can be debugged - not a run of a template, of the
+  REST API or of a read-only link.
+
+##### With the `debug` parameter
+
+Any run - of a template too - can print more about itself: inject a parameter named `debug` of type `boolean` and set
+it to `true`. With the debug flag enabled, the run also prints the resolved type and value of every command parameter.
 
 #### Load Java libraries at runtime
 
@@ -290,6 +357,74 @@ my-workflows:
       base-directory: "./libs" # Directory where JAR files are discovered
       reload-after-upload: false # Set to true to reload libraries at runtime after uploading new ones
 ```
+
+The *Libraries* page lists every JAR file of that directory with its size, the date it was last written and the start
+of its SHA-256 checksum: a click copies the whole checksum, to be compared with the one of the JAR you built
+(`sha256sum my-lib.jar`, or `certutil -hashfile my-lib.jar SHA256` on Windows). These are read when the libraries are
+loaded, so they describe what is loaded. A click on the path of a library downloads its file.
+
+An admin deletes a library with the button of its row. Its file is removed from the directory and the other libraries
+are loaded again at once, whatever `reload-after-upload` says, because a file which is in use cannot be removed.
+
+##### Bring your own commands
+
+A library can also bring command types of its own, next to the [predefined ones](#predefined-command-types).
+A command is a class which extends `AbstractCommand`, or `AbstractSubCommand` when it runs `subcommands`:
+
+```java
+package org.sample;
+
+import org.myworkflows.domain.command.AbstractCommand;
+import org.myworkflows.domain.command.api.ExecutionMethod;
+import org.myworkflows.domain.command.api.ExecutionParam;
+
+public final class GreetCommand extends AbstractCommand {
+
+    @ExecutionMethod(prefix = "greet")
+    public String greet(@ExecutionParam String name,
+                        @ExecutionParam(required = false, defaultValue = "Hello") String greeting) {
+        return greeting + ", " + name + "!";
+    }
+
+}
+```
+
+* The `prefix` of the method is the name of the command, which a workflow writes as its `class`. It starts with a
+  letter, followed by letters, digits and underscores.
+* Each parameter is an input, read from the variable `<prefix>.<parameter name>`: `greet.name` and `greet.greeting`
+  here. A parameter of type `WorkflowRun` gets the run itself instead.
+* What the method returns is the output of the command, for its `asserts` and `outputs`.
+* The class is public, has a public constructor without parameters and one method annotated with `@ExecutionMethod`.
+
+To pack the command as a library:
+
+1. Compile the class against the classes of the application - `target/classes` after a build, or
+   `myworkflows-app.jar.original`, the plain JAR which the build leaves next to the executable one - with the
+   `-parameters` option of `javac`, which keeps the names of the parameters.
+2. Name the class in a file called `META-INF/services/org.myworkflows.domain.command.AbstractCommand`, one class per
+   line.
+3. Put the JAR in the libraries directory, or upload it on the *Libraries* page.
+
+Once the library is loaded, the *Libraries* page lists the commands it brings, the editor completes their names and
+their inputs, and a workflow uses them like any other command:
+
+```yaml
+commands:
+  - name: Greet the world
+    class: greet
+    inputs:
+      - name: greet.name
+        value: World
+```
+
+> [!IMPORTANT]
+> A command cannot take the name of another command, predefined or not. A command which cannot be used - because of its
+> name, or because its class does not load - is left out, and the application log says why.
+
+> [!NOTE]
+> When a library is removed, the workflow definitions which use its commands are kept as they were written, and a run
+> fails at the first command whose `class` is not known anymore. Such a definition can still be opened, but it is saved
+> again only once that command is taken out or its library is back.
 
 #### Comments
 
@@ -309,12 +444,87 @@ Because workflows are written in YAML, you can use anchors and aliases to simpli
 You can find more details about how to use them
 [here](https://www.educative.io/blog/advanced-yaml-syntax-cheatsheet#YAML-Anchors-and-Alias).
 
+#### Import and export
+
+The *Import and export* page, for admins, moves workflow templates, workflow definitions, workflow parameters and
+workflow placeholders from one instance to another as a file.
+
+**Export.** Tick what you want to move. With *Add what the selection needs* ticked, a template brings the definitions
+it runs and the parameters it hands over, and a definition brings the placeholders its script names as `$$(NAME)`: such
+an item is ticked for you and says what needs it. The file is either one YAML text or a zip archive:
+
+```yaml
+format: 1
+exported:
+  at: 2026-10-13T09:42:00Z
+  by: admin
+  version: 2.1
+placeholders:
+- name: SMTP.HOST
+  value: smtp.prod.local
+- name: API.PASSWORD          # no value: it was left out
+parameters:
+- name: recipients
+  type: EMAIL
+  value: ops@example.com
+definitions:
+- name: Ping services
+  script:
+    commands:
+    - class: httpRequest
+      name: Ask
+      inputs:
+      - name: httpRequest.url
+        value: $$(API.URL)/health
+templates:
+- name: Health check
+  cron: 0 */10 * * * *
+  enabled: true
+  definitions:                # by name, in the order they run
+  - Ping services
+  parameters:
+  - recipients
+  ownParameters:              # `timeout.3` on the instance it comes from
+  - name: timeout
+    type: INT
+    value: 60
+```
+
+The archive holds the same, cut into files: `manifest.yaml` - the format, where the export comes from and the name
+behind every file -, `placeholders.yaml`, `parameters.yaml`, a file per definition under `definitions/` - its script
+alone, as the editor shows it - and a file per template under `templates/`.
+
+**Import.** Choose a file on the *Import* tab. Nothing is saved yet: every item of the file is shown next to what the
+instance already has under its name, as *New*, *Different* or *Same*. A new item is created or skipped, a different one
+is overwritten or kept - for all of them at once, or row by row - and then *Import* saves what was chosen.
+
+A few rules are worth knowing:
+
+* **Items are matched by name.** An id means nothing on another instance, so a file names everything. Two definitions -
+  or two templates - which go by the same name cannot be told apart: such a pair is refused by an export, and an import
+  refuses a file which names something two items of the instance go by. Rename one of them first.
+* **A parameter of one template travels with it.** A parameter named `timeout.42` is meant for template #42 only. It is
+  exported with that template, as `timeout`, and is saved under the id of the template it is imported into.
+* **Passwords stay behind.** Unless *Include the values of passwords* is ticked, the value of a parameter of type
+  *Password*, and of any parameter or placeholder whose name contains `password`, is not written to the file. On import,
+  an item which is already there keeps its value; for a new one the value is typed on the spot, or later.
+* **New templates arrive paused.** A template which an import creates is unticked, so that its cron fires only once
+  somebody has looked at it. A template which was already there keeps its activation.
+* **All or nothing.** An import saves everything which was chosen in one transaction, or nothing at all. When the
+  instance changes while the choices are made, nothing is saved and the file is compared again.
+* **Commands of a library.** A definition which uses a command of a library the other instance does not have is
+  imported as it is written, and fails at that command when it runs - until the library is uploaded there.
+
 #### Shortcuts
 
 Keyboard shortcuts are available in several views to make your work faster.
 
 * **Workflow Development** view:
     * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> = Run workflow
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>D</kbd> = Debug workflow: run it and pause at its breakpoints
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> = Step: run the command a paused run stands before, then pause again
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>G</kbd> = Continue a paused run to its next breakpoint, or to its end
+    * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>H</kbd> = From cursor: carry on, or start again, from the command the cursor is in
     * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>U</kbd> = Save workflow definition. Available once the editor differs from the saved definition.
     * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd> = Share workflow. Opens a dialog with the link, where it can be made read-only and stripped of its parameters before it is copied.
 
@@ -325,11 +535,25 @@ The app also provides a REST API that lets you interact with it programmatically
 The REST API is disabled by default. You can enable it by setting the application config property
 `my-workflows.config.feature.restApiEnabled` to `true`.
 
-Each user has a `token` field (usually 64 random characters), which is the API token used to authenticate REST API
-calls. Tokens are unique, so no two users can have the same token.
+A REST API call is authenticated by an API token (64 random characters). A user creates their tokens on their profile
+page, as many as they need: each one has a name and either expires after 7, 30, 90 or 365 days or works until it is
+revoked. A token is shown once, when it is created, because only its SHA-256 digest is saved. Revoking a token on the
+same page makes it stop working at once. An expired token is refused, and so is any token of a disabled user.
 
-To authenticate a REST API call, provide the `token` URL parameter with every request, for example:
-`GET https://myworkflows.org/api/v1/workflow-definitions?token={TOKEN}`.
+To authenticate a REST API call, send the token in the `Authorization` header of every request:
+
+```bash
+curl -H "Authorization: Bearer {TOKEN}" https://myworkflows.org/api/v1/workflow-definitions
+```
+
+A call without a token, or with one which is not accepted, is answered with `401` and a `WWW-Authenticate: Bearer`
+header.
+
+> [!WARNING]
+> The `token` URL parameter (`/api/v1/workflow-definitions?token={TOKEN}`) of the versions before 2.1 is no longer
+> read, because a URL is written down by access logs, proxies and browser histories, token included. A call which
+> still carries its token there gets `401` until it sends it in the header instead. The token itself did not change:
+> the one every user had before 2.1 keeps working, under the name `default`.
 
 The following APIs are available:
 
@@ -357,9 +581,47 @@ The following APIs are available:
 | `GET`  | `/api/v1/workflow-runs/{id}` | Returns a single workflow run (selected by `id`, of type `String`) as a `WorkflowRunResponse` object. An exception is raised if nothing is found. |
 
 A `WorkflowRunResponse` carries the `userId` of the user who triggered the run. A run started through the REST API
-belongs to the owner of the `token`, while `userId` is `null` for a run scheduled by the cron of its template.
+belongs to the owner of the token, while `userId` is `null` for a run scheduled by the cron of its template.
 
 ## Predefined command types
+
+### Approval command
+
+Keeps the workflow run where it is until a user approves it in the UI.
+While it waits, the run is listed as *waiting for approval* on the runs page, where any logged-in user can open what it
+asks for and approve or reject it. A run started from the development page can be answered there as well.
+
+| `class`    | Inputs                                                                                                                                                                                                                                            | Output                                                     |
+|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|
+| `approval` | <ul><li><em>approval.message</em>: Optional. What the approver is told.</li><li><em>approval.timeout</em>: Optional. How long the run waits for an answer, in milliseconds. Default value: `3600000` (one hour).</li></ul> | Returns the name of the user who approved. Type: `String`. |
+
+> [!IMPORTANT]
+> The command fails when the run is rejected or when nobody answers in time, so the run stops there like after any
+> other failure: the commands which follow are skipped and the `finallyCommands` still run.
+
+Example command:
+
+```yaml
+commands:
+  - name: Approve the release
+    class: approval
+    inputs:
+      - name: approval.message
+        value: Release 2.1 is ready to go live.
+      - name: approval.timeout
+        value: 1800000
+    outputs:
+      - name: approvedBy
+        class: spel
+        value: "#output"
+```
+
+> [!TIP]
+> Nobody is told that a run waits for an approval. Put a `mail` command before the `approval` one to ask for it.
+
+> [!NOTE]
+> A run which waits for an approval is a run in progress: it can be cancelled, and it is lost if the application is
+> restarted.
 
 ### Database command
 
@@ -618,9 +880,28 @@ commands:
           - test
 ```
 
+A printed value is listed under **Workflow Prints** on the development page and in the prints of a run. Its row says
+what it is, and a click on the row opens the value in the view which suits it:
+
+| Printed value                               | Opens as       | Other views |
+|---------------------------------------------|----------------|-------------|
+| A map, a list or an array                   | Tree           | JSON, Text  |
+| A text which holds a JSON object or array   | Formatted JSON | Tree, Text  |
+| A result set, like the output of `database` | Table          | JSON        |
+| Anything else                               | Text           |             |
+
+* The **tree** shows its first level open. A level is drawn when it is opened, 100 entries at a time.
+* The **table** shows 100 rows at a time, of the first 1000 rows of the result set. Its JSON view lists the same rows,
+  one object per row. Reading the rows leaves the cursor of the result set where the workflow left it.
+* **Text** is what the value reads like as a text, as it was shown before these views.
+* **Copy** copies the value the way it is on display: a tree as JSON, a table as CSV.
+* A value with more than 10000 entries, all its levels counted, is shown as text only, and a text of more than 16384
+  characters is offered as a download.
+
 > [!IMPORTANT]  
 > For every variable whose name contains `password` (case-insensitive), each non-whitespace character of its value is
-> replaced with `*`.
+> replaced with `*`. The same goes for whatever a printed map holds under such a key and a printed result set in such a
+> column, however deep it sits.
 
 ### Sleep command
 

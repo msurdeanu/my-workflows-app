@@ -6,15 +6,11 @@ import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextAreaVariant;
 import com.vaadin.flow.server.streams.DownloadResponse;
-import org.myworkflows.domain.WorkflowRunPrint;
+import org.myworkflows.domain.WorkflowRunVariable;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.Map;
 
 import static com.vaadin.flow.server.streams.DownloadHandler.fromInputStream;
-import static java.util.Optional.ofNullable;
-import static org.myworkflows.domain.WorkflowRunPrint.NULL_AS_STR;
 
 /**
  * @author Mihai Surdeanu
@@ -29,23 +25,23 @@ public final class WorkflowPrintDetailsFormLayout extends FormLayout {
         setResponsiveSteps(new ResponsiveStep("0", COLUMNS));
     }
 
-    public void setExecutionPrint(WorkflowRunPrint workflowRunPrint) {
+    /**
+     * Shows a value which was written down when somebody looked at what a run held: it is a text by now, whatever it
+     * was then.
+     */
+    public void setVariable(WorkflowRunVariable workflowRunVariable) {
+        setText(workflowRunVariable.name(), workflowRunVariable.type(), workflowRunVariable.value());
+    }
+
+    /**
+     * Shows a value as the text it reads like. A text which is too long to be read here is offered as a download.
+     */
+    public void setText(String name, String type, String value) {
         removeAll();
 
-        final var components = new ArrayList<Component>();
-        if (workflowRunPrint.value() instanceof Map<?, ?> executionPrintAsMap) {
-            executionPrintAsMap.forEach((key, value) -> components.add(createComponent(key.toString(),
-                ofNullable(value).map(item -> item.getClass().getSimpleName().toLowerCase()).orElse(NULL_AS_STR),
-                ofNullable(value).map(Object::toString).orElse(NULL_AS_STR))));
-        } else {
-            components.add(createComponent(workflowRunPrint.name(), workflowRunPrint.type(), workflowRunPrint.fullValue()));
-        }
-
-        components.forEach(this::add);
-        final var componentSize = components.size();
-        if (componentSize % 2 == 1) {
-            setColspan(components.get(componentSize - 1), COLUMNS);
-        }
+        final var component = createComponent(name, type, value);
+        add(component);
+        setColspan(component, COLUMNS);
     }
 
     private Component createComponent(String name, String type, String value) {

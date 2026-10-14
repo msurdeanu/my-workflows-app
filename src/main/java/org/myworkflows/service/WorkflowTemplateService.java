@@ -13,6 +13,8 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -125,6 +127,28 @@ public class WorkflowTemplateService extends CacheableDataService<WorkflowTempla
         lock.lock();
         try {
             applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class).scheduleNowAsync(workflowTemplate, userId);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Brings a template of the cache in line with what was saved of it by somebody else - an import, which saves all
+     * it brings in one transaction - without saving it again. The template is scheduled anew, as its cron may be another.
+     */
+    public void applyInternalUpdate(@NonNull WorkflowTemplate workflowTemplate, @NonNull WorkflowTemplate savedTemplate) {
+        lock.lock();
+        try {
+            final var workflowTemplateSchedulerService = applicationManager.getBeanOfType(WorkflowTemplateSchedulerService.class);
+            if (workflowTemplate.isEnabled()) {
+                workflowTemplateSchedulerService.unschedule(workflowTemplate);
+            }
+            workflowTemplate.setCron(savedTemplate.getCron());
+            workflowTemplate.setWorkflowDefinitions(new ArrayList<>(ofNullable(savedTemplate.getWorkflowDefinitions()).orElse(List.of())));
+            workflowTemplate.setWorkflowParameters(new ArrayList<>(ofNullable(savedTemplate.getWorkflowParameters()).orElse(List.of())));
+            if (workflowTemplate.isEnabled()) {
+                workflowTemplateSchedulerService.schedule(workflowTemplate);
+            }
         } finally {
             lock.unlock();
         }

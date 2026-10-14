@@ -1,5 +1,6 @@
 package org.myworkflows.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -34,10 +35,28 @@ public class User {
     private String password;
 
     @Getter
-    private String token;
-
-    @Getter
     @Setter
     private boolean admin;
+
+    /**
+     * Set while the password is one the user did not choose: the one an account is created with, or the one an admin
+     * replaced it with.
+     */
+    @Getter
+    @Setter
+    @Column(name = "password_change_required")
+    private boolean passwordChangeRequired;
+
+    /**
+     * @return an enabled user without the admin role, who is asked for a password of their own at first login.
+     */
+    public static User of(String username, String password) {
+        final var user = new User();
+        user.enabled = true;
+        user.username = username;
+        user.password = password;
+        user.passwordChangeRequired = true;
+        return user;
+    }
 
 }

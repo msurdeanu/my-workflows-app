@@ -28,6 +28,16 @@ public final class SecurityUtil {
             .flatMap(SecurityUtil::findUserId);
     }
 
+    /**
+     * Finds the account of the session behind the current thread. A REST API call has none, as it opens no session.
+     */
+    public static Optional<UserAccountDetails> findCurrentAccount() {
+        return ofNullable(SecurityContextHolder.getContext().getAuthentication())
+            .map(Authentication::getPrincipal)
+            .filter(UserAccountDetails.class::isInstance)
+            .map(UserAccountDetails.class::cast);
+    }
+
     private static Optional<Integer> findUserId(Object principal) {
         // a page is served on behalf of the account details, while a REST API call carries the user itself
         if (principal instanceof UserAccountDetails userAccountDetails) {
