@@ -5,16 +5,18 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.myworkflows.domain.UserRole;
 import org.myworkflows.service.UserTokenService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Mihai Surdeanu
@@ -54,8 +56,11 @@ public class UserTokenFilter extends OncePerRequestFilter {
             return;
         }
 
+        // the role is the one of the user as it was just read, so a call made after the admin role was taken away is
+        // refused what only an admin may do, like a page is
+        final var role = user.get().isAdmin() ? UserRole.ADMIN : UserRole.USER;
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-            user.get(), null, Collections.emptyList()));
+            user.get(), null, List.of(new SimpleGrantedAuthority(role.getLabel()))));
         try {
             filterChain.doFilter(request, response);
         } finally {

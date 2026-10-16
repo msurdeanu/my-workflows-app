@@ -12,10 +12,10 @@ import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.badge.BadgeVariant;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.ListItem;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
@@ -26,6 +26,9 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.tabs.TabsVariant;
 import com.vaadin.flow.function.SerializableConsumer;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasDynamicTitle;
@@ -55,6 +58,8 @@ import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowRunApproval;
 import org.myworkflows.domain.WorkflowRunDebugger;
 import org.myworkflows.domain.WorkflowRunPause;
+import org.myworkflows.domain.WorkflowRunPrint;
+import org.myworkflows.domain.WorkflowRunVariable;
 import org.myworkflows.domain.event.EditorTipOnSubmitEvent;
 import org.myworkflows.domain.event.EventType;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
@@ -74,6 +79,7 @@ import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.ScriptEditorDialog;
 import org.myworkflows.view.component.WorkflowApprovalDialog;
 import org.myworkflows.view.component.WorkflowDevParamGrid;
+import org.myworkflows.view.component.WorkflowDuplicateDialog;
 import org.myworkflows.view.component.WorkflowPipelinePanel;
 import org.myworkflows.view.component.WorkflowPrintGrid;
 import org.myworkflows.view.component.WorkflowShareDialog;
@@ -137,7 +143,16 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     private final WorkflowDevParamGrid workflowDevParamGrid = new WorkflowDevParamGrid();
     private final WorkflowVariableGrid workflowVariableGrid = new WorkflowVariableGrid();
     private final WorkflowPrintGrid workflowPrintGrid = new WorkflowPrintGrid();
-    private final Details variableDetails = new Details(getTranslation("workflow-development.variables.label"), workflowVariableGrid);
+    private final Badge parameterTitleCount = createCountBadge();
+    private final Badge parameterTabCount = createCountBadge();
+    private final Badge variableTabCount = createCountBadge();
+    private final Badge printCount = createCountBadge();
+    private final Div parameterTitle = createPaneTitle(getTranslation("workflow-development.input.label"), parameterTitleCount);
+    private final Tab variableTab = new Tab(new Span(getTranslation("workflow-development.variables.label")), variableTabCount);
+    private final Tab parameterTab = new Tab(new Span(getTranslation("workflow-development.input.label")), parameterTabCount);
+    private final Tabs debugTabs = new Tabs(variableTab, parameterTab);
+    private final Paragraph nextRunNote = new Paragraph(getTranslation("workflow-development.parameters.next-run"));
+    private final SplitLayout resultsLayout = new SplitLayout();
     private final boolean isLoggedAsAdmin = UserRole.ADMIN.validate();
     private final String currentUsername = SecurityUtil.findCurrentAccount().map(UserAccountDetails::getUsername).orElse(null);
     private final Button runWorkflowButton = new Button(getTranslation("workflow-development.run.button"),
@@ -154,6 +169,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
 
     private final SplitLayout splitLayout;
     private final Button saveWorkflowButton;
+    private final Button saveCopyWorkflowButton;
     private final Button shareWorkflowButton;
     private final Select<WorkflowDefinition> filterByDefinition;
 
@@ -207,12 +223,11 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         readOnlyBadge.setVisible(false);
         // a read-only link shows the pipeline of the workflow instead of the editor
         workflowPipelinePanel.setVisible(false);
-        // what a run holds is for whoever can read its definition and run it: an admin, in the editor
-        variableDetails.setVisible(isLoggedAsAdmin);
 
         filterByDefinition = createFilterByDefinition();
         shareWorkflowButton = createShareWorkflowButton();
         saveWorkflowButton = createSaveWorkflowButton();
+        saveCopyWorkflowButton = createSaveCopyWorkflowButton();
         splitLayout = createSplitLayout();
         add(createHeader(getTranslation("workflow-development.page.title"), unsavedChangesBadge, readOnlyBadge, filterByDefinition),
             createContent(splitLayout), createGuide());
@@ -258,7 +273,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
             if (workflowResultEvent.workflowRun().getId().equals(lastSubmittedUuid)) {
                 ui.access(() -> {
                     updateWorkflowProgress(workflowResultEvent.workflowRun());
-                    workflowPrintGrid.setItems(workflowResultEvent.workflowRun().getAllPrints());
+                    showPrints(workflowResultEvent.workflowRun().getAllPrints());
                 });
             }
         }, WorkflowDefinitionOnProgressEvent.class));
@@ -292,6 +307,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
             .legend("debug", createGuideButton("workflow-development.debug.button", VaadinIcon.BUG), UserRole.ADMIN)
             .legend("breakpoint", breakpoint, UserRole.ADMIN)
             .legend("save", createGuideButton("workflow-development.save.button", VaadinIcon.CHECK), UserRole.ADMIN)
+            .legend("save-copy", createGuideButton("workflow-development.save-copy.button", VaadinIcon.COPY_O), UserRole.ADMIN)
             .legend("share", createGuideButton("workflow-development.share.button", VaadinIcon.LINK), UserRole.ADMIN)
             .steps(5)
             .note("shortcuts", PageGuide.fields(
@@ -465,7 +481,12 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         filterByDefinitionSelect.setPlaceholder(getTranslation("workflow-development.filter.by-template.placeholder"));
         filterByDefinitionSelect.setItemLabelGenerator(WorkflowDefinition::getName);
         filterByDefinitionSelect.addClassName("header-filter");
-        filterByDefinitionSelect.addValueChangeListener(event -> onFilterByDefinition(event.getValue()));
+        // a definition chosen by the page itself keeps what the editor holds: see saveWorkflowDefinitionAsCopy
+        filterByDefinitionSelect.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                onFilterByDefinition(event.getValue());
+            }
+        });
         return filterByDefinitionSelect;
     }
 
@@ -480,6 +501,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
             new WorkflowDefinitionScriptToPipelineTransformer().transform(workflowDefinition.getScript()));
         if (isLoggedAsAdmin) {
             shareWorkflowButton.setEnabled(true);
+            saveCopyWorkflowButton.setEnabled(true);
         }
     }
 
@@ -535,6 +557,47 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         Notification.show(getTranslation("workflow-development.save.success.message", workflowDefinition.getName()));
     }
 
+    private Button createSaveCopyWorkflowButton() {
+        final var button = new Button(getTranslation("workflow-development.save-copy.button"), VaadinIcon.COPY_O.create());
+        button.setTooltipText(getTranslation("workflow-development.save-copy.button.tooltip"));
+        button.setEnabled(false);
+        button.addClickListener(_ -> ofNullable(filterByDefinition.getValue()).ifPresent(this::openSaveCopyDialog));
+        return button;
+    }
+
+    private void openSaveCopyDialog(WorkflowDefinition workflowDefinition) {
+        final var workflowDefinitionService = applicationManager.getBeanOfType(WorkflowDefinitionService.class);
+        final var dialog = new WorkflowDuplicateDialog(workflowDefinition.getName(), workflowDefinitionService.suggestCopyName(workflowDefinition),
+            workflowDefinitionService::isNameTaken, this::saveWorkflowDefinitionAsCopy);
+        dialog.addDetails(new Paragraph(getTranslation("workflow-development.save-copy.help", workflowDefinition.getName())));
+        dialog.open();
+    }
+
+    /**
+     * Saves what the editor holds as a new definition and goes on with it. The editor keeps its text - comments and
+     * layout included, which the saved script does not know of - and the run it follows, so the page is switched to
+     * the copy without being loaded again.
+     */
+    private void saveWorkflowDefinitionAsCopy(String name) {
+        final var script = editor.getValue();
+        final var workflowDefinitionService = applicationManager.getBeanOfType(WorkflowDefinitionService.class);
+        final WorkflowDefinition copy;
+        try {
+            copy = workflowDefinitionService.duplicate(name, script);
+        } catch (WorkflowRuntimeException exception) {
+            Notification.show(getTranslation("workflow-development.save.error.message", describe(exception)), ERROR_NOTIFICATION_DURATION,
+                Notification.Position.BOTTOM_START).addThemeVariants(NotificationVariant.ERROR);
+            return;
+        }
+        filterByDefinition.setItems(workflowDefinitionService.getAll().toList());
+        filterByDefinition.setValue(copy);
+        workflowPipelinePanel.setPipeline(copy.getName(), new WorkflowDefinitionScriptToPipelineTransformer().transform(copy.getScript()));
+        markEditorAsSaved(script);
+        getUI().ifPresent(ui -> ui.getPage().getHistory().replaceState(null,
+            RouteConfiguration.forSessionScope().getUrl(WorkflowDevelopmentView.class, copy.getId())));
+        Notification.show(getTranslation("workflow-development.save-copy.success.message", copy.getName()));
+    }
+
     private String describe(WorkflowRuntimeException exception) {
         // a script which cannot be read is the usual reason, and the parser knows where it stopped
         if (exception.getCause() instanceof JsonProcessingException cause) {
@@ -587,7 +650,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
             debugWorkflowButton.setEnabled(false);
         }
 
-        final var actions = new HorizontalLayout(runWorkflowButton, debugWorkflowButton, saveWorkflowButton, shareWorkflowButton);
+        final var actions = new HorizontalLayout(runWorkflowButton, debugWorkflowButton, saveWorkflowButton, saveCopyWorkflowButton,
+            shareWorkflowButton);
         actions.addClassName("workflow-actions");
         actions.setWidthFull();
 
@@ -597,23 +661,94 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         return layout;
     }
 
+    /**
+     * The parameters above the prints, each in an area which scrolls by itself. In a debug session what the run holds
+     * takes the place of the parameters, which can no longer change that run and are among what it holds, and a
+     * splitter shares the height between it and the prints.
+     */
     private Component createRight() {
         final var layout = new VerticalLayout();
         layout.setSizeFull();
 
-        final var inputDetails = new Details(getTranslation("workflow-development.input.label"), workflowDevParamGrid);
-        inputDetails.setOpened(true);
-        inputDetails.setWidthFull();
+        debugTabs.addThemeVariants(TabsVariant.SMALL);
+        debugTabs.addSelectedChangeListener(_ -> showDebugTab());
+        nextRunNote.addClassName("workflow-results-note");
+        workflowDevParamGrid.setSizeListener(size -> {
+            setCount(parameterTitleCount, size);
+            setCount(parameterTabCount, size);
+        });
 
-        variableDetails.setOpened(true);
-        variableDetails.setWidthFull();
+        resultsLayout.setOrientation(SplitLayout.Orientation.VERTICAL);
+        resultsLayout.addClassName("workflow-results");
+        resultsLayout.setWidthFull();
+        resultsLayout.setSplitterPosition(50);
+        resultsLayout.addToPrimary(createPane(new Div(parameterTitle, debugTabs), nextRunNote, workflowDevParamGrid, workflowVariableGrid));
+        resultsLayout.addToSecondary(createPane(new Div(createPaneTitle(getTranslation("workflow-development.print.label"), printCount)),
+            workflowPrintGrid));
+        showDebugSession(false);
 
-        final var printDetails = new Details(getTranslation("workflow-development.print.label"), workflowPrintGrid);
-        printDetails.setOpened(true);
-        printDetails.setWidthFull();
-
-        layout.add(inputDetails, variableDetails, printDetails);
+        layout.add(resultsLayout);
+        layout.setFlexGrow(1, resultsLayout);
         return layout;
+    }
+
+    private static Div createPane(Div header, Component... content) {
+        header.addClassName("workflow-results-header");
+        final var body = new Div(content);
+        body.addClassName("workflow-results-body");
+        final var pane = new Div(header, body);
+        pane.addClassName("workflow-results-pane");
+        return pane;
+    }
+
+    private static Div createPaneTitle(String text, Badge count) {
+        final var title = new Div(new Span(text), count);
+        title.addClassName("workflow-results-title");
+        return title;
+    }
+
+    private static Badge createCountBadge() {
+        final var badge = new Badge();
+        badge.addThemeVariants(BadgeVariant.NUMBER_ONLY, BadgeVariant.SMALL);
+        badge.setVisible(false);
+        return badge;
+    }
+
+    private static void setCount(Badge badge, int count) {
+        badge.setNumber(count);
+        // a list with nothing in it says so itself
+        badge.setVisible(count > 0);
+    }
+
+    /**
+     * Shows the parameters above the prints, or - in a debug session, which lasts from Debug to the next Run - what the
+     * run holds. The parameters stay one tab away there, for the next run.
+     */
+    private void showDebugSession(boolean debugSession) {
+        resultsLayout.setClassName("debugging", debugSession);
+        parameterTitle.setVisible(!debugSession);
+        debugTabs.setVisible(debugSession);
+        if (debugSession) {
+            debugTabs.setSelectedTab(variableTab);
+        }
+        showDebugTab();
+    }
+
+    private void showDebugTab() {
+        final var variables = debugTabs.isVisible() && debugTabs.getSelectedTab() == variableTab;
+        workflowVariableGrid.setVisible(variables);
+        workflowDevParamGrid.setVisible(!variables);
+        nextRunNote.setVisible(debugTabs.isVisible() && !variables);
+    }
+
+    private void showVariables(List<WorkflowRunVariable> variables) {
+        workflowVariableGrid.setItems(variables);
+        setCount(variableTabCount, variables.size());
+    }
+
+    private void showPrints(List<WorkflowRunPrint> prints) {
+        workflowPrintGrid.setItems(prints);
+        setCount(printCount, prints.size());
     }
 
     /**
@@ -631,7 +766,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         debugging = debug;
         lastSubmittedUuid = workflowRun.getId();
         workflowPipelinePanel.start(lastSubmittedUuid);
-        workflowVariableGrid.setItems(List.of());
+        showVariables(List.of());
+        showDebugSession(debug);
         applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
             .workflowRun(workflowRun)
             .workflowDefinitionScript(script)
@@ -646,11 +782,13 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     private void forgetRun() {
         stopPausedRun();
         followedRun = null;
+        debugging = false;
         lastSubmittedUuid = null;
         statusActions.clear();
         currentWorkflowStatus.setVisible(false);
-        workflowVariableGrid.setItems(List.of());
-        workflowPrintGrid.setItems(List.of());
+        showVariables(List.of());
+        showPrints(List.of());
+        showDebugSession(false);
         markCommand(null);
         showBreakpoints(List.of(), Set.of());
     }
@@ -833,8 +971,9 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     }
 
     /**
-     * Shows what only a run with a debugger has: what it held the last time it stood still, and - marked in the editor -
-     * the command it is paused before or failed at.
+     * Shows what only a run with a debugger has: marked in the editor, the command it is paused before or failed at,
+     * and - for a run started with Debug - what it held the last time it stood still. A plain run keeps what it held
+     * for From cursor, without showing it.
      */
     private void showDebugger(WorkflowRun workflowRun) {
         final var debugger = workflowRun.getDebugger();
@@ -843,12 +982,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         }
         final var pause = workflowRun.getPause();
         if (!workflowRun.isRunning()) {
-            workflowVariableGrid.setItems(debugger.getVariables());
+            if (debugging) {
+                showVariables(debugger.getVariables());
+            }
             markCommand(findFailedCommandIndex(workflowRun)
                 .map(index -> new CommandMark(workflowRun.getFailureMessage(), index, FAILED))
                 .orElse(null));
         } else if (pause != null) {
-            workflowVariableGrid.setItems(debugger.getVariables());
+            showVariables(debugger.getVariables());
             markCommand(new CommandMark(pause, pause.getCommandIndex(), PAUSED));
         } else {
             markCommand(null);
@@ -961,9 +1102,9 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         readOnly = ofNullable(parameters.get(READ_ONLY)).isPresent();
         editor.setReadOnly(readOnly);
         saveWorkflowButton.setVisible(!readOnly);
+        saveCopyWorkflowButton.setVisible(!readOnly);
         // a run is debugged in the editor, by whoever can read what it holds: a read-only link hides both
         debugWorkflowButton.setVisible(!readOnly);
-        variableDetails.setVisible(!readOnly && isLoggedAsAdmin);
         workflowDevParamGrid.setReadOnly(readOnly);
         readOnlyBadge.setVisible(readOnly);
         workflowPipelinePanel.setVisible(readOnly);

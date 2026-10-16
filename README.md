@@ -8,6 +8,10 @@ The tool is written in Java and uses Vaadin as its UI framework.
 MyWorkflows is ideal for small teams overwhelmed by daily manual tasks.
 All workflows are defined in YAML, and the tool provides an intuitive UI for working with them.
 
+![The development page: the script of a workflow in the editor, next to what its last run printed](docs/screenshots/development.png)
+
+More of the application under [Screenshots](#screenshots).
+
 ## Technology stack
 
 * Java 25 as the programming language.
@@ -57,6 +61,14 @@ All workflows are defined in YAML, and the tool provides an intuitive UI for wor
 * **Import and export**, for admins: templates, definitions, parameters and placeholders are written to a YAML file or
   to a zip archive and read on another instance, where every item is compared with what is already there before
   anything is saved. See [Import and export](#import-and-export).
+* **Duplicate** a workflow definition or a workflow template, for admins: the copy gets a name of its own, the one of
+  the original followed by `(copy)` unless another is typed. A copy of a template runs the same definitions with the
+  same parameters and cron, starts paused, and gets its own copy of the parameters meant for the original alone
+  (`timeout.42` becomes `timeout.57`). On the development page, *Save as copy* saves the editor as a new definition and
+  leaves the one it was opened with as it was saved.
+* A **REST API**, off by default: workflow definitions, templates, parameters and placeholders are read, created,
+  updated and deleted, and runs are started, followed, cancelled, replayed and deleted, with their printed values. A
+  call has the rights its user has on the pages. See [REST API](#rest-api).
 * The filters of a page live in its URL, like `/workflow/runs?mine=true&template=3`, so a filtered page survives Back and
   can be bookmarked or shared. A chip names each filter in use and removes it with a click.
 * A guide on the runs, templates, definitions, parameters, placeholders, libraries, import and export and development
@@ -70,6 +82,47 @@ All workflows are defined in YAML, and the tool provides an intuitive UI for wor
   type and default value, its output and an example.
 * A dedicated web page for viewing and analyzing **statistics**.
 * A dedicated web page for editing application **settings**.
+
+## Screenshots
+
+Taken on an instance with demo data only: the workflows, the user and the parameters are made up. A click on a
+screenshot opens it at full size.
+
+<table>
+  <tr>
+    <td width="50%">
+      <a href="docs/screenshots/runs.png"><img src="docs/screenshots/runs.png" alt="The runs page"></a><br>
+      <strong>Workflow runs</strong> - every run with its outcome, whether a cron, a user or the REST API started it.
+    </td>
+    <td width="50%">
+      <a href="docs/screenshots/approval.png"><img src="docs/screenshots/approval.png" alt="The approval dialog of a run"></a><br>
+      <strong>Manual approval</strong> - a run waits at its <code>approval</code> command until a user approves or
+      rejects it.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <a href="docs/screenshots/debugging.png"><img src="docs/screenshots/debugging.png" alt="A run paused at a breakpoint on the development page"></a><br>
+      <strong>Step-by-step debugging</strong> - a run paused before a command, with everything it holds on display.
+    </td>
+    <td width="50%">
+      <a href="docs/screenshots/pipeline.png"><img src="docs/screenshots/pipeline.png" alt="The pipeline of a workflow, opened from a read-only link"></a><br>
+      <strong>Read-only link</strong> - the pipeline of a workflow instead of its script, and the command its run
+      is at.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <a href="docs/screenshots/prints.png"><img src="docs/screenshots/prints.png" alt="The prints of a run, with a result set shown as a table"></a><br>
+      <strong>Printed values</strong> - the result set of a <code>database</code> command, read as a table.
+    </td>
+    <td width="50%">
+      <a href="docs/screenshots/templates.png"><img src="docs/screenshots/templates.png" alt="A workflow template, opened on the templates page"></a><br>
+      <strong>Workflow templates</strong> - the definitions a template runs on its cron, and the parameters it hands
+      over.
+    </td>
+  </tr>
+</table>
 
 ## How does it work?
 
@@ -310,7 +363,9 @@ An admin can go through a workflow one command at a time on the **Workflow Devel
    first command when there is no breakpoint. *Run* pauses nowhere, whatever the breakpoints.
 3. While the run is paused, the editor marks the command it stands before and **Variables** lists everything the run
    holds - name, type and value - with what the last step added or changed on top. A value whose name contains
-   `password` is masked, as it is when it is printed.
+   `password` is masked, as it is when it is printed. **Variables** takes the place of **Workflow Parameters**, above
+   the prints, from *Debug* until the next *Run*: the parameters are among what the run holds, and changing one would
+   change only the next run, so they wait in the tab next to it. A plain *Run* shows no variables.
 4. Tell the run how to go on:
     * **Step** runs the command it stands before, then pauses again.
     * **Continue** runs to the next breakpoint, or to the end.
@@ -555,33 +610,131 @@ header.
 > still carries its token there gets `401` until it sends it in the header instead. The token itself did not change:
 > the one every user had before 2.1 keeps working, under the name `default`.
 
+What only an admin may do on a page, only an admin may do through the REST API: create, update and delete workflow
+definitions and templates, and anything about parameters and placeholders, whose pages nobody else opens. The role is
+the one the owner of the token has at the time of the call. Everything else is open to every user: reading, starting a
+run, and cancelling, deleting and replaying runs as on the runs page - where only the user who started a run replays
+it.
+
+A call which is refused is answered with its status and a JSON body which says why (`application/problem+json`, as
+[RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) describes it):
+
+```json
+{
+  "type": "about:blank",
+  "title": "Conflict",
+  "status": 409,
+  "detail": "Workflow definition with id = 3 is run by a template, which has to let it go first",
+  "instance": "/api/v1/workflow-definitions/3"
+}
+```
+
+| Status | When                                                                                                                                                                                                       |
+|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `400`  | The body is missing or is not the JSON the call expects, a field is missing or not valid - a script which is not a valid workflow, a cron which cannot be read, a value which does not fit the type of its parameter -, or an id is not a number or a UUID. |
+| `403`  | The call needs an admin, or the run to replay was started by somebody else. A call refused for its role is answered before it reaches the API, like a `401`, with a body which has no `detail`.             |
+| `404`  | Nothing has the given id or name. A run is found by its whole id only.                                                                                                                                        |
+| `409`  | The call does not fit what is there: the name is taken, the definition or the parameter is used by a template, the run is in progress or is not.                                                             |
+
 The following APIs are available:
 
 ##### `WorkflowDefinition` APIs
 
-| Method | URI                                              | Description                                                                                                                                                                                                                                       |
-|--------|--------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `GET`  | `/api/v1/workflow-definitions`                   | Returns all workflow definitions as a list of `WorkflowDefinitionResponse` objects.                                                                                                                                                               |
-| `GET`  | `/api/v1/workflow-definitions/{id}`              | Returns a single workflow definition (selected by `id`, of type `int`) as a `WorkflowDefinitionResponse` object. An exception is raised if nothing is found.                                                                                      |
-| `POST` | `/api/v1/workflow-definitions/{id}/schedule-now` | Immediately schedules a run of a specific workflow definition (selected by `id`, of type `int`). The request body is mandatory and contains the parameters as a `Map<String, Object>`. Returns the UUID of the workflow run, as a string.          |
+| Method   | URI                                              | Description                                                                                                                                                                                                                                       |
+|----------|--------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`    | `/api/v1/workflow-definitions`                   | Returns all workflow definitions as a list of `WorkflowDefinitionResponse` objects.                                                                                                                                                               |
+| `GET`    | `/api/v1/workflow-definitions/{id}`              | Returns a single workflow definition (selected by `id`, of type `int`) as a `WorkflowDefinitionResponse` object.                                                                                                                                  |
+| `POST`   | `/api/v1/workflow-definitions`                   | Admins only. Creates a workflow definition from a `WorkflowDefinitionRequest`: a `name`, and a `script` which may be left out for a definition without commands. Answers `201`, with the new definition and its URI in the `Location` header.      |
+| `PUT`    | `/api/v1/workflow-definitions/{id}`              | Admins only. Replaces the `name` and the `script` of a workflow definition, both needed, and returns it. The templates which run it go on with the new script.                                                                                    |
+| `DELETE` | `/api/v1/workflow-definitions/{id}`              | Admins only. Deletes a workflow definition and answers `204`, or `409` while a template runs it.                                                                                                                                                  |
+| `POST`   | `/api/v1/workflow-definitions/{id}/duplicate`    | Admins only. Saves a copy of a workflow definition, with its script, and answers `201` with the copy. The optional body is a `WorkflowDuplicateRequest`. Answers `409` when the name is taken.                                                       |
+| `POST`   | `/api/v1/workflow-definitions/{id}/schedule-now` | Immediately schedules a run of a specific workflow definition (selected by `id`, of type `int`). The request body is mandatory and contains the parameters as a `Map<String, Object>`. Returns the UUID of the workflow run, as a string.          |
+
+A `WorkflowDefinitionResponse` carries the `id`, the `name` and the `script` of the definition, as the YAML the editor
+shows. A `script` sent to the API is YAML - or JSON, which YAML reads too - and is checked against the schema before it
+is saved, so a script which would not run is refused with what is wrong in it, and where:
+
+```bash
+curl -X POST -H "Authorization: Bearer {TOKEN}" -H "Content-Type: application/json" \
+  -d '{"name": "Wait", "script": "commands:\n- name: Wait\n  class: sleep\n  inputs:\n  - name: sleep.time\n    value: 1000\n"}' \
+  https://myworkflows.org/api/v1/workflow-definitions
+```
 
 ##### `WorkflowTemplate` APIs
 
-| Method | URI                                            | Description                                                                                                                                              |
-|--------|------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `GET`  | `/api/v1/workflow-templates`                   | Returns all workflow templates as a list of `WorkflowTemplateResponse` objects.                                                                          |
-| `GET`  | `/api/v1/workflow-templates/{id}`              | Returns a single workflow template (selected by `id`, of type `int`) as a `WorkflowTemplateResponse` object. An exception is raised if nothing is found. |
-| `POST` | `/api/v1/workflow-templates/{id}/schedule-now` | Immediately schedules a run of a specific workflow template (selected by `id`, of type `int`). Nothing is returned.                                      |
+| Method   | URI                                            | Description                                                                                                                                                                                                                |
+|----------|------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`    | `/api/v1/workflow-templates`                   | Returns all workflow templates as a list of `WorkflowTemplateResponse` objects.                                                                                                                                            |
+| `GET`    | `/api/v1/workflow-templates/{id}`              | Returns a single workflow template (selected by `id`, of type `int`) as a `WorkflowTemplateResponse` object.                                                                                                               |
+| `POST`   | `/api/v1/workflow-templates`                   | Admins only. Creates a workflow template from a `WorkflowTemplateRequest` and answers `201`, with the new template and its URI in the `Location` header. An enabled template with a cron is scheduled at once.             |
+| `PUT`    | `/api/v1/workflow-templates/{id}`              | Admins only. Replaces everything a workflow template is made of with a `WorkflowTemplateRequest`, and returns it: what the request leaves out is gone afterwards. The template is scheduled anew.                            |
+| `DELETE` | `/api/v1/workflow-templates/{id}`              | Admins only. Deletes a workflow template, which leaves the schedule, and answers `204`. Its runs are kept.                                                                                                                 |
+| `POST`   | `/api/v1/workflow-templates/{id}/duplicate`    | Admins only. Saves a paused copy of a workflow template and answers `201` with the copy. The optional body is a `WorkflowDuplicateRequest`. Answers `409` when the name is taken.                                         |
+| `POST`   | `/api/v1/workflow-templates/{id}/schedule-now` | Immediately schedules a run of a specific workflow template (selected by `id`, of type `int`). Nothing is returned.                                                                                                        |
+
+A `WorkflowTemplateRequest` and a `WorkflowTemplateResponse` have the same fields: a `name`, a `cron` - a Spring cron
+expression with seconds, like `0 30 6 * * MON-FRI`, or nothing for a template which runs only when it is asked to -,
+whether it is `enabled`, the `definitionIds` it runs, in the order it runs them, and the `parameterNames` it hands over
+to its runs. A definition or a parameter which is not known, or which is named twice, is refused.
+
+A `WorkflowDuplicateRequest` names the copy (`name`) - left out, the copy is called after the original, followed by
+`(copy)`, `(copy 2)`... - and says whether the parameters a template has for itself alone are copied for the new one
+(`ownParameters`, yes when left out). A name which another definition, or another template, already has is refused, as
+an import finds an item by its name.
 
 ##### `WorkflowRun` APIs
 
-| Method | URI                          | Description                                                                                                                                       |
-|--------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| `GET`  | `/api/v1/workflow-runs`      | Returns all workflow runs as a list of `WorkflowRunResponse` objects.                                                                             |
-| `GET`  | `/api/v1/workflow-runs/{id}` | Returns a single workflow run (selected by `id`, of type `String`) as a `WorkflowRunResponse` object. An exception is raised if nothing is found. |
+| Method   | URI                                 | Description                                                                                                                                                                                                       |
+|----------|-------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`    | `/api/v1/workflow-runs`             | Returns all workflow runs as a list of `WorkflowRunResponse` objects.                                                                                                                                             |
+| `GET`    | `/api/v1/workflow-runs/{id}`        | Returns a single workflow run (selected by its whole `id`, a UUID) as a `WorkflowRunResponse` object.                                                                                                              |
+| `GET`    | `/api/v1/workflow-runs/{id}/prints` | Returns what a workflow run printed so far, in the order it printed it, as a list of `WorkflowRunPrintResponse` objects. A run in debug mode prints everything it holds.                                          |
+| `POST`   | `/api/v1/workflow-runs/{id}/cancel` | Cancels a workflow run in progress and answers `204`, or `409` when the run is not in progress.                                                                                                                    |
+| `POST`   | `/api/v1/workflow-runs/{id}/replay` | Starts a failed workflow run again from the command it did not get past, with everything it held then, and answers `202`. The run keeps its id. Only the user who started the run replays it.                        |
+| `DELETE` | `/api/v1/workflow-runs/{id}`        | Deletes a workflow run and answers `204`, or `409` while it is in progress: it has to be cancelled first.                                                                                                         |
 
 A `WorkflowRunResponse` carries the `userId` of the user who triggered the run. A run started through the REST API
 belongs to the owner of the token, while `userId` is `null` for a run scheduled by the cron of its template.
+
+A `WorkflowRunPrintResponse` carries the `name` of a printed variable, the `type` of its value - the simple name of its
+class, in lower case - and the `value`, read the way the runs page reads it, so what is masked there is masked here:
+whatever sits under a key whose name contains `password`, and the whole value when its own name does. A map and a list
+are written as a JSON object and array, a result set as an array of rows - an object per row, keyed by its columns, and
+the first 1000 rows at most - and anything else as its text. A text which holds JSON stays a text, as it was printed.
+
+##### `WorkflowParameter` APIs
+
+For admins only.
+
+| Method   | URI                                 | Description                                                                                                                                                                                                   |
+|----------|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`    | `/api/v1/workflow-parameters`        | Returns all workflow parameters as a list of `WorkflowParameterResponse` objects.                                                                                                                            |
+| `GET`    | `/api/v1/workflow-parameters/{name}` | Returns a single workflow parameter (selected by `name`) as a `WorkflowParameterResponse` object.                                                                                                            |
+| `POST`   | `/api/v1/workflow-parameters`        | Creates a workflow parameter from a `WorkflowParameterRequest` - a `name`, a `type` (`STR` when left out) and a `value` (an empty text when left out) - and answers `201`, or `409` when the name is taken.   |
+| `PUT`    | `/api/v1/workflow-parameters/{name}` | Replaces the `type` and the `value` of a workflow parameter, both needed, and returns it. A parameter cannot be renamed.                                                                                     |
+| `DELETE` | `/api/v1/workflow-parameters/{name}` | Deletes a workflow parameter and answers `204`, or `409` while a template hands it over: the template has to let it go first.                                                                                |
+
+A name has the characters the parameters page lets through: letters, digits, `_` and `.`. The `type` is one of `STR`,
+`M_STR`, `S_STR`, `MS_STR`, `EMAIL`, `PASS`, `DATE`, `TIME`, `INT`, `DOUBLE` and `BOOL`, and the `value` has to fit it
+as it does on the page - `true`, `42`, `3.14`, `2026-01-31`, `14:30`. A `WorkflowParameterResponse` leaves the `value` of
+a secret out - a parameter of type `PASS`, or whose name contains `password` - and says so with `"secret": true`, as an
+export does. Such a value can still be written.
+
+##### `WorkflowPlaceholder` APIs
+
+For admins only.
+
+| Method   | URI                                    | Description                                                                                                                                                         |
+|----------|----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`    | `/api/v1/workflow-placeholders`        | Returns all workflow placeholders as a list of `WorkflowPlaceholderResponse` objects.                                                                               |
+| `GET`    | `/api/v1/workflow-placeholders/{name}` | Returns a single workflow placeholder (selected by `name`) as a `WorkflowPlaceholderResponse` object.                                                               |
+| `POST`   | `/api/v1/workflow-placeholders`        | Creates a workflow placeholder from a `WorkflowPlaceholderRequest` - a `name` and a `value` (an empty text when left out) - and answers `201`, or `409` when the name is taken. |
+| `PUT`    | `/api/v1/workflow-placeholders/{name}` | Replaces the `value` of a workflow placeholder, which is needed, and returns it. A placeholder cannot be renamed.                                                   |
+| `DELETE` | `/api/v1/workflow-placeholders/{name}` | Deletes a workflow placeholder and answers `204`.                                                                                                                   |
+
+A name has the characters the placeholders page lets through: capital letters, digits, `_` and `.`. A
+`WorkflowPlaceholderResponse` leaves the `value` of a placeholder whose name contains `password` out, and says so with
+`"secret": true`.
 
 ## Predefined command types
 

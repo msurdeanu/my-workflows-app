@@ -1,5 +1,6 @@
 package org.myworkflows.view.component;
 
+import lombok.Setter;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.view.transformer.WorkflowParameterToComponentSupplierObjectTransformer;
 
@@ -8,6 +9,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
@@ -26,6 +28,13 @@ public final class WorkflowDevParamGrid extends AbstractParameterGrid {
 
     private final Map<String, WorkflowParameterToComponentSupplierObjectTransformer.ComponentValueSupplier> workflowParameterFields = new HashMap<>();
 
+    /**
+     * Told how many parameters there are, each time one is added or removed.
+     */
+    @Setter
+    private IntConsumer sizeListener = _ -> {
+    };
+
     public WorkflowDevParamGrid() {
         super("workflow-dev-param");
         setRenderValueFunction(workflowParameter -> {
@@ -40,14 +49,19 @@ public final class WorkflowDevParamGrid extends AbstractParameterGrid {
         });
         setDeleteConsumer(workflowParameter -> {
             workflowParameters.remove(workflowParameter);
-            refreshPage();
+            onParametersChange();
         });
         setItems(workflowParameters);
     }
 
     public void addParameters(Collection<WorkflowParameter> parameters) {
         workflowParameters.addAll(parameters);
+        onParametersChange();
+    }
+
+    private void onParametersChange() {
         refreshPage();
+        sizeListener.accept(workflowParameters.size());
     }
 
     public Map<String, List<String>> getParametersForQuery() {

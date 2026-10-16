@@ -22,6 +22,8 @@ public interface WorkflowTemplateEventHandler {
 
     void onDelete(WorkflowTemplate workflowTemplate);
 
+    void onDuplicate(WorkflowTemplate workflowTemplate);
+
     void onNameAndCronUpdated(WorkflowTemplate workflowTemplate, String newName, String newCron);
 
     void onScheduleNow(WorkflowTemplate workflowTemplate);

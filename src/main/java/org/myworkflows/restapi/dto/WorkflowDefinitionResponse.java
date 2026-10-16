@@ -1,19 +1,24 @@
 package org.myworkflows.restapi.dto;
 
 import lombok.Builder;
+import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.WorkflowDefinition;
 
+import static org.myworkflows.serializer.SerializerFactory.toPrettyString;
+
 /**
+ * @param script the script as YAML, written the way the editor shows it.
  * @author Mihai Surdeanu
  * @since 1.0
  */
 @Builder
-public record WorkflowDefinitionResponse(int id, String name) {
+public record WorkflowDefinitionResponse(int id, String name, String script) {
 
     public static WorkflowDefinitionResponse of(WorkflowDefinition workflowDefinition) {
         return WorkflowDefinitionResponse.builder()
             .id(workflowDefinition.getId())
             .name(workflowDefinition.getName())
+            .script(toPrettyString(workflowDefinition.getScript(), StringUtils.EMPTY))
             .build();
     }
 

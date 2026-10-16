@@ -14,8 +14,11 @@ import org.myworkflows.service.UserTokenService;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
@@ -123,6 +126,31 @@ public final class UserTokenFilterTest {
         verify(httpServletResponse, never()).sendError(anyInt(), anyString());
         // the chain is stateless, so the authentication must not stay behind on this thread
         assertNull(SecurityContextHolder.getContext().getAuthentication());
+    }
+
+    @Test
+    public void testCallIsMadeWithTheRoleOfTheOwnerOfTheToken() throws ServletException, IOException {
+        // given an admin and a user
+        final var admin = new User();
+        admin.setAdmin(true);
+        when(httpServletRequest.getRequestURI()).thenReturn("/api");
+        when(httpServletRequest.getHeader("Authorization")).thenReturn("Bearer 1234", "Bearer 5678");
+        when(userTokenService.findUserOf("1234")).thenReturn(Optional.of(admin));
+        when(userTokenService.findUserOf("5678")).thenReturn(Optional.of(new User()));
+        final var authorities = new ArrayList<String>();
+        doAnswer(_ -> {
+            SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .forEach(authority -> authorities.add(authority.getAuthority()));
+            return null;
+        }).when(filterChain).doFilter(httpServletRequest, httpServletResponse);
+
+        // when
+        final var userTokenFilter = new UserTokenFilter(userTokenService);
+        userTokenFilter.doFilterInternal(httpServletRequest, httpServletResponse, filterChain);
+        userTokenFilter.doFilterInternal(httpServletRequest, httpServletResponse, filterChain);
+
+        // then what only an admin may do is told apart by the same role as on a page
+        assertEquals(List.of("ROLE_ADMIN", "ROLE_USER"), authorities);
     }
 
     @Test

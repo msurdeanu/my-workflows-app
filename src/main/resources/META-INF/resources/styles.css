@@ -320,6 +320,56 @@
     overflow: auto;
 }
 
+/* the right half of the development page: the parameters - or, in a debug session, what the run holds - above the
+   prints. Each area scrolls by itself, so that the half never grows past the editor */
+.workflow-results-pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.workflow-results-header {
+    flex: none;
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+}
+
+.workflow-results-title {
+    display: flex;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+    font-weight: 600;
+}
+
+.workflow-results-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.workflow-results-note {
+    margin: 0 0 var(--vaadin-gap-s);
+    font-size: var(--aura-font-size-s);
+    color: var(--vaadin-text-color-secondary);
+}
+
+/* outside a debug session there is nothing to share: the parameters take the height they need and the prints the
+   rest, whatever the splitter was set to in the meantime */
+.workflow-results:not(.debugging)::part(splitter) {
+    display: none;
+}
+
+.workflow-results:not(.debugging) > [slot='primary'] {
+    flex: none !important;
+    max-height: 50%;
+}
+
+.workflow-results:not(.debugging) > [slot='secondary'] {
+    flex: 1 1 0 !important;
+    margin-top: var(--vaadin-gap-s);
+}
+
 /* a printed value under its row: the tabs which choose how it is shown, then the value itself */
 .workflow-print-viewer {
     display: flex;
@@ -1285,4 +1335,63 @@ vaadin-badge.transfer-neutral {
 
 .transfer-value {
     max-width: 260px;
+}
+
+/* a checkbox reaches a few pixels below its box, which would give the dialog a scrollbar of its own */
+.workflow-duplicate-content {
+    padding-bottom: var(--vaadin-padding-xs, 4px);
+}
+
+/* what a copy of a template takes from the original: a name on the left, what it names on the right */
+.workflow-duplicate-summary {
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-m, 8px);
+    width: 100%;
+}
+
+.workflow-duplicate-summary > div {
+    display: flex;
+    gap: var(--vaadin-gap-s, 8px);
+    padding: var(--vaadin-padding-s) var(--vaadin-padding-m, 12px);
+}
+
+.workflow-duplicate-summary > div + div {
+    border-top: 1px solid var(--vaadin-border-color-secondary);
+}
+
+.workflow-duplicate-summary-label {
+    flex: 0 0 120px;
+    font-weight: 600;
+    color: var(--vaadin-text-color-secondary);
+}
+
+.workflow-duplicate-summary-values {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.workflow-duplicate-summary-text {
+    flex-basis: 100%;
+    font-size: var(--aura-font-size-s);
+    color: var(--vaadin-text-color-secondary);
+}
+
+.workflow-duplicate-renaming {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+@media (max-width: 640px) {
+    .workflow-duplicate-summary > div {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .workflow-duplicate-summary-label {
+        flex-basis: auto;
+    }
 }

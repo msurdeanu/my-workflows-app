@@ -1,7 +1,10 @@
 package org.myworkflows.view;
 
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
@@ -24,6 +27,7 @@ import org.myworkflows.view.component.PageFilter;
 import org.myworkflows.view.component.PageGuide;
 import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.WorkflowDefinitionGrid;
+import org.myworkflows.view.component.WorkflowDuplicateDialog;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -71,6 +75,7 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
         add(createGuide("workflow-definitions")
             .legend("name", PageGuide.link(getTranslation("workflow-definitions.grid.name.column")))
             .legend("edit", PageGuide.button(VaadinIcon.EDIT), UserRole.ADMIN)
+            .legend("duplicate", PageGuide.button(VaadinIcon.COPY_O), UserRole.ADMIN)
             .legend("delete", PageGuide.button(VaadinIcon.TRASH, ButtonVariant.ERROR), UserRole.ADMIN)
             .steps(4)
             .note("used")
@@ -102,6 +107,26 @@ public class WorkflowDefinitionView extends ResponsiveLayout implements HasDynam
         if (workflowDefinitionService.delete(workflowDefinition) > 0) {
             workflowDefinitionGrid.refreshPage();
         }
+    }
+
+    @Override
+    public void onDuplicate(WorkflowDefinition workflowDefinition) {
+        final var openCheckbox = new Checkbox(getTranslation("workflow-definitions.duplicate.open.label"), true);
+        final var dialog = new WorkflowDuplicateDialog(workflowDefinition.getName(), workflowDefinitionService.suggestCopyName(workflowDefinition),
+            workflowDefinitionService::isNameTaken, name -> {
+            final var copy = workflowDefinitionService.duplicate(workflowDefinition, name);
+            Notification.show(getTranslation("workflow-definitions.duplicate.success.message", copy.getName()));
+            getUI().ifPresent(ui -> {
+                if (openCheckbox.getValue()) {
+                    ui.navigate(WorkflowDevelopmentView.class, copy.getId());
+                } else {
+                    // shown alone, as the link to one definition shows it
+                    ui.navigate(WorkflowDefinitionView.class, copy.getId());
+                }
+            });
+        });
+        dialog.addDetails(new Paragraph(getTranslation("workflow-definitions.duplicate.help", workflowDefinition.getName())), openCheckbox);
+        dialog.open();
     }
 
     @Override

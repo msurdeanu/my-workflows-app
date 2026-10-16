@@ -88,6 +88,9 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
         final var editButton = new Button(new Icon(VaadinIcon.EDIT));
         editButton.setTooltipText(getTranslation("workflow-definitions.grid.actions.button.edit.title"));
         editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        final var duplicateButton = new Button(VaadinIcon.COPY_O.create());
+        duplicateButton.setTooltipText(getTranslation("workflow-definitions.grid.actions.button.duplicate.title"));
+        duplicateButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         final var deleteButton = new Button();
         deleteButton.setIcon(new Icon(VaadinIcon.TRASH));
         deleteButton.setTooltipText(getTranslation("workflow-definitions.grid.actions.button.delete.title"));
@@ -95,14 +98,16 @@ public final class WorkflowDefinitionGrid extends Composite<VerticalLayout> {
 
         if (isLoggedAsAdmin) {
             editButton.addClickListener(event -> onEdit(workflowDefinition));
+            duplicateButton.addClickListener(event -> workflowDefinitionEventHandler.onDuplicate(workflowDefinition));
             deleteButton.addClickListener(event -> new DeleteConfirmDialog(workflowDefinition.getName(),
                 item -> workflowDefinitionEventHandler.onDelete(workflowDefinition)).open());
         } else {
             editButton.setEnabled(false);
+            duplicateButton.setEnabled(false);
             deleteButton.setEnabled(false);
         }
 
-        layout.add(editButton, deleteButton);
+        layout.add(editButton, duplicateButton, deleteButton);
         return layout;
     }
 

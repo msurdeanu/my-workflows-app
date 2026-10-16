@@ -62,6 +62,13 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         paginatedGrid.setDataProvider(dataProvider);
     }
 
+    /**
+     * Opens the row of the given template, with the definitions and the parameters it got.
+     */
+    public void showDetails(WorkflowTemplate workflowTemplate) {
+        paginatedGrid.setDetailsVisible(workflowTemplate, true);
+    }
+
     @Override
     protected VerticalLayout initContent() {
         final var layout = super.initContent();
@@ -159,6 +166,9 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         final var editButton = new Button(VaadinIcon.EDIT.create());
         editButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.edit.title"));
         editButton.addThemeVariants(ButtonVariant.SMALL);
+        final var duplicateButton = new Button(VaadinIcon.COPY_O.create());
+        duplicateButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.duplicate.title"));
+        duplicateButton.addThemeVariants(ButtonVariant.SMALL);
         final var deleteButton = new Button(VaadinIcon.TRASH.create());
         deleteButton.setTooltipText(getTranslation("workflow-templates.grid.actions.button.delete.title"));
         deleteButton.addThemeVariants(ButtonVariant.SMALL, ButtonVariant.ERROR);
@@ -170,6 +180,7 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
         }
         if (isLoggedAsAdmin) {
             editButton.addClickListener(_ -> onEdit(workflowTemplate));
+            duplicateButton.addClickListener(_ -> workflowTemplateEventHandler.onDuplicate(workflowTemplate));
             if (!workflowTemplate.isEnabled()) {
                 deleteButton.addClickListener(_ -> new DeleteConfirmDialog(workflowTemplate.getName(),
                     item -> workflowTemplateEventHandler.onDelete(workflowTemplate)).open());
@@ -178,10 +189,11 @@ public final class WorkflowTemplateGrid extends Composite<VerticalLayout> {
             }
         } else {
             editButton.setEnabled(false);
+            duplicateButton.setEnabled(false);
             deleteButton.setEnabled(false);
         }
 
-        layout.add(scheduleNowButton, editButton, deleteButton);
+        layout.add(scheduleNowButton, editButton, duplicateButton, deleteButton);
         return layout;
     }
 

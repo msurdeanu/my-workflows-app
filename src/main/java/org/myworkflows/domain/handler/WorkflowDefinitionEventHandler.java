@@ -12,6 +12,8 @@ public interface WorkflowDefinitionEventHandler {
 
     void onDelete(WorkflowDefinition workflowDefinition);
 
+    void onDuplicate(WorkflowDefinition workflowDefinition);
+
     void onUpdate(WorkflowDefinition workflowDefinition, String newName);
 
 }

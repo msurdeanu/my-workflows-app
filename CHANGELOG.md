@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.2 (2026-10-16)
+
+### Features
+
+* The rest of the REST API:
+  * A run is cancelled (`POST /workflow-runs/{id}/cancel`), replayed (`POST /workflow-runs/{id}/replay`) and deleted (`DELETE /workflow-runs/{id}`), with the rules of the runs page: any user cancels and deletes any run, a run in progress is cancelled before it is deleted, and only the user who started a failed run replays it.
+  * What a run printed is read with `GET /workflow-runs/{id}/prints`, masked like on the runs page: a map and a list as JSON, a result set as an array of rows and anything else as its text.
+  * Workflow definitions and templates are created (`POST`), replaced (`PUT`) and deleted (`DELETE`). A script is checked against the schema before it is saved, and a cron before it is scheduled. A definition which a template runs is not deleted.
+  * Workflow parameters and placeholders get the same calls, plus their reads. A name which is taken is refused instead of overwritten, and a parameter which a template hands over is not deleted.
+  * A `WorkflowDefinitionResponse` carries the `script`, and a `WorkflowTemplateResponse` whether it is `enabled`, its `definitionIds` and its `parameterNames`. The value of a secret parameter or placeholder is left out of every answer.
+  * What only an admin may do on a page, only an admin may do through the API: change definitions and templates, and anything about parameters and placeholders. A call is made with the role its user has at the time.
+* Duplicate a workflow definition or a workflow template, for admins:
+  * A *Duplicate* button next to *Edit* in both grids names the copy in a dialog: the name of the original followed by `(copy)`, `(copy 2)`..., or any other name nothing of the same kind has yet - an import finds an item by its name, so two of them could not be imported.
+  * A copy of a definition has the script the original was saved with, and opens on the development page unless the dialog is told otherwise. The templates go on running the original.
+  * A copy of a template runs the same definitions, with the same parameters and cron, and starts paused. The parameters of the original alone (`timeout.42`) are copied for it (`timeout.57`), with their values, unless the dialog is told otherwise. All of it is saved in one transaction, and the page then shows the copy, opened.
+  * *Save as copy* on the development page saves what the editor holds, unsaved changes included, as a new definition and goes on with it. The definition it was opened with stays as it was saved.
+  * Through the REST API: `POST /workflow-definitions/{id}/duplicate` and `POST /workflow-templates/{id}/duplicate`, with an optional `name` and, for a template, `ownParameters`.
+* The right half of the development page fits next to the editor: *Workflow Parameters* above *Workflow Prints*, each with a count and each scrolling by itself, instead of three sections which together ran past the editor. A debug session - from *Debug* until the next *Run* - shows *Variables* in the place of the parameters, which are among what the run holds, with a splitter between them and the prints; the parameters of the next run are one tab away. A plain *Run* no longer lists its variables.
+* Error answers of the REST API: a call which is refused gets its status - `400`, `403`, `404` or `409` - and a JSON body which says why, as RFC 9457 describes it. An id which is not known is answered with `404` instead of `500`.
+
+### Fixes
+
+* `GET /workflow-runs/{id}` finds a run by its whole id only. It used to answer with the first run whose id contains what was given, and `GET /workflow-definitions/0` - or `/workflow-templates/0` - with the first definition or template.
+
+### Documentation
+
+* Screenshots in `README.md` - the development page, the runs, an approval, debugging, a read-only link, the prints of a run and a template - taken on an instance with demo data only, under `docs/screenshots/`.
+
 ## 2.1 (2026-10-14)
 
 ### Features
