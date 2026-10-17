@@ -48,9 +48,9 @@ public class DocPageView extends ResponsiveLayout implements HasDynamicTitle, Ha
 
     public static final String ROUTE = "doc-pages";
 
-    private static final String EDIT_MODE = "em";
+    public static final String COMMAND_REFERENCE = "command-reference";
 
-    private static final String COMMAND_REFERENCE = "command-reference";
+    private static final String EDIT_MODE = "em";
 
     private final Tabs tabs = new Tabs();
     private final Map<String, Tab> tabMap = new HashMap<>();

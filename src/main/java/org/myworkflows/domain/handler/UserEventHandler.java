@@ -16,4 +16,6 @@ public interface UserEventHandler {
 
     void onPasswordReset(User user);
 
+    void onDelete(User user);
+
 }

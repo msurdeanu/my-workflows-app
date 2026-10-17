@@ -9,6 +9,7 @@ import org.myworkflows.domain.filter.UserFilter;
 import org.myworkflows.exception.UserException;
 import org.myworkflows.exception.UserException.Reason;
 import org.myworkflows.repository.UserRepository;
+import org.myworkflows.repository.UserTokenRepository;
 import org.myworkflows.util.SecurityUtil;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,6 +45,10 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    private final UserTokenRepository userTokenRepository;
+
+    private final WorkflowRunService workflowRunService;
+
     private final PasswordEncoder passwordEncoder;
 
     public Stream<User> findBy(Query<User, UserFilter> query) {
@@ -65,6 +70,13 @@ public class UserService {
      */
     public Optional<User> findCurrentUser() {
         return SecurityUtil.findCurrentUserId().flatMap(userRepository::findById);
+    }
+
+    /**
+     * Read from the database, like {@link #getCurrentAdmin()}, so that an admin who was demoted a moment ago is one no more.
+     */
+    public boolean isCurrentUserAnAdmin() {
+        return findCurrentUser().filter(user -> user.isEnabled() && user.isAdmin()).isPresent();
     }
 
     /**
@@ -112,6 +124,19 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(temporaryPassword));
         user.setPasswordChangeRequired(true);
         return new UserTemporaryPassword(userRepository.save(user), temporaryPassword);
+    }
+
+    /**
+     * Deletes a user and their API tokens, which go first: SQLite does not enforce the foreign keys here, so nothing
+     * cascades. The runs they started stay, as the runs of a deleted user - the ids of the users only grow, so no
+     * user created later takes them over. A session of the user ends with the next page they open.
+     */
+    @Transactional
+    public void delete(int userId) {
+        final var user = getAnotherUser(userId);
+        userTokenRepository.deleteByUserId(user.getId());
+        userRepository.delete(user);
+        workflowRunService.forgetUsername(user.getId());
     }
 
     /**

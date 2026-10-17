@@ -162,19 +162,26 @@ public final class UserGrid extends Composite<VerticalLayout> {
     }
 
     private Component renderActions(User user) {
-        final var resetButton = new Button(VaadinIcon.KEY.create());
-        resetButton.addThemeVariants(ButtonVariant.SMALL);
-        resetButton.setAriaLabel(getTranslation("users.grid.actions.button.reset.title"));
-        if (isCurrentUser(user)) {
-            resetButton.setEnabled(false);
-            resetButton.setTooltipText(getTranslation("users.grid.own.tooltip"));
-        } else {
-            resetButton.setTooltipText(getTranslation("users.grid.actions.button.reset.title"));
-            resetButton.addClickListener(_ -> askToResetPassword(user));
-        }
-        final var layout = new HorizontalLayout(resetButton);
+        final var resetButton = createActionButton(user, VaadinIcon.KEY, "users.grid.actions.button.reset.title", () -> askToResetPassword(user));
+        final var deleteButton = createActionButton(user, VaadinIcon.TRASH, "users.grid.actions.button.delete.title", () -> askToDelete(user));
+        deleteButton.addThemeVariants(ButtonVariant.ERROR);
+        final var layout = new HorizontalLayout(resetButton, deleteButton);
         layout.addClassName("cell-badges");
         return layout;
+    }
+
+    private Button createActionButton(User user, VaadinIcon icon, String titleKey, Runnable onClick) {
+        final var button = new Button(icon.create());
+        button.addThemeVariants(ButtonVariant.SMALL);
+        button.setAriaLabel(getTranslation(titleKey));
+        if (isCurrentUser(user)) {
+            button.setEnabled(false);
+            button.setTooltipText(getTranslation("users.grid.own.tooltip"));
+        } else {
+            button.setTooltipText(getTranslation(titleKey));
+            button.addClickListener(_ -> onClick.run());
+        }
+        return button;
     }
 
     private void askToResetPassword(User user) {
@@ -185,6 +192,17 @@ public final class UserGrid extends Composite<VerticalLayout> {
         dialog.setConfirmText(getTranslation("dialog.user-password.reset.button.confirm"));
         dialog.setConfirmButtonTheme("error primary");
         dialog.addConfirmListener(_ -> userEventHandler.onPasswordReset(user));
+        dialog.open();
+    }
+
+    private void askToDelete(User user) {
+        final var dialog = new ConfirmDialog();
+        dialog.setHeader(getTranslation("dialog.user.delete.header", user.getUsername()));
+        dialog.setText(getTranslation("dialog.user.delete.text"));
+        dialog.setCancelable(true);
+        dialog.setConfirmText(getTranslation("dialog.user.delete.button.confirm"));
+        dialog.setConfirmButtonTheme("error primary");
+        dialog.addConfirmListener(_ -> userEventHandler.onDelete(user));
         dialog.open();
     }
 

@@ -95,6 +95,14 @@ public class UserView extends ResponsiveLayout implements HasDynamicTitle, UserE
         change(() -> new UserPasswordDialog(userService.resetPassword(user.getId())).open());
     }
 
+    @Override
+    public void onDelete(User user) {
+        change(() -> {
+            userService.delete(user.getId());
+            Notification.show(getTranslation("users.delete.success.message", user.getUsername()));
+        });
+    }
+
     /**
      * The users are read again whatever the outcome: a change which was refused has to be taken back from the row too.
      */
@@ -120,6 +128,7 @@ public class UserView extends ResponsiveLayout implements HasDynamicTitle, UserE
             .legend("temporary", PageGuide.badge(getTranslation("users.grid.password.temporary"), BadgeVariant.WARNING))
             .legend("chosen", PageGuide.badge(getTranslation("users.grid.password.chosen"), BadgeVariant.SUCCESS))
             .legend("reset", PageGuide.button(VaadinIcon.KEY))
+            .legend("delete", PageGuide.button(VaadinIcon.TRASH))
             .steps(3)
             .note("own")
             .note("sessions")

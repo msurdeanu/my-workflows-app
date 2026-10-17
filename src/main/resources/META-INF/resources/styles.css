@@ -1395,3 +1395,162 @@ vaadin-badge.transfer-neutral {
         flex-basis: auto;
     }
 }
+
+/* the search of the header: a button shaped like a search field in the app bar, opening a dialog of results */
+.global-search-trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+    width: min(280px, 30vw);
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-xs) var(--vaadin-padding-xs) var(--vaadin-padding-s);
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-m);
+    background: var(--vaadin-background-container);
+    color: var(--vaadin-text-color-secondary);
+    font: inherit;
+    cursor: pointer;
+}
+
+.global-search-trigger:hover {
+    border-color: var(--vaadin-border-color);
+    color: var(--vaadin-text-color);
+}
+
+.global-search-trigger:focus-visible {
+    outline: var(--vaadin-focus-ring-width) solid var(--vaadin-focus-ring-color);
+    outline-offset: 1px;
+}
+
+.global-search-trigger > span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-align: start;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.global-search-trigger > kbd,
+.global-search-keys {
+    font-family: inherit;
+    font-size: var(--aura-font-size-xs);
+}
+
+.global-search-trigger > kbd {
+    padding: 1px 6px;
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-s);
+    background: var(--vaadin-background-color);
+    white-space: nowrap;
+}
+
+.global-search-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-s);
+    padding: var(--vaadin-padding-s);
+}
+
+.global-search-field {
+    width: 100%;
+}
+
+/* the dialog is anchored at the top, so the list scrolls instead of pushing the dialog past the bottom edge */
+.global-search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: min(480px, 60vh);
+    overflow-y: auto;
+}
+
+/* the icon of the kind, then the name over the kind and the line which holds the text */
+.global-search-result {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: var(--vaadin-gap-m);
+    min-height: 44px;
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-s);
+    border-radius: var(--vaadin-radius-m);
+    color: inherit;
+    text-decoration: none;
+}
+
+.global-search-result > vaadin-icon {
+    color: var(--vaadin-text-color-secondary);
+}
+
+/* while typing, the first result is highlighted: it is the one Enter opens */
+.global-search-result:hover,
+.global-search-result:focus-visible,
+.global-search-field[focused] + .global-search-results > .global-search-result:first-child {
+    background: var(--vaadin-background-container);
+    outline: none;
+}
+
+.global-search-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.global-search-name {
+    font-weight: 600;
+    color: var(--vaadin-link-color, #2d5bc9);
+}
+
+.global-search-name,
+.global-search-details {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.global-search-details {
+    font-size: var(--aura-font-size-s);
+    color: var(--vaadin-text-color-secondary);
+}
+
+.global-search-excerpt {
+    font-family: monospace;
+}
+
+.global-search-excerpt::before {
+    content: " · ";
+    font-family: var(--aura-font-family, inherit);
+}
+
+.global-search-message {
+    padding: var(--vaadin-padding-m);
+    color: var(--vaadin-text-color-secondary);
+    text-align: center;
+}
+
+.global-search-keys {
+    color: var(--vaadin-text-color-secondary);
+    text-align: center;
+}
+
+/* a touch screen has no keyboard to take shortcuts from */
+@media (pointer: coarse) {
+    .global-search-trigger > kbd,
+    .global-search-keys {
+        display: none;
+    }
+}
+
+/* a phone keeps only the magnifier, like the other icon buttons of the app bar */
+@media (max-width: 640px) {
+    .global-search-trigger {
+        width: auto;
+        padding: var(--vaadin-padding-s);
+        border-color: transparent;
+        background: none;
+    }
+
+    .global-search-trigger > span,
+    .global-search-trigger > kbd {
+        display: none;
+    }
+}

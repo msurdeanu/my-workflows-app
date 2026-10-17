@@ -182,8 +182,12 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
     }
 
     private String noUserLabelKey(WorkflowRun workflowRun) {
+        if (workflowRun.getUserId() != null) {
+            // the user who started the run was deleted since
+            return "workflow-runs.grid.user.deleted";
+        }
         // a run of a template that belongs to no user was started by the cron of that template
-        return workflowRun.getUserId() == null && workflowRun.getWorkflowTemplateId() != null
+        return workflowRun.getWorkflowTemplateId() != null
             ? "workflow-runs.grid.user.scheduler"
             : "workflow-runs.grid.user.unknown";
     }

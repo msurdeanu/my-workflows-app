@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.3 (2026-10-17)
+
+### Features
+
+* A search in the header, on every page. Type a name, or a text from a script or a documentation page, and pick a result to open it:
+  * Every user finds the workflow definitions by their name and their script, the workflow templates by their name, the documentation pages by their name and their text and the commands by their name. A definition opens on the development page - read-only for a user who is no admin -, a template on its page (`workflow/templates/42`), a documentation page on its tab and a command on the *Command reference* tab.
+  * An admin also finds the workflow parameters and placeholders, by their name and their value, and opens them on their page, filtered by that name. Whether the user is an admin is read from the database on every search, not from the session: an admin who was just demoted no longer finds them.
+  * The value of a secret - a parameter of type `PASS`, or anything with `password` in its name - is never searched, so what the search finds does not give it away either. Its name is still found.
+  * Exact names come first, then names starting with the text, then names holding it, then what holds it elsewhere, with the line which holds it. Up to 10 results.
+  * `/` or `Ctrl+K` (`⌘K` on a Mac) opens the search from anywhere, the arrow keys move between the results and `Enter` opens the first one. `/` is left alone while typing in a field, and `Ctrl+K` inside the script editor, which keeps its own. On a phone the search is a magnifier icon in the bar.
+* A full-screen button in the header, next to the search. It is hidden where the browser does not support full screen, and turns into *Exit full screen* while the page is full screen.
+* An admin deletes a user on the users page, after a confirmation, with a new button next to *Reset password*. Their API tokens go with them and stop working at once, and so does any session of theirs, with the next page they open. The runs they started stay, shown as started by a *Deleted user*: a user created later under the same name does not get them. An admin cannot delete their own account, so there is always an admin left.
+
+### Fixes
+
+* The side menu no longer shows *Workflow Parameters* and *Workflow Placeholders* to a user who is no admin: both pages are for admins only, so the two entries could only end in an error.
+
 ## 2.2 (2026-10-16)
 
 ### Features

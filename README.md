@@ -28,11 +28,15 @@ More of the application under [Screenshots](#screenshots).
 
 * **Modern, responsive UI** for a better user experience.
 * **Authentication** and **authorization** enabled by default for secure access.
-* A dedicated web page for managing **users**, for admins: add a user, disable one, make one an admin or reset a
-  password. A new or a reset password is temporary and shown once; its user is asked for one of their own at login, and
+* A dedicated web page for managing **users**, for admins: add a user, disable one, make one an admin, reset a
+  password or delete a user - their runs stay, shown as started by a deleted user. A new or a reset password is temporary and shown once; its user is asked for one of their own at login, and
   so are the two default accounts, `user` and `admin`, as long as they have the password they were installed with.
 * A **profile** page for every user, under the avatar: change the password, create named API tokens - with an expiry,
   if wanted - and revoke them.
+* A **search** in the header, on every page: type a name, or a text from a script or a documentation page, and pick a
+  result to open it. Every user finds workflow definitions (by name and script), workflow templates, documentation
+  pages and commands; an admin also finds workflow parameters and placeholders, by name and value - never by the value
+  of a secret. A **full-screen** button sits next to it, where the browser supports it.
 * **Vaadin Push** enabled: using WebSockets, the server can send real-time updates to the client.
 * **Persistence layer** powered by **SQLite** for reliable data storage.
 * A dedicated page for **workflow definition script development**, which lets you:
@@ -574,6 +578,9 @@ A few rules are worth knowing:
 
 Keyboard shortcuts are available in several views to make your work faster.
 
+* **Every** view:
+    * <kbd>/</kbd> or <kbd>Ctrl</kbd> + <kbd>K</kbd> (<kbd>⌘</kbd> + <kbd>K</kbd> on a Mac) = Open the search. <kbd>/</kbd> is left alone while typing in a field, and <kbd>Ctrl</kbd> + <kbd>K</kbd> inside the script editor, which keeps its own.
+    * In the search, <kbd>↑</kbd> and <kbd>↓</kbd> move between the results and <kbd>Enter</kbd> opens the first one.
 * **Workflow Development** view:
     * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> = Run workflow
     * <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>D</kbd> = Debug workflow: run it and pause at its breakpoints

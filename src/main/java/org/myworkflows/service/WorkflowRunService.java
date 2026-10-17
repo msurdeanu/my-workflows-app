@@ -58,11 +58,19 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
     }
 
     public Optional<String> findUsername(WorkflowRun workflowRun) {
-        // A user can be neither renamed nor deleted, so a name is read once and kept for the following lookups.
+        // A user cannot be renamed and a deletion is told to forgetUsername, so a name is read once and kept for the
+        // following lookups.
         return ofNullable(workflowRun.getUserId())
             .flatMap(id -> usernames.computeIfAbsent(id, key -> applicationManager.getBeanOfType(UserRepository.class)
                 .findById(key)
                 .map(User::getUsername)));
+    }
+
+    /**
+     * The runs of a user who was deleted are shown from now on without a name.
+     */
+    public void forgetUsername(int userId) {
+        usernames.put(userId, Optional.empty());
     }
 
     @Override

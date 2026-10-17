@@ -20,4 +20,6 @@ public interface UserTokenRepository extends JpaRepository<UserToken, Integer> {
 
     boolean existsByUserIdAndNameIgnoreCase(int userId, String name);
 
+    void deleteByUserId(int userId);
+
 }

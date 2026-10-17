@@ -13,6 +13,7 @@ import org.myworkflows.domain.filter.UserFilter;
 import org.myworkflows.exception.UserException;
 import org.myworkflows.exception.UserException.Reason;
 import org.myworkflows.repository.UserRepository;
+import org.myworkflows.repository.UserTokenRepository;
 import org.myworkflows.util.SecurityUtil;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,6 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -53,6 +56,12 @@ public final class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private UserTokenRepository userTokenRepository;
+
+    @Mock
+    private WorkflowRunService workflowRunService;
+
     private UserService userService;
 
     private User admin;
@@ -61,7 +70,7 @@ public final class UserServiceTest {
 
     @BeforeEach
     public void init() {
-        userService = new UserService(userRepository, passwordEncoder);
+        userService = new UserService(userRepository, userTokenRepository, workflowRunService, passwordEncoder);
         admin = createUser(ADMIN_ID, "admin", ADMIN_PASSWORD, true);
         other = createUser(OTHER_ID, "other", OTHER_PASSWORD, false);
         lenient().when(userRepository.findById(ADMIN_ID)).thenReturn(Optional.of(admin));
@@ -120,7 +129,9 @@ public final class UserServiceTest {
         assertReason(Reason.NOT_ALLOWED, () -> userService.setEnabled(ADMIN_ID, false));
         assertReason(Reason.NOT_ALLOWED, () -> userService.setAdmin(OTHER_ID, true));
         assertReason(Reason.NOT_ALLOWED, () -> userService.resetPassword(ADMIN_ID));
+        assertReason(Reason.NOT_ALLOWED, () -> userService.delete(ADMIN_ID));
         verify(userRepository, never()).save(any(User.class));
+        verify(userRepository, never()).delete(any(User.class));
     }
 
     @Test
@@ -164,10 +175,13 @@ public final class UserServiceTest {
         assertReason(Reason.OWN_ACCOUNT, () -> userService.setEnabled(ADMIN_ID, false));
         assertReason(Reason.OWN_ACCOUNT, () -> userService.setAdmin(ADMIN_ID, false));
         assertReason(Reason.OWN_ACCOUNT, () -> userService.resetPassword(ADMIN_ID));
+        assertReason(Reason.OWN_ACCOUNT, () -> userService.delete(ADMIN_ID));
         assertTrue(admin.isEnabled());
         assertTrue(admin.isAdmin());
         assertTrue(passwordEncoder.matches(ADMIN_PASSWORD, admin.getPassword()));
         verify(userRepository, never()).save(any(User.class));
+        verify(userRepository, never()).delete(any(User.class));
+        verify(userTokenRepository, never()).deleteByUserId(anyInt());
     }
 
     @Test
@@ -177,6 +191,20 @@ public final class UserServiceTest {
 
         // when and then
         assertReason(Reason.USER_UNKNOWN, () -> userService.setEnabled(404, false));
+        assertReason(Reason.USER_UNKNOWN, () -> userService.delete(404));
+        verify(userTokenRepository, never()).deleteByUserId(anyInt());
+    }
+
+    @Test
+    public void whenAnotherUserIsDeletedThenTheirTokensGoFirstAndTheirRunsLoseTheirName() {
+        // when
+        userService.delete(OTHER_ID);
+
+        // then
+        final var inOrder = inOrder(userTokenRepository, userRepository, workflowRunService);
+        inOrder.verify(userTokenRepository).deleteByUserId(OTHER_ID);
+        inOrder.verify(userRepository).delete(other);
+        inOrder.verify(workflowRunService).forgetUsername(OTHER_ID);
     }
 
     @Test
