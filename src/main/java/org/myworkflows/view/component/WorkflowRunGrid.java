@@ -234,7 +234,7 @@ public final class WorkflowRunGrid extends Composite<VerticalLayout> {
         final var button = new Button(getTranslation("pretty.time.format", workflowRun.getCreated()));
         button.addThemeVariants(ButtonVariant.SMALL);
         button.setTooltipText(workflowRun.getCreated().toString());
-        button.addClickListener(_ -> new WorkflowRunDetailsDialog(workflowRun).open());
+        button.addClickListener(_ -> new WorkflowRunDetailsDialog(workflowRun, workflowRunService.countReports(workflowRun)).open());
         return button;
     }
 

@@ -37,6 +37,7 @@ import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteConfiguration;
+import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.shared.Registration;
 import de.f0rce.ace.AceEditor;
 import de.f0rce.ace.enums.AceMode;
@@ -54,6 +55,7 @@ import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionScript;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
+import org.myworkflows.domain.WorkflowReport;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowRunApproval;
 import org.myworkflows.domain.WorkflowRunDebugger;
@@ -65,6 +67,7 @@ import org.myworkflows.domain.event.EventType;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
+import org.myworkflows.domain.event.WorkflowReportOnChangeEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.service.WorkflowDefinitionService;
@@ -127,6 +130,8 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     public static final String ROUTE = "workflow/dev";
     private static final String READ_ONLY = "ro";
     private static final int ERROR_NOTIFICATION_DURATION = 10_000;
+
+    private static final int REPORT_NOTIFICATION_DURATION = 10_000;
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     private static final String CLEAR_COMMAND_MARK_JS = "this.setDebugCommand && this.setDebugCommand(-1, -1, '')";
@@ -277,6 +282,14 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
                 });
             }
         }, WorkflowDefinitionOnProgressEvent.class));
+        registrations.put(EventType.ON_CHANGE_WORKFLOW_REPORT, applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
+            final var workflowReportChangeEvent = (WorkflowReportOnChangeEvent) event;
+            if (!workflowReportChangeEvent.deleted()) {
+                workflowReportChangeEvent.workflowReports().stream()
+                    .filter(workflowReport -> workflowReport.workflowRunId().equals(lastSubmittedUuid))
+                    .forEach(workflowReport -> ui.access(() -> showReportWritten(workflowReport)));
+            }
+        }, WorkflowReportOnChangeEvent.class));
         registrations.put(EventType.ON_SUBMIT_EDITOR_TIP, applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
             final var editorTipOnSubmitEvent = (EditorTipOnSubmitEvent) event;
             ui.access(() -> editorHelper.getElement().setProperty("innerHTML", getTranslation("editor.tip." + editorTipOnSubmitEvent.tipId())));
@@ -289,6 +302,20 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         // nobody is left to tell a paused run how to go on
         stopPausedRun();
         super.onDetach(detachEvent);
+    }
+
+    /**
+     * A report of the run of this page is read on the reports page, which the notification links to.
+     */
+    private void showReportWritten(WorkflowReport workflowReport) {
+        final var routerLink = new RouterLink(getTranslation("workflow-development.report.open.link"), WorkflowReportView.class, workflowReport.id());
+        final var content = new Div(new Span(getTranslation("workflow-development.report.written.message", workflowReport.title())), routerLink);
+        content.addClassName("workflow-report-notification");
+        final var notification = new Notification(content);
+        notification.setDuration(REPORT_NOTIFICATION_DURATION);
+        notification.setPosition(Notification.Position.BOTTOM_START);
+        routerLink.getElement().addEventListener("click", _ -> notification.close());
+        notification.open();
     }
 
     private PageGuide createGuide() {

@@ -14,6 +14,7 @@ import org.myworkflows.domain.command.HttpRequestCommand;
 import org.myworkflows.domain.command.JavaCommand;
 import org.myworkflows.domain.command.MailCommand;
 import org.myworkflows.domain.command.PrintCommand;
+import org.myworkflows.domain.command.ReportCommand;
 import org.myworkflows.domain.command.SleepCommand;
 import org.myworkflows.domain.command.SshExecCommand;
 import org.myworkflows.domain.command.SshShellCommand;
@@ -48,6 +49,7 @@ public final class WorkflowDefinitionScriptToPipelineTransformer implements Tran
         entry(JavaCommand.PREFIX, "method"),
         entry(MailCommand.PREFIX, "to"),
         entry(PrintCommand.PREFIX, "keys"),
+        entry(ReportCommand.PREFIX, "title"),
         entry(SleepCommand.PREFIX, "time"),
         entry(SshExecCommand.PREFIX, "host"),
         entry(SshShellCommand.PREFIX, "host"),

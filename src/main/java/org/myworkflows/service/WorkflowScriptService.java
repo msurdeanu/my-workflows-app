@@ -114,6 +114,7 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
         // a command can have something to tell before it is over, like an approval which starts to wait for its answer
         workflowRun.setChangeListener(() -> applicationManager.getBeanOfType(EventBroadcaster.class)
             .broadcast(WorkflowDefinitionOnProgressEvent.of(workflowRun, false)));
+        workflowRun.setReportWriter(applicationManager.getBeanOfType(WorkflowReportService.class));
         final var runnableScript = detach(workflowDefinitionScript);
         final var future = executorService.submit(() -> runSynchronously(runnableScript, workflowRun));
         workflowRun.setFuture(future);

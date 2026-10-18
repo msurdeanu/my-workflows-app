@@ -627,3 +627,50 @@ Details about implementation:
 * the `mail` command has an `if`, so it is skipped when the usage is below 80%. The workflow still passes in that case.
 * the SSH password ends up in a variable named `sshExec.password`. Every variable whose name contains `password` is masked when it is printed, so it is not visible in debug mode either.
 * this SMTP server asks for no authentication. For one which does, add `mail.username` and `mail.password` as inputs, plus `mail.smtp.auth` and `mail.smtp.starttls.enable` set to `true` in `mail.props`.
+
+## Simple workflow which writes a Markdown report
+
+This workflow writes a short Markdown report, with a heading, a list and a table, and prints the id of the report. Once
+the run is over, the report is listed on the *Workflow Reports* page, where it is shown as it reads.
+
+```yaml
+# Simple Markdown report
+commands:
+- name: Write the daily status report
+  class: report
+  inputs:
+  - name: report.title
+    value: Daily status
+  - name: report.content
+    value: |
+      # Daily status
+
+      All services answered this morning.
+
+      - **Shop**: up
+      - **Search**: up, a bit slow
+      - **Payments**: up
+
+      | Service  | Response time (ms) |
+      |----------|-------------------:|
+      | Shop     |                212 |
+      | Search   |                640 |
+      | Payments |                388 |
+  outputs:
+  - name: reportId
+    class: java
+    value: output
+- name: Print 'reportId' variable
+  class: print
+  inputs:
+  - name: print.keys
+    value:
+    - reportId
+```
+
+Details about implementation:
+* 2 commands are used: `report` + `print`.
+* `report.format` is left out, so the report is written in Markdown, the default. Set it to `html` to write an HTML page instead.
+* the report is the file `reports/<run id>/Daily status.md`: its title is its file name. Running the workflow again writes a new report, in the directory of the new run.
+* the output of the `report` command is the id of the report, `<run id>/Daily status.md`. It is what the page `workflow/reports/<run id>/Daily status.md` opens on, and what the REST API finds the report by.
+* the content is plain text here. To put values of the run in it, build it with a `groovy`, `java` or `spel` value instead, like in the example of the [Report command](../README.md#report-command).

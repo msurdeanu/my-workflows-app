@@ -12,6 +12,7 @@ import org.myworkflows.domain.command.JavaCommand;
 import org.myworkflows.domain.command.LoopCommand;
 import org.myworkflows.domain.command.MailCommand;
 import org.myworkflows.domain.command.PrintCommand;
+import org.myworkflows.domain.command.ReportCommand;
 import org.myworkflows.domain.command.SleepCommand;
 import org.myworkflows.domain.command.SshExecCommand;
 import org.myworkflows.domain.command.SshShellCommand;
@@ -44,6 +45,7 @@ public final class EditorAutoCompleteUtil {
         COMMAND_INPUTS_COMPLETER.put(JavaCommand.PREFIX, List.of("script", "method", "clazz", "sourceVersion", "targetVersion"));
         COMMAND_INPUTS_COMPLETER.put(LoopCommand.PREFIX, List.of("items", "item", "backoffPeriod"));
         COMMAND_INPUTS_COMPLETER.put(PrintCommand.PREFIX, List.of("keys"));
+        COMMAND_INPUTS_COMPLETER.put(ReportCommand.PREFIX, List.of("title", "content", "format"));
         COMMAND_INPUTS_COMPLETER.put(SleepCommand.PREFIX, List.of("time"));
         COMMAND_INPUTS_COMPLETER.put(SshExecCommand.PREFIX, List.of("host", "username", "password", "command", "port", "timeout"));
         COMMAND_INPUTS_COMPLETER.put(SshShellCommand.PREFIX, List.of("host", "username", "password", "commands", "port", "timeout"));

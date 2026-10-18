@@ -1554,3 +1554,132 @@ vaadin-badge.transfer-neutral {
         display: none;
     }
 }
+
+/* the reports page: the grid and the report on display side by side, the report under the grid on a narrow screen */
+.workflow-report-split {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: start;
+    gap: var(--vaadin-gap-m, 16px);
+    padding: var(--vaadin-gap-s) 25px 0;
+}
+
+.workflow-report-title {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.workflow-report-viewer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-s);
+    min-width: 0;
+    padding: var(--vaadin-padding-s, 8px) var(--vaadin-padding-m, 12px) var(--vaadin-padding-m, 12px);
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-m, 8px);
+    background: var(--vaadin-background-color);
+}
+
+.workflow-report-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+}
+
+.workflow-report-title-row h4 {
+    margin: 0 auto 0 0;
+    overflow-wrap: anywhere;
+}
+
+.workflow-report-actions {
+    display: flex;
+    gap: var(--vaadin-gap-xs);
+}
+
+.workflow-report-facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vaadin-gap-xs) var(--vaadin-gap-m, 12px);
+    margin-top: var(--vaadin-gap-xs);
+    font-size: var(--aura-font-size-s);
+    color: var(--vaadin-text-color-secondary);
+}
+
+.workflow-report-body {
+    min-width: 0;
+}
+
+/* a report is a page of its own, which paints a white background unless it says otherwise */
+.workflow-report-frame {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    height: 65vh;
+    min-height: 360px;
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-m, 8px);
+    background: #fff;
+}
+
+.workflow-report-source {
+    box-sizing: border-box;
+    max-height: 65vh;
+    margin: 0;
+    padding: 10px 12px;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-m, 8px);
+    background: var(--vaadin-background-container);
+    font-size: var(--aura-font-size-s);
+}
+
+.workflow-report-message {
+    display: block;
+    padding: var(--vaadin-padding-m, 12px) 0;
+    color: var(--vaadin-text-color-secondary);
+}
+
+.workflow-report-message.text-error {
+    color: var(--aura-red-text);
+}
+
+/* the default badge is the one of Markdown, the most common format */
+vaadin-badge.workflow-report-html {
+    color: #7b3fb3;
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+    border-color: color-mix(in srgb, currentColor 25%, transparent);
+}
+
+.workflow-run-reports {
+    display: flex;
+    align-items: center;
+    gap: var(--vaadin-gap-xs);
+    margin-bottom: var(--vaadin-gap-s);
+}
+
+@media (max-width: 900px) {
+    .workflow-report-split {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .workflow-report-split {
+        padding-inline: var(--vaadin-padding-s);
+    }
+
+    .workflow-report-frame {
+        height: 70vh;
+    }
+}
+
+.workflow-report-notification {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--vaadin-gap-s);
+}

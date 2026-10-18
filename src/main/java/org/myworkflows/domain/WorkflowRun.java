@@ -128,6 +128,14 @@ public class WorkflowRun {
     private Runnable changeListener = () -> {
     };
 
+    /**
+     * Who writes the reports of its commands, set when the run is submitted: a command cannot reach the service which
+     * does it.
+     */
+    @Setter
+    @Transient
+    private volatile WorkflowReportWriter reportWriter;
+
     public WorkflowRun() {
         this(null, null);
     }
@@ -200,6 +208,19 @@ public class WorkflowRun {
 
     public boolean cancelAndInterruptIfRunning() {
         return isRunning() && future.cancel(true);
+    }
+
+    /**
+     * @return the report a command wrote for this run.
+     * @throws WorkflowRuntimeException when the run cannot write reports - it was not submitted - or the report cannot
+     *     be written.
+     */
+    public WorkflowReport writeReport(String title, WorkflowReportFormat format, String content) {
+        final var writer = reportWriter;
+        if (writer == null) {
+            throw new WorkflowRuntimeException("Workflow run '" + id + "' cannot write reports, as it was not submitted to be run.");
+        }
+        return writer.write(this, title, format, content);
     }
 
     public boolean isWaitingForApproval() {

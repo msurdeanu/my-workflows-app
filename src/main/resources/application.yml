@@ -66,3 +66,5 @@ my-workflows:
       base-directory: "libs"
     file-source:
       base-directory: "files"
+    report:
+      base-directory: "reports"

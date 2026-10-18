@@ -23,6 +23,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -58,12 +59,23 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
     }
 
     public Optional<String> findUsername(WorkflowRun workflowRun) {
+        return findUsername(workflowRun.getUserId());
+    }
+
+    public Optional<String> findUsername(Integer userId) {
         // A user cannot be renamed and a deletion is told to forgetUsername, so a name is read once and kept for the
         // following lookups.
-        return ofNullable(workflowRun.getUserId())
+        return ofNullable(userId)
             .flatMap(id -> usernames.computeIfAbsent(id, key -> applicationManager.getBeanOfType(UserRepository.class)
                 .findById(key)
                 .map(User::getUsername)));
+    }
+
+    /**
+     * @return how many reports the run wrote.
+     */
+    public long countReports(WorkflowRun workflowRun) {
+        return applicationManager.getBeanOfType(WorkflowReportService.class).findAllOfRun(workflowRun.getId()).count();
     }
 
     /**
@@ -88,6 +100,9 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
         return workflowRun;
     }
 
+    /**
+     * Deletes the run together with its reports.
+     */
     @CacheEvict(cacheNames = WORKFLOW_RUN_NAME, key = "#workflowRun.id")
     public void delete(WorkflowRun workflowRun) {
         lock.lock();
@@ -96,6 +111,7 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
         } finally {
             lock.unlock();
         }
+        applicationManager.getBeanOfType(WorkflowReportService.class).deleteAllOf(List.of(workflowRun.getId()));
     }
 
     public boolean replay(WorkflowRun workflowRun) {
@@ -207,6 +223,7 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
         final var eldestEntries = workflowRunRepository.findOldestEntriesByCutoff(oldestCutoffDate.getFirst());
         if (!eldestEntries.isEmpty()) {
             workflowRunRepository.deleteAllById(eldestEntries);
+            applicationManager.getBeanOfType(WorkflowReportService.class).deleteAllOf(eldestEntries);
         }
         if (log.isDebugEnabled()) {
             log.debug("{} run(s) deleted from database in {} ms.", eldestEntries.size(),

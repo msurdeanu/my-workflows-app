@@ -57,6 +57,9 @@ More of the application under [Screenshots](#screenshots).
   triggered it, so a run scheduled by a template's cron - which belongs to no user - cannot be replayed.
 * A **manual approval** step: an `approval` command keeps a run where it is until a user approves or rejects it, on the
   runs page or on the development page. It gives up after a timeout.
+* **Reports**: a `report` command writes a Markdown or HTML text, built by the workflow, into a `reports` directory. The
+  *Workflow Reports* page lists them, filtered by format, template, run or title, and shows the chosen one next to the
+  list, in a frame which runs no script. A report goes away with its run. See [Report command](#report-command).
 * Each workflow run keeps track of the user who triggered it, and the runs page can be filtered down to your own runs.
 * The runs page follows the runs by itself: a run started by a cron, by another user or through the REST API shows up
   without a reload, and its badge turns into the outcome once it is over.
@@ -75,8 +78,8 @@ More of the application under [Screenshots](#screenshots).
   call has the rights its user has on the pages. See [REST API](#rest-api).
 * The filters of a page live in its URL, like `/workflow/runs?mine=true&template=3`, so a filtered page survives Back and
   can be bookmarked or shared. A chip names each filter in use and removes it with a click.
-* A guide on the runs, templates, definitions, parameters, placeholders, libraries, import and export and development
-  pages: a legend of what the page shows, the steps of its main task and a few things worth knowing. It starts folded
+* A guide on the runs, reports, templates, definitions, parameters, placeholders, libraries, import and export and
+  development pages: a legend of what the page shows, the steps of its main task and a few things worth knowing. It starts folded
   and is opened page by page.
 * A dedicated web page for managing **Java libraries** at runtime.
 * **Commands as plugins**: a library can bring command types of its own, which are then used in a workflow like the
@@ -709,6 +712,23 @@ whatever sits under a key whose name contains `password`, and the whole value wh
 are written as a JSON object and array, a result set as an array of rows - an object per row, keyed by its columns, and
 the first 1000 rows at most - and anything else as its text. A text which holds JSON stays a text, as it was printed.
 
+##### `WorkflowReport` APIs
+
+A report is told by its run and its file name, so `{runId}` is the whole id of the run and `{fileName}` the name of the
+file, URL-encoded (`Weekly%20sales.md`).
+
+| Method   | URI                                                    | Description                                                                                                                                                                                         |
+|----------|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`    | `/api/v1/workflow-reports`                             | Returns all reports, newest first, as a list of `WorkflowReportResponse` objects. `?run=<run id>` (the whole UUID) returns the reports of that run only.                                             |
+| `GET`    | `/api/v1/workflow-reports/{runId}/{fileName}`          | Returns a single report as a `WorkflowReportResponse` object.                                                                                                                                       |
+| `GET`    | `/api/v1/workflow-reports/{runId}/{fileName}/content`  | Returns the text of a report as a file to save (`Content-Disposition: attachment`), typed `text/markdown` or `text/html`, or `404` when its file is gone. A browser is told not to run what it holds. |
+| `DELETE` | `/api/v1/workflow-reports/{runId}/{fileName}`          | Deletes a report and its file, and answers `204`.                                                                                                                                                   |
+
+A `WorkflowReportResponse` carries the `id` of the report (`<run id>/<file name>`), the `workflowRunId`,
+`workflowTemplateId` and `userId` of the run which wrote it, the `title`, the `format` (`markdown` or `html`), the
+`fileName`, the `size` in bytes and when the file was last written (`created`). Like on the reports page, any user
+reads and deletes any report.
+
 ##### `WorkflowParameter` APIs
 
 For admins only.
@@ -842,6 +862,51 @@ commands:
           mail.smtp.host: sandbox.smtp.mailtrap.io
           mail.smtp.port: 25
           mail.smtp.ssl.trust: sandbox.smtp.mailtrap.io
+```
+
+### Report command
+
+Writes a report of the run: a Markdown or HTML text, which the *Workflow Reports* page lists and shows.
+
+| `class`  | Inputs                                                                                                                                                                                                                                                                                                       | Output                                         |
+|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------|
+| `report` | <ul><li><strong>report.title</strong>: Mandatory. The title of the report, at most 150 characters, which is the name of its file.</li><li><strong>report.content</strong>: Mandatory. The text of the report.</li><li><em>report.format</em>: Optional. `markdown` or `html`. Default value: `markdown`.</li></ul> | The id of the report: `<run id>/<file name>`. |
+
+A report is a file and nothing else: `reports/<run id>/<title>.md` (or `.html`), in the directory set by
+`my-workflows.config.report.base-directory`. The title is the name of the file, so a character a file name cannot hold
+(`/ \ : * ? " < > |`) becomes `-`, and a second report of the run with the same title is `<title> (2).md`. Like the
+libraries, the reports are read from their directory when the application starts: a Markdown or HTML file copied by hand
+into the directory of a run is listed after a restart, and the template and user of a report are the ones of its run.
+
+Like any input, `report.format` stays in the run once it is set, so a later `report` command which names no format
+writes the same one. A report larger than the setting *Report - Max size* (5 MB by default) fails the command. Deleting
+a run, on the page, through the REST API or because the setting *Workflow Run - Max size* trims the oldest runs, deletes
+the directory of its reports.
+
+A report is shown in a frame which runs no script and has no access to the page around it, and a link inside it opens
+in a tab of its own; downloaded, the file is saved and never opened by the browser. Markdown is rendered on the server,
+with tables. The page `workflow/reports/<run id>/<file name>` opens on one report, so the id the command outputs can be
+put in a mail.
+
+Example command, which builds a Markdown table with Groovy from a list the run holds:
+
+```yaml
+commands:
+  - name: Write the sales report
+    class: report
+    inputs:
+      - name: report.title
+        value: Weekly sales
+      - name: report.content
+        class: groovy
+        value: |
+          def sb = new StringBuilder("# Weekly sales\n\n| Region | Orders |\n|---|--:|\n")
+          $(sales:List.class).each { sb << "| " + it.region + " | " + it.orders + " |\n" }
+          sb.toString()
+    outputs:
+      - name: salesReportId
+        class: groovy
+        value: output
 ```
 
 ### Groovy command

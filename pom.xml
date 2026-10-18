@@ -26,6 +26,7 @@
         <vaadin.version>25.3.1</vaadin.version>
         <ace.version>5.0.1</ace.version>
         <markdown-editor-addon.version>2.0.3</markdown-editor-addon.version>
+        <commonmark.version>0.30.0</commonmark.version>
         <grid-pagination.version>4.0.1</grid-pagination.version>
         <lombok.version>1.18.48</lombok.version>
         <groovy.version>6.0.0</groovy.version>
@@ -195,6 +196,16 @@
             <groupId>com.networknt</groupId>
             <artifactId>json-schema-validator</artifactId>
             <version>${json-schema-validator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>${commonmark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark-ext-gfm-tables</artifactId>
+            <version>${commonmark.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

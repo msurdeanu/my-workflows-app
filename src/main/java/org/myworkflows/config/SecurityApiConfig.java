@@ -44,7 +44,8 @@ public class SecurityApiConfig {
             .sessionManagement(item -> item.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             // What only an admin may do on a page, only an admin may do here: change a definition or a template, and
             // anything about the parameters and the placeholders, whose pages nobody else opens. Reading and running
-            // is left to every user, and so is cancelling, deleting and replaying a run, like on the runs page.
+            // is left to every user, and so is cancelling, deleting and replaying a run, like on the runs page, and
+            // reading and deleting a report, like on the reports page.
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/workflow-parameters/**", "/api/v1/workflow-placeholders/**").hasAuthority(ADMIN)
                 .requestMatchers(HttpMethod.POST, "/api/v1/workflow-definitions", "/api/v1/workflow-templates",

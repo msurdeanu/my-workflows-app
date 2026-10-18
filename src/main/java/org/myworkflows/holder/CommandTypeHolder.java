@@ -12,6 +12,7 @@ import org.myworkflows.domain.command.LoopCommand;
 import org.myworkflows.domain.command.MailCommand;
 import org.myworkflows.domain.command.NothingCommand;
 import org.myworkflows.domain.command.PrintCommand;
+import org.myworkflows.domain.command.ReportCommand;
 import org.myworkflows.domain.command.SleepCommand;
 import org.myworkflows.domain.command.SshExecCommand;
 import org.myworkflows.domain.command.SshShellCommand;
@@ -113,8 +114,8 @@ public enum CommandTypeHolder {
 
     private static Stream<CommandType> findBuiltInTypes() {
         return Stream.of(ApprovalCommand.class, DatabaseCommand.class, GroovyCommand.class, HttpRequestCommand.class, JavaCommand.class,
-                LoopCommand.class, MailCommand.class, NothingCommand.class, PrintCommand.class, SleepCommand.class, SshExecCommand.class,
-                SshShellCommand.class, WaitUntilSubPassesCommand.class)
+                LoopCommand.class, MailCommand.class, NothingCommand.class, PrintCommand.class, ReportCommand.class, SleepCommand.class,
+                SshExecCommand.class, SshShellCommand.class, WaitUntilSubPassesCommand.class)
             .map(type -> CommandType.of(type, true));
     }
 

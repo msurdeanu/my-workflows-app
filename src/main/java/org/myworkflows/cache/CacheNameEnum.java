@@ -17,6 +17,7 @@ public enum CacheNameEnum {
     WORKFLOW_DEFINITION("workflowDefinition"),
     WORKFLOW_TEMPLATE("workflowTemplate"),
     WORKFLOW_RUN("workflowRun"),
+    WORKFLOW_REPORT("workflowReport"),
     MENU_ITEM("menuItem"),
     LIBRARY("library"),
     DOC_PAGE("docPage"),

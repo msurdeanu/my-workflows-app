@@ -31,6 +31,7 @@ public class ApplicationConfig {
     public InternalCacheManager cacheManager(SettingProvider settingProvider) {
         final var cacheManager = new InternalCacheManager();
         cacheManager.addCache(CacheNameEnum.WORKFLOW_RUN, settingProvider.getOrDefault("workflowRunMaxSize", 250), InternalCache.InternalCacheOrder.LIFO);
+        cacheManager.addCache(CacheNameEnum.WORKFLOW_REPORT, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
         cacheManager.addCache(CacheNameEnum.WORKFLOW_TEMPLATE, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
         cacheManager.addCache(CacheNameEnum.WORKFLOW_DEFINITION, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);
         cacheManager.addCache(CacheNameEnum.WORKFLOW_PARAMETER, Integer.MAX_VALUE, InternalCache.InternalCacheOrder.LIFO);

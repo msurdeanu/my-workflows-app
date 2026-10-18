@@ -1,5 +1,6 @@
 package org.myworkflows.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -7,6 +8,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.WorkflowDefinitionScript;
+import org.myworkflows.domain.WorkflowReport;
+import org.myworkflows.domain.WorkflowReportFormat;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowRunApproval;
 import org.myworkflows.domain.WorkflowRunDebugger;
@@ -24,6 +27,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -37,7 +41,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.myworkflows.serializer.SerializerFactory.toObject;
 
@@ -113,6 +119,52 @@ public final class WorkflowScriptServiceTest {
 
     @Mock
     private WorkflowPlaceholderService workflowPlaceholderService;
+
+    @Mock
+    private WorkflowReportService workflowReportService;
+
+    @BeforeEach
+    public void init() {
+        // every submitted run is handed the writer of its reports, which only some of the tests use
+        lenient().when(applicationManager.getBeanOfType(WorkflowReportService.class)).thenReturn(workflowReportService);
+    }
+
+    @Test
+    public void whenRunHasAReportCommandThenTheReportIsWrittenByTheServiceAndItsIdIsTheOutput() throws Exception {
+        // given
+        final var script = toObject("""
+            commands:
+            - name: Write it
+              class: report
+              inputs:
+              - name: report.title
+                value: Weekly sales
+              - name: report.content
+                value: "# Sales"
+              - name: report.format
+                value: HTML
+              outputs:
+              - name: reportId
+                class: java
+                value: output
+            """, WorkflowDefinitionScript.class);
+        final var executorService = Executors.newSingleThreadExecutor();
+        final var workflowScriptService = new WorkflowScriptService(executorService, applicationManager);
+        when(applicationManager.getBeanOfType(EventBroadcaster.class)).thenReturn(eventBroadcaster);
+        when(applicationManager.getBeanOfType(WorkflowPlaceholderService.class)).thenReturn(workflowPlaceholderService);
+        final var workflowReport = new WorkflowReport(UUID.randomUUID(), "Weekly sales.html", WorkflowReportFormat.HTML, null, null, 7, null);
+        when(workflowReportService.write(any(WorkflowRun.class), eq("Weekly sales"), eq(WorkflowReportFormat.HTML), eq("# Sales")))
+            .thenReturn(workflowReport);
+
+        // when
+        final var workflowRun = run(workflowScriptService, script, executorService);
+        executorService.shutdown();
+        assertTrue(executorService.awaitTermination(30, TimeUnit.SECONDS));
+
+        // then
+        assertNull(workflowRun.getFailureMessage());
+        assertEquals(workflowReport.id(), workflowRun.getCache().get("reportId"));
+    }
 
     @Test
     public void whenTheSameScriptIsRunTwiceThenPlaceholdersAreResolvedAgainstTheCurrentValues() throws Exception {

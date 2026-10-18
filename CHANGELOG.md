@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.4 (2026-10-18)
+
+### Features
+
+* Reports (`V12` migration adds the setting *Report - Max size* and the *Workflow Reports* menu entry):
+  * A new `report` command writes a Markdown or HTML text, built by the workflow, as a report of its run: `report.title`, `report.content` and `report.format` (`markdown`, the default, or `html`). It outputs the id of the report, `<run id>/<file name>`.
+  * A report is a file and nothing else: `reports/<run id>/<title>.md` (or `.html`), under `my-workflows.config.report.base-directory`. A character a file name cannot hold becomes `-`, and a second report of a run with the same title is `<title> (2)`. Like the libraries, the reports are read from their directory when the application starts, so a file copied there by hand is listed after a restart.
+  * A report larger than the setting *Report - Max size* (5 MB by default) fails the command.
+  * A *Workflow Reports* page, for every user: the reports, newest first, filtered by format, template, run id or title, next to the one on display. *Rendered* shows it as it reads - Markdown is rendered on the server, with tables - and *Source* the text the run wrote. A report can be downloaded, deleted after a confirmation, or linked to: `workflow/reports/<run id>/<file name>` opens the page on it.
+  * A report is shown in a frame which runs no script and has no access to the page or the session, and a link inside it opens in a tab of its own. A download is always saved, never opened by the browser.
+  * The details of a run on the runs page link to the reports it wrote, and the development page tells, with a link, when the run it started writes one.
+  * A report goes away with its run: deleting a run - on the page, through the REST API or because *Workflow Run - Max size* trims the oldest runs - deletes the directory of its reports.
+  * Through the REST API: `GET /workflow-reports` (`?run=<run id>` for the reports of one run), `GET /workflow-reports/{runId}/{fileName}`, `GET /workflow-reports/{runId}/{fileName}/content`, which is always an attachment, and `DELETE /workflow-reports/{runId}/{fileName}`. Like on the page, any user reads and deletes any report.
+  * The read-only pipeline of a definition draws the `report` command, and the editor completes its inputs.
+
 ## 2.3 (2026-10-17)
 
 ### Features

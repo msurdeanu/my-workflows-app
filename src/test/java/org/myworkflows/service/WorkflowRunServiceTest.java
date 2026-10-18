@@ -25,14 +25,17 @@ import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.repository.UserRepository;
+import org.myworkflows.repository.WorkflowRunRepository;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -103,6 +106,44 @@ public final class WorkflowRunServiceTest {
         assertEquals(Optional.of("john"), workflowRunService.findUsername(workflowRun));
         assertEquals(Optional.of("john"), workflowRunService.findUsername(workflowRun));
         verify(userRepository, times(1)).findById(7);
+    }
+
+    @Test
+    public void whenRunIsDeletedThenItsReportsAreDeletedWithIt() {
+        // given
+        final var workflowRunRepository = mock(WorkflowRunRepository.class);
+        final var workflowReportService = mock(WorkflowReportService.class);
+        when(applicationManager.getBeanOfType(WorkflowRunRepository.class)).thenReturn(workflowRunRepository);
+        when(applicationManager.getBeanOfType(WorkflowReportService.class)).thenReturn(workflowReportService);
+        final var workflowRun = new WorkflowRun();
+
+        // when
+        workflowRunService.delete(workflowRun);
+
+        // then
+        verify(workflowRunRepository).delete(workflowRun);
+        verify(workflowReportService).deleteAllOf(List.of(workflowRun.getId()));
+    }
+
+    @Test
+    public void whenOldestRunsAreTrimmedThenTheirReportsAreDeletedWithThem() {
+        // given
+        final var workflowRunRepository = mock(WorkflowRunRepository.class);
+        final var workflowReportService = mock(WorkflowReportService.class);
+        when(applicationManager.getBeanOfType(WorkflowRunRepository.class)).thenReturn(workflowRunRepository);
+        when(applicationManager.getBeanOfType(WorkflowReportService.class)).thenReturn(workflowReportService);
+        when(settingProvider.getOrDefault("workflowRunMaxSize", 250)).thenReturn(1);
+        final var cutoff = Instant.now();
+        final var trimmedRunIds = List.of(UUID.randomUUID(), UUID.randomUUID());
+        when(workflowRunRepository.findOldestCutoffDate(any())).thenReturn(List.of(cutoff));
+        when(workflowRunRepository.findOldestEntriesByCutoff(cutoff)).thenReturn(trimmedRunIds);
+
+        // when
+        workflowRunService.deleteOldEntriesIfNeeded(true);
+
+        // then
+        verify(workflowRunRepository).deleteAllById(trimmedRunIds);
+        verify(workflowReportService).deleteAllOf(trimmedRunIds);
     }
 
     @Test
