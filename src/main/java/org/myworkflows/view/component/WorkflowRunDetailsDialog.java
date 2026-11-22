@@ -4,8 +4,11 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.RouterLink;
+import org.myworkflows.domain.WorkflowDownload;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.view.WorkflowReportView;
+
+import java.util.List;
 
 /**
  * @author Mihai Surdeanu
@@ -13,12 +16,16 @@ import org.myworkflows.view.WorkflowReportView;
  */
 public final class WorkflowRunDetailsDialog extends ResponsiveDialog {
 
-    public WorkflowRunDetailsDialog(WorkflowRun workflowRun, long reportCount) {
+    public WorkflowRunDetailsDialog(WorkflowRun workflowRun, long reportCount, List<WorkflowDownload> workflowDownloads,
+                                    WorkflowDownloadList.DownloadOpener downloadOpener) {
         super("workflow-run-details");
 
         if (reportCount > 0) {
             add(createReportsLink(workflowRun, reportCount));
         }
+        final var workflowDownloadList = new WorkflowDownloadList(downloadOpener);
+        workflowDownloadList.setItems(workflowDownloads);
+        add(workflowDownloadList);
         add(new WorkflowPrintGrid(workflowRun.getAllPrints()));
     }
 

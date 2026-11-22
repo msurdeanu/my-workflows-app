@@ -16,11 +16,11 @@ import org.myworkflows.domain.event.WorkflowReportOnChangeEvent;
 import org.myworkflows.domain.filter.WorkflowReportFilter;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.provider.SettingProvider;
+import org.myworkflows.util.FileNameUtil;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -30,7 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -54,15 +53,7 @@ public class WorkflowReportService extends CacheableDataService<WorkflowReport, 
 
     private static final int DEFAULT_MAX_SIZE_IN_MB = 5;
 
-    private static final int MAX_FILES_WITH_THE_SAME_TITLE = 1_000;
-
     private static final String DEFAULT_TITLE = "report";
-
-    // what a file name cannot hold on Windows or anywhere else
-    private static final Pattern FORBIDDEN_CHARS = Pattern.compile("[\\\\/:*?\"<>|\\p{Cntrl}]");
-
-    // names Windows keeps for its devices, whatever the extension
-    private static final Pattern RESERVED_NAMES = Pattern.compile("(?i)(con|prn|aux|nul|com[1-9]|lpt[1-9])(\\..*)?");
 
     private final InternalCache templateCache;
 
@@ -204,14 +195,7 @@ public class WorkflowReportService extends CacheableDataService<WorkflowReport, 
      *     reports page shows, as the file name is all there is.
      */
     static String toFileTitle(String title) {
-        // a line break is a space first, before what is left of the control characters is replaced
-        var fileTitle = FORBIDDEN_CHARS.matcher(title.replaceAll("\\s+", " ")).replaceAll("-")
-            // no hidden file, and nothing Windows would drop at the end of a name
-            .replaceAll("^[.\\s]+|[.\\s]+$", "");
-        if (fileTitle.isEmpty()) {
-            fileTitle = DEFAULT_TITLE;
-        }
-        return RESERVED_NAMES.matcher(fileTitle).matches() ? fileTitle + "-" : fileTitle;
+        return FileNameUtil.toFileName(title, DEFAULT_TITLE);
     }
 
     @Override
@@ -241,21 +225,15 @@ public class WorkflowReportService extends CacheableDataService<WorkflowReport, 
      * Two reports of a run may have the same title: the second one is {@code title (2)}, the third one {@code title (3)}.
      */
     private Path writeFile(Path runDirectory, String fileTitle, String extension, byte[] bytes) {
+        final Optional<Path> filePath;
         try {
             Files.createDirectories(runDirectory);
-            for (int number = 1; number <= MAX_FILES_WITH_THE_SAME_TITLE; number++) {
-                final var filePath = runDirectory.resolve(number == 1 ? fileTitle + extension : fileTitle + " (" + number + ")" + extension);
-                try {
-                    Files.write(filePath, bytes, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
-                    return filePath;
-                } catch (FileAlreadyExistsException alreadyExists) {
-                    // the next number is tried
-                }
-            }
+            filePath = FileNameUtil.createUnderFreeName(runDirectory, fileTitle, extension,
+                path -> Files.write(path, bytes, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE));
         } catch (IOException exception) {
             throw new WorkflowRuntimeException("Report file '" + fileTitle + extension + "' could not be written.", exception);
         }
-        throw new WorkflowRuntimeException("The run has too many reports titled '" + fileTitle + "' already.");
+        return filePath.orElseThrow(() -> new WorkflowRuntimeException("The run has too many reports titled '" + fileTitle + "' already."));
     }
 
     /**

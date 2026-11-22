@@ -1661,6 +1661,65 @@ vaadin-badge.workflow-report-html {
     margin-bottom: var(--vaadin-gap-s);
 }
 
+/* the files a run offers to download: above its prints, in the run details and on the development page */
+.workflow-downloads {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-xs);
+    margin-bottom: var(--vaadin-gap-s);
+}
+
+.workflow-downloads-title {
+    font-weight: 600;
+}
+
+.workflow-downloads-rows {
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-m, 8px);
+}
+
+.workflow-downloads-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+    padding: var(--vaadin-gap-xs) var(--vaadin-gap-s);
+}
+
+.workflow-downloads-row + .workflow-downloads-row {
+    border-top: 1px solid var(--vaadin-border-color-secondary);
+}
+
+.workflow-downloads-extension {
+    flex: none;
+    min-width: 3.2em;
+    padding: 0.35em 0.4em;
+    border-radius: var(--vaadin-radius-s, 6px);
+    text-align: center;
+    font-family: monospace;
+    font-size: var(--aura-font-size-xs);
+    font-weight: 600;
+    color: var(--aura-blue-text);
+    background-color: color-mix(in srgb, var(--aura-blue) 14%, transparent);
+}
+
+.workflow-downloads-text {
+    display: flex;
+    flex: 1 1 14em;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.workflow-downloads-name {
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.workflow-downloads-details {
+    font-size: var(--aura-font-size-s);
+    color: var(--vaadin-text-color-secondary);
+}
+
 @media (max-width: 900px) {
     .workflow-report-split {
         grid-template-columns: minmax(0, 1fr);
@@ -1677,9 +1736,97 @@ vaadin-badge.workflow-report-html {
     }
 }
 
-.workflow-report-notification {
+.workflow-report-notification,
+.workflow-run-notification {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     gap: var(--vaadin-gap-s);
+}
+
+/* the features page: an icon next to the name and the description of a feature, and what it needs under each other */
+.feature-cell {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--vaadin-gap-s);
+}
+
+.feature-icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--vaadin-radius-m, 8px);
+    color: var(--aura-blue-text, var(--vaadin-text-color));
+    background-color: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.feature-icon-claude {
+    color: var(--aura-orange-text, #b4552d);
+}
+
+.feature-icon-editor-tips {
+    color: var(--aura-green-text, #17803d);
+}
+
+.feature-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.feature-name {
+    font-weight: 600;
+}
+
+.feature-needs {
+    gap: var(--vaadin-gap-xs);
+    align-items: flex-start;
+}
+
+.feature-need {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vaadin-gap-xs);
+    font-size: var(--aura-font-size-s);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.feature-need vaadin-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.feature-need-met {
+    color: var(--aura-green-text, #17803d);
+}
+
+.feature-need-missing {
+    color: var(--aura-yellow-text, #9a6a00);
+}
+
+/* what turning Claude on sends, before the admin confirms it */
+.feature-dialog p {
+    margin-top: 0;
+}
+
+.feature-dialog ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-xs);
+    padding-inline-start: 1.25em;
+}
+
+.feature-dialog-masked {
+    color: var(--aura-yellow-text, #9a6a00);
+}
+
+.feature-dialog-warning {
+    padding: var(--vaadin-padding-s) var(--vaadin-padding-m, 12px);
+    border-left: 3px solid currentColor;
+    color: var(--aura-yellow-text, #9a6a00);
+    background-color: color-mix(in srgb, var(--aura-yellow, #f0c040) 18%, transparent);
+    font-size: var(--aura-font-size-s);
 }

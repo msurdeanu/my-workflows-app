@@ -53,6 +53,7 @@ import org.myworkflows.domain.UserAccountDetails;
 import org.myworkflows.domain.UserRole;
 import org.myworkflows.domain.WorkflowDefinition;
 import org.myworkflows.domain.WorkflowDefinitionScript;
+import org.myworkflows.domain.WorkflowDownload;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
 import org.myworkflows.domain.WorkflowReport;
@@ -67,10 +68,12 @@ import org.myworkflows.domain.event.EventType;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmittedEvent;
+import org.myworkflows.domain.event.WorkflowDownloadOnWriteEvent;
 import org.myworkflows.domain.event.WorkflowReportOnChangeEvent;
 import org.myworkflows.domain.filter.WorkflowDefinitionFilter;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.service.WorkflowDefinitionService;
+import org.myworkflows.service.WorkflowDownloadService;
 import org.myworkflows.service.WorkflowRunService;
 import org.myworkflows.service.WorkflowScriptService;
 import org.myworkflows.util.LangUtil;
@@ -82,9 +85,11 @@ import org.myworkflows.view.component.ResponsiveLayout;
 import org.myworkflows.view.component.ScriptEditorDialog;
 import org.myworkflows.view.component.WorkflowApprovalDialog;
 import org.myworkflows.view.component.WorkflowDevParamGrid;
+import org.myworkflows.view.component.WorkflowDownloadList;
 import org.myworkflows.view.component.WorkflowDuplicateDialog;
 import org.myworkflows.view.component.WorkflowPipelinePanel;
 import org.myworkflows.view.component.WorkflowPrintGrid;
+import org.myworkflows.view.component.WorkflowRunFollower;
 import org.myworkflows.view.component.WorkflowShareDialog;
 import org.myworkflows.view.component.WorkflowVariableGrid;
 import org.myworkflows.view.transformer.WorkflowDefinitionScriptToPipelineTransformer;
@@ -96,6 +101,8 @@ import org.myworkflows.view.util.ScriptBlockUtil;
 import org.myworkflows.view.util.ScriptCommand;
 import org.myworkflows.view.util.ScriptCommandUtil;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -125,7 +132,7 @@ import static org.myworkflows.util.ListUtil.getValueAtIndex;
 @Slf4j
 @PermitAll
 @Route(value = WorkflowDevelopmentView.ROUTE, layout = BaseLayout.class)
-public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDynamicTitle, HasUrlParameter<Integer> {
+public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDynamicTitle, HasUrlParameter<Integer>, WorkflowRunFollower {
 
     public static final String ROUTE = "workflow/dev";
     private static final String READ_ONLY = "ro";
@@ -148,6 +155,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
     private final WorkflowDevParamGrid workflowDevParamGrid = new WorkflowDevParamGrid();
     private final WorkflowVariableGrid workflowVariableGrid = new WorkflowVariableGrid();
     private final WorkflowPrintGrid workflowPrintGrid = new WorkflowPrintGrid();
+    private final WorkflowDownloadList workflowDownloadList = new WorkflowDownloadList(this::openDownload);
     private final Badge parameterTitleCount = createCountBadge();
     private final Badge parameterTabCount = createCountBadge();
     private final Badge variableTabCount = createCountBadge();
@@ -290,10 +298,25 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
                     .forEach(workflowReport -> ui.access(() -> showReportWritten(workflowReport)));
             }
         }, WorkflowReportOnChangeEvent.class));
+        registrations.put(EventType.ON_WRITE_WORKFLOW_DOWNLOAD, applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
+            final var workflowDownload = ((WorkflowDownloadOnWriteEvent) event).workflowDownload();
+            if (workflowDownload.workflowRunId().equals(lastSubmittedUuid)) {
+                // listed above the prints, on this page already: a run which offers many files does not flood it with notifications
+                ui.access(() -> workflowDownloadList.add(workflowDownload));
+            }
+        }, WorkflowDownloadOnWriteEvent.class));
         registrations.put(EventType.ON_SUBMIT_EDITOR_TIP, applicationManager.getBeanOfType(EventBroadcaster.class).register(event -> {
             final var editorTipOnSubmitEvent = (EditorTipOnSubmitEvent) event;
             ui.access(() -> editorHelper.getElement().setProperty("innerHTML", getTranslation("editor.tip." + editorTipOnSubmitEvent.tipId())));
         }, EditorTipOnSubmitEvent.class));
+    }
+
+    /**
+     * The run this page started shows its outcome here, so its user needs no notification of it.
+     */
+    @Override
+    public boolean follows(UUID workflowRunId) {
+        return workflowRunId.equals(lastSubmittedUuid);
     }
 
     @Override
@@ -316,6 +339,10 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         notification.setPosition(Notification.Position.BOTTOM_START);
         routerLink.getElement().addEventListener("click", _ -> notification.close());
         notification.open();
+    }
+
+    private InputStream openDownload(WorkflowDownload workflowDownload) throws IOException {
+        return applicationManager.getBeanOfType(WorkflowDownloadService.class).openStream(workflowDownload);
     }
 
     private PageGuide createGuide() {
@@ -711,7 +738,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         resultsLayout.setSplitterPosition(50);
         resultsLayout.addToPrimary(createPane(new Div(parameterTitle, debugTabs), nextRunNote, workflowDevParamGrid, workflowVariableGrid));
         resultsLayout.addToSecondary(createPane(new Div(createPaneTitle(getTranslation("workflow-development.print.label"), printCount)),
-            workflowPrintGrid));
+            workflowDownloadList, workflowPrintGrid));
         showDebugSession(false);
 
         layout.add(resultsLayout);
@@ -793,6 +820,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         debugging = debug;
         lastSubmittedUuid = workflowRun.getId();
         workflowPipelinePanel.start(lastSubmittedUuid);
+        workflowDownloadList.setItems(List.of());
         showVariables(List.of());
         showDebugSession(debug);
         applicationManager.getBeanOfType(EventBroadcaster.class).broadcast(WorkflowDefinitionOnSubmitEvent.builder()
@@ -815,6 +843,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
         currentWorkflowStatus.setVisible(false);
         showVariables(List.of());
         showPrints(List.of());
+        workflowDownloadList.setItems(List.of());
         showDebugSession(false);
         markCommand(null);
         showBreakpoints(List.of(), Set.of());

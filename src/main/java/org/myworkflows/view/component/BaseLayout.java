@@ -1,5 +1,7 @@
 package org.myworkflows.view.component;
 
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
@@ -20,12 +22,19 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.server.streams.DownloadHandler;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
+import org.myworkflows.EventBroadcaster;
+import org.myworkflows.domain.UserAccountDetails;
+import org.myworkflows.domain.WorkflowRun;
+import org.myworkflows.domain.WorkflowTemplate;
+import org.myworkflows.domain.event.WorkflowRunOnChangeEvent;
 import org.myworkflows.provider.SettingProvider;
 import org.myworkflows.repository.MenuItemRepository;
 import org.myworkflows.service.GlobalSearchService;
+import org.myworkflows.service.WorkflowRunService;
 import org.myworkflows.view.ProfileView;
 import org.myworkflows.view.transformer.MenuItemsToSideNavItemsTransformer;
 import org.springframework.beans.factory.ObjectProvider;
@@ -47,11 +56,64 @@ public class BaseLayout extends AppLayout {
 
     private static final String UNKNOWN_VERSION = "dev";
 
+    private final EventBroadcaster eventBroadcaster;
+
+    private final WorkflowRunService workflowRunService;
+
+    /**
+     * The user of the session, or {@code null} when nobody is logged in.
+     */
+    private final Integer currentUserId;
+
+    private Registration workflowRunChangeRegistration;
+
     public BaseLayout(AuthenticationContext authContext, SettingProvider settingProvider, MenuItemRepository menuItemRepository,
-                      ObjectProvider<BuildProperties> buildProperties, GlobalSearchService globalSearchService) {
+                      ObjectProvider<BuildProperties> buildProperties, GlobalSearchService globalSearchService,
+                      EventBroadcaster eventBroadcaster, WorkflowRunService workflowRunService) {
+        this.eventBroadcaster = eventBroadcaster;
+        this.workflowRunService = workflowRunService;
+        currentUserId = authContext.getAuthenticatedUser(UserAccountDetails.class).map(UserAccountDetails::getUserId).orElse(null);
         createHeader(authContext, settingProvider, globalSearchService);
 
         addDrawerContent(new MenuItemsToSideNavItemsTransformer().transform(menuItemRepository.findByOrderByPosition()), buildProperties);
+    }
+
+    /**
+     * The layout stays while its user goes from page to page, so it is where a run they started tells them it is over,
+     * whichever page they are on by then. Every tab of theirs is told, as nobody knows which one they look at.
+     */
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        if (currentUserId == null) {
+            return;
+        }
+        final var ui = attachEvent.getUI();
+        workflowRunChangeRegistration = eventBroadcaster.register(event -> {
+            final var workflowRunChangeEvent = (WorkflowRunOnChangeEvent) event;
+            if (WorkflowRunFinishedNotification.isFor(currentUserId, workflowRunChangeEvent.workflowRun(), workflowRunChangeEvent.completed())) {
+                ui.access(() -> notifyRunFinished(workflowRunChangeEvent.workflowRun()));
+            }
+        }, WorkflowRunOnChangeEvent.class);
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        ofNullable(workflowRunChangeRegistration).ifPresent(Registration::remove);
+        workflowRunChangeRegistration = null;
+        super.onDetach(detachEvent);
+    }
+
+    /**
+     * A page which shows the outcome of the run already - the development page which started it - is not doubled by
+     * a notification.
+     */
+    private void notifyRunFinished(WorkflowRun workflowRun) {
+        if (getContent() instanceof WorkflowRunFollower follower && follower.follows(workflowRun.getId())) {
+            return;
+        }
+        final var templateName = workflowRunService.findWorkflowTemplate(workflowRun).map(WorkflowTemplate::getName).orElse(null);
+        new WorkflowRunFinishedNotification(workflowRun, templateName).open();
     }
 
     private void createHeader(AuthenticationContext authContext, SettingProvider settingProvider, GlobalSearchService globalSearchService) {

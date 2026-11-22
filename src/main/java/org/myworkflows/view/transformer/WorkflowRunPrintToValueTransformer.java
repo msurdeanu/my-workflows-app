@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.WorkflowRunPrint;
+import org.myworkflows.util.SecretMasker;
 import org.myworkflows.view.transformer.WorkflowPrintValue.JsonLine;
 import org.myworkflows.view.transformer.WorkflowPrintValue.Node;
 import org.myworkflows.view.transformer.WorkflowPrintValue.Source;
@@ -27,7 +28,6 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.joining;
 import static org.myworkflows.domain.WorkflowRunPrint.NULL_AS_STR;
-import static org.myworkflows.domain.WorkflowRunPrint.PASSWORD;
 
 /**
  * Reads a printed value for whoever looks at it. Whatever is found under a key whose name contains {@code password}
@@ -181,7 +181,7 @@ public final class WorkflowRunPrintToValueTransformer implements Transformer<Wor
     }
 
     private static boolean isSecret(String key) {
-        return StringUtils.containsIgnoreCase(key, PASSWORD);
+        return SecretMasker.isSecretName(key);
     }
 
     private static boolean isArray(Object value) {
@@ -190,7 +190,7 @@ public final class WorkflowRunPrintToValueTransformer implements Transformer<Wor
 
     private static Node readLeaf(String key, Object value) {
         if (isSecret(key)) {
-            return Node.leaf(key, Type.MASKED, String.valueOf(value).replaceAll("\\S", "*"));
+            return Node.leaf(key, Type.MASKED, SecretMasker.maskCharacters(String.valueOf(value)));
         }
         return switch (value) {
             case null -> Node.leaf(key, Type.LITERAL, NULL_AS_STR);

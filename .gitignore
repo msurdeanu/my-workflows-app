@@ -3,6 +3,7 @@ files/
 !files/.gitkeep
 libs/
 !libs/.gitkeep
+downloads/
 .idea/
 .settings
 .project

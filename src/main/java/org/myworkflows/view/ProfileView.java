@@ -22,12 +22,13 @@ import com.vaadin.flow.component.textfield.TextFieldBase;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
-import org.myworkflows.config.FeatureConfig;
+import org.myworkflows.domain.Feature;
 import org.myworkflows.domain.User;
 import org.myworkflows.domain.UserToken;
 import org.myworkflows.exception.UserException;
 import org.myworkflows.exception.UserException.Reason;
 import org.myworkflows.provider.TranslationProvider;
+import org.myworkflows.service.FeatureService;
 import org.myworkflows.service.UserService;
 import org.myworkflows.service.UserTokenService;
 import org.myworkflows.view.component.BaseLayout;
@@ -72,7 +73,7 @@ public class ProfileView extends ResponsiveLayout implements HasDynamicTitle {
 
     private final UserTokenService userTokenService;
 
-    public ProfileView(UserService userService, UserTokenService userTokenService, FeatureConfig featureConfig) {
+    public ProfileView(UserService userService, UserTokenService userTokenService, FeatureService featureService) {
         this.userService = userService;
         this.userTokenService = userTokenService;
 
@@ -81,7 +82,7 @@ public class ProfileView extends ResponsiveLayout implements HasDynamicTitle {
         passwordRequiredNotice.setVisible(user.isPasswordChangeRequired());
 
         final var body = new Div(passwordRequiredNotice, createAccountSection(user), createPasswordSection(),
-            createTokenSection(featureConfig.isRestApiEnabled()));
+            createTokenSection(featureService.isEnabled(Feature.REST_API)));
         body.addClassName("profile");
         add(createHeader(getTranslation("profile.page.title")), createContent(body));
     }

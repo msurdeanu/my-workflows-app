@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public final class CommandTypeHolderTest {
 
-    private static final List<String> BUILT_IN_NAMES = List.of("approval", "database", "groovy", "httpRequest", "java", "loop", "mail", "nothing",
+    private static final List<String> BUILT_IN_NAMES = List.of("ai", "aiBatch", "approval", "database", "download", "groovy", "httpRequest", "java", "loop", "mail", "nothing",
         "print", "report", "sleep", "sshExec", "sshShell", "waitUntilSubPasses");
 
     @TempDir

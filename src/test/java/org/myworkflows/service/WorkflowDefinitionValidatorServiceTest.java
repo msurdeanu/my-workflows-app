@@ -89,7 +89,7 @@ public final class WorkflowDefinitionValidatorServiceTest {
         // when and then
         final var validationMessages = new WorkflowDefinitionValidatorService().validate(workflowAsString);
         assertEquals(1, validationMessages.size());
-        assertEquals("$.commands[0].class: does not have a value in the enumeration [\"approval\", \"database\", \"groovy\", \"httpRequest\", "
+        assertEquals("$.commands[0].class: does not have a value in the enumeration [\"ai\", \"aiBatch\", \"approval\", \"database\", \"download\", \"groovy\", \"httpRequest\", "
             + "\"java\", \"loop\", \"mail\", \"nothing\", \"print\", \"report\", \"sleep\", \"sshExec\", \"sshShell\", \"waitUntilSubPasses\"]",
             validationMessages.getFirst().toString());
     }

@@ -115,6 +115,7 @@ public final class WorkflowScriptService implements EventListener<WorkflowDefini
         workflowRun.setChangeListener(() -> applicationManager.getBeanOfType(EventBroadcaster.class)
             .broadcast(WorkflowDefinitionOnProgressEvent.of(workflowRun, false)));
         workflowRun.setReportWriter(applicationManager.getBeanOfType(WorkflowReportService.class));
+        workflowRun.setDownloadWriter(applicationManager.getBeanOfType(WorkflowDownloadService.class));
         final var runnableScript = detach(workflowDefinitionScript);
         final var future = executorService.submit(() -> runSynchronously(runnableScript, workflowRun));
         workflowRun.setFuture(future);

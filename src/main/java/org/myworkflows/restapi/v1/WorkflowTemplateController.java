@@ -12,7 +12,6 @@ import org.myworkflows.restapi.dto.WorkflowTemplateResponse;
 import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.service.WorkflowParameterService;
 import org.myworkflows.service.WorkflowTemplateService;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.support.CronExpression;
@@ -44,7 +43,6 @@ import static org.myworkflows.restapi.RestApiUtil.requireText;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "my-workflows.config.feature.restApiEnabled", havingValue = "true")
 public class WorkflowTemplateController {
 
     private final ApplicationManager applicationManager;

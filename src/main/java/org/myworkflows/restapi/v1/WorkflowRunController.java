@@ -7,7 +7,6 @@ import org.myworkflows.restapi.dto.WorkflowRunPrintResponse;
 import org.myworkflows.restapi.dto.WorkflowRunResponse;
 import org.myworkflows.service.WorkflowRunService;
 import org.myworkflows.util.SecurityUtil;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,7 +33,6 @@ import static org.myworkflows.restapi.RestApiUtil.notFound;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "my-workflows.config.feature.restApiEnabled", havingValue = "true")
 public class WorkflowRunController {
 
     private final ApplicationManager applicationManager;

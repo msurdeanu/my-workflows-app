@@ -9,6 +9,7 @@ import org.myworkflows.cache.InternalCacheManager;
 import org.myworkflows.domain.User;
 import org.myworkflows.domain.UserAccountDetails;
 import org.myworkflows.domain.WorkflowDefinitionScript;
+import org.myworkflows.domain.WorkflowDownload;
 import org.myworkflows.domain.WorkflowRun;
 import org.myworkflows.domain.WorkflowRunApproval;
 import org.myworkflows.domain.WorkflowRunPause;
@@ -23,6 +24,8 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -72,6 +75,20 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
     }
 
     /**
+     * @return the files the run offers to download, the oldest first.
+     */
+    public List<WorkflowDownload> findDownloads(WorkflowRun workflowRun) {
+        return applicationManager.getBeanOfType(WorkflowDownloadService.class).findAllOfRun(workflowRun.getId());
+    }
+
+    /**
+     * @return what a file the run offers holds, as a stream the caller closes.
+     */
+    public InputStream openDownload(WorkflowDownload workflowDownload) throws IOException {
+        return applicationManager.getBeanOfType(WorkflowDownloadService.class).openStream(workflowDownload);
+    }
+
+    /**
      * @return how many reports the run wrote.
      */
     public long countReports(WorkflowRun workflowRun) {
@@ -101,7 +118,7 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
     }
 
     /**
-     * Deletes the run together with its reports.
+     * Deletes the run together with its reports and the files it offers to download.
      */
     @CacheEvict(cacheNames = WORKFLOW_RUN_NAME, key = "#workflowRun.id")
     public void delete(WorkflowRun workflowRun) {
@@ -112,6 +129,7 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
             lock.unlock();
         }
         applicationManager.getBeanOfType(WorkflowReportService.class).deleteAllOf(List.of(workflowRun.getId()));
+        applicationManager.getBeanOfType(WorkflowDownloadService.class).deleteAllOf(List.of(workflowRun.getId()));
     }
 
     public boolean replay(WorkflowRun workflowRun) {
@@ -224,6 +242,7 @@ public class WorkflowRunService extends CacheableDataService<WorkflowRun, Workfl
         if (!eldestEntries.isEmpty()) {
             workflowRunRepository.deleteAllById(eldestEntries);
             applicationManager.getBeanOfType(WorkflowReportService.class).deleteAllOf(eldestEntries);
+            applicationManager.getBeanOfType(WorkflowDownloadService.class).deleteAllOf(eldestEntries);
         }
         if (log.isDebugEnabled()) {
             log.debug("{} run(s) deleted from database in {} ms.", eldestEntries.size(),

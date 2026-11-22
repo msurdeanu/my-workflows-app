@@ -33,6 +33,12 @@ spring:
         # transactions that read before writing - which is what saving an entity does - could not run at the
         # same time: one of them lost its changes. Taking the lock upfront makes the second one wait instead.
         "[transaction_mode]": IMMEDIATE
+  flyway:
+    # Read by V13 alone, the first time version 2.5 starts: the REST API and the editor tips keep the value an
+    # installation gave the my-workflows.config.feature.* properties. From then on the features page decides.
+    placeholders:
+      "[restApiEnabled]": ${my-workflows.config.feature.restApiEnabled:false}
+      "[editorTipsEnabled]": ${my-workflows.config.feature.editorTipSchedulerEnabled:true}
   mustache:
     check-template-location: false
   servlet:
@@ -68,3 +74,7 @@ my-workflows:
       base-directory: "files"
     report:
       base-directory: "reports"
+    download:
+      base-directory: "downloads"
+      # The directories of this server a download command may read from. None means anywhere.
+      allowed-directories: []

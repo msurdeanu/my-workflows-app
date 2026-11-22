@@ -674,3 +674,113 @@ Details about implementation:
 * the report is the file `reports/<run id>/Daily status.md`: its title is its file name. Running the workflow again writes a new report, in the directory of the new run.
 * the output of the `report` command is the id of the report, `<run id>/Daily status.md`. It is what the page `workflow/reports/<run id>/Daily status.md` opens on, and what the REST API finds the report by.
 * the content is plain text here. To put values of the run in it, build it with a `groovy`, `java` or `spel` value instead, like in the example of the [Report command](../README.md#report-command).
+
+## Workflow which offers the logs of a server to download
+
+This workflow offers the logs of another server as one zip archive, next to a short summary written by the run. Once the
+run is over, both are listed with a button in the details of the run, on the runs page, and the development page lists
+them above the prints as soon as they are there.
+
+```yaml
+# Logs of a server to download
+commands:
+- name: Offer the logs
+  class: download
+  inputs:
+  - name: download.host
+    value: $(SSH_HOST)
+  - name: download.username
+    value: $(SSH_USERNAME)
+  - name: download.password
+    value: $(SSH_PASSWORD)
+  - name: download.path
+    value: /var/log/app
+  - name: download.fileName
+    value: app-logs
+  outputs:
+  - name: logsId
+    class: java
+    value: output
+- name: Offer a summary
+  class: download
+  inputs:
+  - name: download.host
+    value: ""
+  - name: download.path
+    value: ""
+  - name: download.content
+    class: groovy
+    value: |
+      "The logs of the day are in " + $(logsId:String.class)
+  - name: download.fileName
+    value: summary.txt
+```
+
+Details about implementation:
+* 2 commands are used, both `download`.
+* `/var/log/app` is a directory, so it is zipped, its files under `app/`, and offered as `app-logs.zip`: `.zip` is added to the name asked for.
+* the server which runs My Workflows connects to `SSH_HOST` over SFTP, and only then does the user download the archive from My Workflows. The browser never talks to `SSH_HOST`, so port 22 only has to be open between the two servers.
+* the summary is a text of the run. It is small, so `download.compress`, `auto` by default, keeps it as it is.
+* the inputs of the first command stay in the run, so the second one empties `download.host` and `download.path`: it reads `download.content` instead, on this server.
+* the output of a `download` command is the id of the file, `<run id>/<file name>`, which the REST API finds it by.
+
+## Workflow which triages a ticket with Claude
+
+This workflow asks Claude to triage a ticket and holds the answer to a JSON schema, so that it comes back as a map. The
+command after it reads the `severity` field of that map and runs only for an outage. Claude has to be turned on, on the
+*Features* page, and the server needs the `ANTHROPIC_API_KEY` environment variable.
+
+```yaml
+# Triage of a ticket with Claude
+commands:
+- name: Read the ticket
+  class: nothing
+  inputs:
+  - name: ticketBody
+    value: Since 9:40 no customer can log in, the login page answers 502.
+- name: Triage the ticket
+  class: ai
+  inputs:
+  - name: ai.prompt
+    class: groovy
+    value: "'Triage this ticket: ' + $(ticketBody)"
+  - name: ai.system
+    value: You triage the tickets of an online shop. An outage is when customers cannot buy.
+  - name: ai.effort
+    value: low
+  - name: ai.schema
+    value:
+      type: object
+      properties:
+        severity: { enum: [low, high, outage] }
+        summary: { type: string }
+      required: [severity, summary]
+  outputs:
+  - name: triage
+    class: groovy
+    value: output
+- name: Flag the outage
+  class: nothing
+  ifs:
+  - name: Only for an outage
+    class: groovy
+    value: $(triage).severity == 'outage'
+  inputs:
+  - name: outage
+    class: groovy
+    value: $(triage).summary
+- name: Print the triage
+  class: print
+  inputs:
+  - name: print.keys
+    value:
+    - triage
+    - outage
+```
+
+Details about implementation:
+* 4 commands are used: `nothing` + `ai` + `nothing` + `print`.
+* `ai.schema` holds the answer to the schema: the output of the `ai` command is a map, `{severity=outage, summary=...}`, which the prints show as a tree. Every object of the schema gets `additionalProperties: false`, which Anthropic asks for.
+* the `enum` of `severity` makes the command a classifier: `ifs` of the third command reads the field and the command runs only for an outage. In a real workflow, this is a `mail` to the on-call engineer.
+* `ai.effort` is `low`, which is enough for a classification and costs fewer tokens.
+* for hundreds of tickets a night, an `aiBatch` command asks them all at once at half the price; see the [Claude batch command](../README.md#claude-batch-command).

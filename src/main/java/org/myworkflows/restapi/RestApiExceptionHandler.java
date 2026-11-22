@@ -1,6 +1,5 @@
 package org.myworkflows.restapi;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +21,6 @@ import java.util.Arrays;
  * @since 2.2
  */
 @RestControllerAdvice(basePackages = "org.myworkflows.restapi")
-@ConditionalOnProperty(name = "my-workflows.config.feature.restApiEnabled", havingValue = "true")
 public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override

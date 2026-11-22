@@ -2,9 +2,12 @@ package org.myworkflows.holder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.myworkflows.domain.command.AbstractCommand;
+import org.myworkflows.domain.command.AiBatchCommand;
+import org.myworkflows.domain.command.AiCommand;
 import org.myworkflows.domain.command.ApprovalCommand;
 import org.myworkflows.domain.command.CommandType;
 import org.myworkflows.domain.command.DatabaseCommand;
+import org.myworkflows.domain.command.DownloadCommand;
 import org.myworkflows.domain.command.GroovyCommand;
 import org.myworkflows.domain.command.HttpRequestCommand;
 import org.myworkflows.domain.command.JavaCommand;
@@ -113,9 +116,9 @@ public enum CommandTypeHolder {
     }
 
     private static Stream<CommandType> findBuiltInTypes() {
-        return Stream.of(ApprovalCommand.class, DatabaseCommand.class, GroovyCommand.class, HttpRequestCommand.class, JavaCommand.class,
-                LoopCommand.class, MailCommand.class, NothingCommand.class, PrintCommand.class, ReportCommand.class, SleepCommand.class,
-                SshExecCommand.class, SshShellCommand.class, WaitUntilSubPassesCommand.class)
+        return Stream.of(AiCommand.class, AiBatchCommand.class, ApprovalCommand.class, DatabaseCommand.class, DownloadCommand.class, GroovyCommand.class,
+                HttpRequestCommand.class, JavaCommand.class, LoopCommand.class, MailCommand.class, NothingCommand.class, PrintCommand.class,
+                ReportCommand.class, SleepCommand.class, SshExecCommand.class, SshShellCommand.class, WaitUntilSubPassesCommand.class)
             .map(type -> CommandType.of(type, true));
     }
 

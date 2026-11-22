@@ -9,6 +9,7 @@ import org.myworkflows.domain.DocPage;
 import org.myworkflows.domain.WorkflowParameterType;
 import org.myworkflows.domain.search.GlobalSearchResult;
 import org.myworkflows.domain.search.GlobalSearchResult.Kind;
+import org.myworkflows.provider.TranslationProvider;
 
 import java.util.List;
 import java.util.Optional;
@@ -80,7 +81,7 @@ public final class GlobalSearchServiceTest {
             placeholder("SMTP_PASSWORD", "backup-secret"),
             placeholder("SMTP_HOST", "mail.backup.local")));
         globalSearchService = new GlobalSearchService(workflowDefinitionService, workflowTemplateService, workflowParameterService,
-            workflowPlaceholderService, docPageService, userService);
+            workflowPlaceholderService, docPageService, userService, new TranslationProvider());
     }
 
     @Test
@@ -132,6 +133,33 @@ public final class GlobalSearchServiceTest {
             new GlobalSearchResult(Kind.PLACEHOLDER, null, "BACKUP_HOST", null),
             new GlobalSearchResult(Kind.PARAMETER, null, "region", "backup-region"),
             new GlobalSearchResult(Kind.PLACEHOLDER, null, "SMTP_HOST", "mail.backup.local")), adminResults);
+    }
+
+    @Test
+    public void whenUserIsAnAdminThenTheFeaturesAreFoundByTheirNameAndTheirDescription() {
+        // given
+        when(userService.isCurrentUserAnAdmin()).thenReturn(true);
+
+        // when
+        final var byName = globalSearchService.search("claude", 20);
+        final var byDescription = globalSearchService.search("/api/v1", 20);
+
+        // then
+        assertEquals(List.of(new GlobalSearchResult(Kind.FEATURE, null, "Claude", null)), byName);
+        assertEquals(List.of(new GlobalSearchResult(Kind.FEATURE, null, "REST API",
+            "Other programs list, run and change workflows over /api/v1.")), byDescription);
+    }
+
+    @Test
+    public void whenUserIsNoAdminThenTheFeaturesAreNotFound() {
+        // given
+        when(userService.isCurrentUserAnAdmin()).thenReturn(false);
+
+        // when
+        final var results = globalSearchService.search("claude", 20);
+
+        // then
+        assertTrue(results.isEmpty());
     }
 
     @Test

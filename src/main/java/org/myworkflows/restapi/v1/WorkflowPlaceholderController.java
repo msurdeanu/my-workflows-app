@@ -8,7 +8,6 @@ import org.myworkflows.restapi.dto.WorkflowPlaceholderRequest;
 import org.myworkflows.restapi.dto.WorkflowPlaceholderResponse;
 import org.myworkflows.service.WorkflowPlaceholderService;
 import org.myworkflows.util.PlaceholderUtil;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -40,7 +39,6 @@ import static org.myworkflows.restapi.RestApiUtil.requireName;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "my-workflows.config.feature.restApiEnabled", havingValue = "true")
 public class WorkflowPlaceholderController {
 
     private final ApplicationManager applicationManager;

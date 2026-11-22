@@ -1,0 +1,627 @@
+MyWorkflows - feature ideas
+===========================
+
+Written on 2026-10-12 from a read of the code at 2.1-SNAPSHOT.
+Added on 2026-10-18 at 2.3-SNAPSHOT: section 11, 2.10, 2.11, 5.9, 6.13-6.16.
+Every idea says what the code does today, so it is clear what is missing.
+Effort: [S] a few days, [M] a week or two, [L] more than that.
+
+
+WHERE I WOULD START
+-------------------
+
+  1. Notify on the outcome of a template ............ 3.1
+  2. A record of every command of a run ............. 2.1
+  3. Version history of a definition ................ 4.1
+  4. Secrets encrypted at rest ...................... 5.1
+  5. User management and a profile page ............. 5.2 (done)
+  6. Overlap policy and timeouts for runs ........... 1.1, 1.2
+  7. Import and export .............................. 4.3 (done)
+  8. Docker image ................................... 9.1
+
+
+1. SCHEDULING AND TRIGGERS
+--------------------------
+
+1.1 [S] Overlap policy per template
+    Today a cron firing starts a new run even while the previous run of the
+    same template is still going. Let a template choose: allow, skip or queue.
+
+1.2 [M] Timeout for a run and for a command
+    Nothing limits how long a run lasts; only httpRequest and the SSH commands
+    have a timeout of their own. A `timeout` on any command and on a template,
+    which cancels the run and marks it as timed out.
+
+1.3 [S] Cron check and next-run preview
+    The cron field of a template accepts any text, and the grid shows the
+    expression only in a tooltip. Validate it on entry and show the next three
+    firing times.
+
+1.4 [S] Time zone per template
+    Every cron is evaluated in the default time zone of the server.
+
+1.5 [M] Webhook trigger
+    An inbound URL with a secret per template, whose body becomes the
+    parameters of the run. Today `schedule-now` on a template takes no
+    parameters and returns nothing.
+
+1.6 [M] Chained templates
+    Start template B when template A succeeds or fails.
+
+1.7 [S] "Run now" with parameters, and "run once at"
+    "Run now" uses the stored parameters without asking. Open a form to
+    override them, and allow a one-off run at a given date and time.
+
+1.8 [M] Catch-up of missed runs
+    A firing missed while the application was down is skipped. Optionally run
+    it once at startup.
+
+1.9 [M] Limit of concurrent runs, with a queue
+    `workflow-pool` starts a virtual thread per run, without a limit. A maximum
+    number of runs at once and a "queued" status for the rest.
+
+
+2. RUNS: HISTORY AND DIAGNOSTICS
+--------------------------------
+
+2.1 [M] A record of every command of a run
+    A run keeps only `lastSuccessfulIndex`, the failure message and its total
+    duration. Record for each command its status (passed, skipped, failed),
+    start and duration, and open the pipeline of a finished run from the runs
+    page - `WorkflowPipelinePanel` already draws it for a live run. The script
+    is kept on a run only when it fails; keep it, or its version, always.
+
+2.2 [S] An explicit status
+    The status is derived: running while the future is alive, error when there
+    is a failure message, success otherwise. A cancelled run cannot be told
+    from a failed one. Store the status (queued, running, succeeded, failed,
+    cancelled, timed out, interrupted) and filter the runs page by status and
+    by date - it filters only by user, template and id today.
+
+2.3 [M] Runs that survive a restart
+    A run in progress lives in the cache only and is saved when it finishes,
+    so a restart loses it without a trace. Save it when it starts; at startup
+    mark what was left as interrupted and offer to resume it from the last
+    successful command, as replay already does.
+
+2.4 [M] A log per run
+    Only the variables named by a `print` command can be seen. Add a log per
+    run - a `log` command, a logger for scripts, a line when each command
+    starts and ends - followed live through Push.
+
+2.5 [S] A runs grid that updates by itself - DONE on 2026-10-12
+    A run that starts shows up without a reload and its badge turns into the
+    outcome once it is over. A run deleted by another user still stays on
+    screen until the page is read again.
+
+2.6 [S] Run again from the start, and replay by an admin
+    Replay exists only for a failed run, only for its owner and only from the
+    command that failed. A failed run of the scheduler can be replayed by
+    nobody.
+
+2.7 [S] Retention by age and by status
+    Runs are trimmed only by count (`workflowRunMaxSize`, 250). Add "keep
+    failed runs N days" and "keep the last N of each template", a bulk delete
+    and a CSV export.
+
+2.8 [S] The definition behind a manual run
+    A run started from the development page is shown as "Manual", with no
+    link to the definition it ran.
+
+2.9 [S] Viewers for printed values - DONE on 2026-10-13
+    A printed map or list opens as a tree, a text which holds JSON as
+    formatted JSON and a result set as a table; tabs switch between these and
+    the text it was before. A key named after a password is masked at any
+    depth. Still missing: the same viewers in the Variables panel, which keeps
+    a text of every value, and a search inside a large value.
+
+2.10 [M] Files a run keeps
+    A file a run makes has nowhere to go: a run leaves only the values of its
+    cache, seen through its prints. Let a command attach a file to its run -
+    a CSV export, a PDF report - which the runs page and the REST API
+    download, and which goes with the run when it is deleted or trimmed. The
+    `files` directory, where the cache of every run is written already, is
+    the place for them.
+    Partly done on 2026-10-18: the `report` command writes a Markdown or HTML
+    text into `reports/<run id>/<title>.md`, a file and nothing else, read
+    from the directory at startup like the libraries. The Workflow Reports
+    page lists and shows it in a frame which runs no script, the REST API
+    reads and deletes it, and it goes with its run. Still missing: any other kind of file (a CSV,
+    a PDF), which a page could only offer as a download.
+
+2.11 [S] Compare two runs
+    Nothing shows how a failed run differs from the last one of its template
+    which passed. Put the prints of the two side by side and mark what
+    differs; 11.6 can send the same difference to Claude.
+
+
+3. NOTIFICATIONS AND CONNECTIONS
+--------------------------------
+
+3.1 [M] Notify on the outcome of a template
+    Today this takes a `mail` command written by hand in the `finallyCommands`
+    of each definition. Rules on the template instead: on failure, on recovery,
+    always, or when a run takes longer than X - by e-mail, Slack or Teams, or a
+    generic webhook.
+
+3.2 [M] Named connections
+    SMTP properties, JDBC URLs and SSH credentials are repeated in the inputs
+    of every command. Define an SMTP server, a data source or an SSH host once
+    and refer to it by name.
+
+3.3 [S] Tell me when my run finishes - DONE on 2026-11-22
+    An in-app notification for the user who started the run.
+    Done in the layout of every page, which listens to the runs once they
+    are in the cache: the user who started a run is told in every tab, with
+    a link to the run. The development page, which shows the outcome of the
+    run it started, is not doubled. No switch to turn it off yet.
+
+
+4. DEFINITIONS: WRITING AND LIFECYCLE
+-------------------------------------
+
+4.1 [M] Version history
+    Saving overwrites the script. Keep every version with its author and time,
+    show the difference between two of them and roll back. A run records the
+    version it ran.
+
+4.2 [S] Description, tags and "used by"
+    A definition is an id, a name and a script. Add a description, tags to
+    filter by, the last change, and the templates that use it - deleting is
+    refused when one does, without saying which.
+
+4.3 [M] Import and export - DONE on 2026-10-13
+    An admin exports templates, definitions, parameters and placeholders to
+    one YAML file or to a zip archive on the Import and export page, and
+    imports such a file on another instance: every item is compared with the
+    one which goes by its name there, and is created, overwritten or left
+    alone as chosen - all of it in one transaction. Passwords stay out of the
+    file unless asked for, and new templates arrive paused. Still missing:
+    showing what differs in a script (the page only says that it does),
+    export and import through the REST API (see 7.1), a sync with a Git
+    repository - the archive is laid out for it -, settings and
+    documentation pages in a file, and importing over a definition or a
+    template whose name is taken twice.
+
+4.4 [S] Duplicate a definition or a template - DONE on 2026-10-15
+    A Duplicate button in both grids, for admins, names the copy: `(copy)`,
+    `(copy 2)`... or another name nothing of the same kind has yet. A copy
+    of a template runs the same definitions with the same parameters and
+    cron, starts paused and gets its own copy of the parameters of the
+    original alone. Save as copy on the development page keeps the editor
+    as a new definition. Both are in the REST API too. Still missing:
+    duplicating several items at once, and a template together with copies
+    of its definitions.
+
+4.5 [M] Validation while typing
+    The schema is checked only on Run, and Save only parses the YAML. Check
+    while typing and mark the line. Also check what the schema cannot: input
+    names a command does not have (from `@ExecutionParam`), placeholders that
+    do not exist, variables that are read but never set.
+
+4.6 [M] Dry run
+    Validate a definition and resolve its placeholders and parameters without
+    running any command.
+
+4.7 [L] Step-by-step debugging - DONE on 2026-10-13
+    On the development page, a breakpoint in the gutter pauses a run started
+    with Debug before a command; Variables lists everything it holds; Step,
+    Continue, From cursor and Stop tell it how to go on, each with the
+    script as the editor has it by then. A run which is over starts again from
+    any command the same way. Still missing: pausing between the subcommands
+    of a loop and before a final command, changing a variable while paused,
+    debugging from a read-only link or a run of a template, and a pause which
+    survives a restart (see 2.3).
+
+4.8 [S] A snippet per command, and a generated reference - DONE on 2026-10-12
+    The editor offers a snippet per command, with its required inputs, and
+    Documentation has a Command reference page. Both are written from
+    `@ExecutionMethod` and `@ExecutionParam`, plugins included. Still missing:
+    a description per input, which the annotations do not carry.
+
+4.9 [M] Declared parameters
+    A definition does not say which parameters it expects. A `parameters`
+    block (name, type, default, required) would let the development page, the
+    "run now" form and the REST API build a form and reject a bad call.
+
+
+5. SECURITY AND USERS
+---------------------
+
+5.1 [M] Secrets
+    Password parameters and placeholders are stored as plain text, and the
+    parameters page shows them as typed. Printed values are masked only when
+    the variable name contains "password". Encrypt them at rest, mask them in
+    the UI, and add a `secret` type that is masked whatever its name.
+    `EncryptionHolder` uses plain "AES" with a key derived by SHA-1; move it
+    to AES-GCM.
+
+5.2 [M] User management and a profile page - DONE on 2026-10-12
+    An admin adds a user, disables one, makes one an admin or resets a
+    password on the users page. Every user changes their password and sees or
+    renews their API token on their profile, and is asked for a password of
+    their own at first login. Still missing: deleting or renaming a user, and
+    ending a session at once instead of at its next page change.
+
+5.3 [M] Finer roles
+    There is only admin and not admin. Add viewer, operator (may run),
+    developer (may edit) and admin, and optionally an owner per definition or
+    template. Uploading a library is open to every logged-in user today.
+
+5.4 [M] Single sign-on
+    Login through OIDC or LDAP.
+
+5.5 [S] API token in a header - DONE on 2026-10-12
+    A call carries its token in `Authorization: Bearer`, and the `token` URL
+    parameter is no longer read. A user creates several named tokens on their
+    profile, each with an optional expiry, and revokes them there; only the
+    digest of a token is saved. Still missing: showing when a token was last
+    used.
+
+5.6 [M] Audit log
+    Who changed a definition, a template, a parameter or a setting, and who
+    ran, cancelled or deleted a run.
+
+5.7 [S] Login protection
+    No lockout or slowdown after failed logins, and the remember-me key is the
+    name of its cookie. Throttle failed logins and use a random secret.
+
+5.8 [L] Limits for scripts
+    `groovy` and `java` commands and expressions run with every permission of
+    the JVM. Restrict what they may reach, or at least let a setting turn
+    these two off.
+
+5.9 [S] Placeholders from the environment
+    A placeholder is a row of the database, in plain text (see 5.1), and
+    `$$(ENV.DB_PASSWORD)` is a valid placeholder name already. Read a name
+    which starts with `ENV.` from the environment of the server instead, or
+    from a file, the way Docker mounts its secrets, and list it on the
+    placeholders page as coming from there, without its value. A secret then
+    never reaches the database, and it fits the image of 9.1.
+
+
+6. COMMANDS AND THE LANGUAGE
+----------------------------
+
+6.1 [M] Call another workflow
+    A `workflow` command that runs a definition as one step, with inputs and
+    outputs. A template can only run its definitions one after another.
+
+6.2 [M] Error handling on any command
+    `continueOnError`, `retry` with a count and a backoff, and `onFailure`
+    commands. Today the first failure stops the run, and only
+    `waitUntilSubPasses` retries.
+
+6.3 [M] Parallel block and parallel loop
+    `loop` runs its items one by one, with a pause of one second by default.
+
+6.4 [S] Conditions and control
+    `ifs` exist per command only. Add an if/else block, `while`, `break` and a
+    `fail` command with a message.
+
+6.5 [S] SSH key authentication
+    `sshExec` and `sshShell` take only a password. Add a private key with its
+    passphrase, and host key verification.
+
+6.6 [M] File transfer
+    Upload and download over SFTP, and read or write a local file.
+
+6.7 [S] More from the database command
+    The query must return a result set and is plain text. Add updates, bind
+    parameters, username and password inputs, and rows as a list of maps.
+
+6.8 [S] More from the HTTP command
+    A 4xx or 5xx answer throws, so an assert never sees the status. Add an
+    option not to fail on it, basic and bearer authentication, a JSON body
+    from a map, the answer pars as JSON and a file download.
+
+6.9 [S] Mail attachments
+
+6.10 [S] Local shell command
+    Run a process on the server, behind a feature flag.
+
+6.11 [M] Manual approval step - DONE on 2026-10-12
+    An `approval` command keeps a run where it is until a user approves or
+    rejects it, on the runs page or on the development page, and fails after a
+    timeout. Still missing: choosing who may approve (any logged-in user can,
+    the one who started the run included), a comment with the answer, telling
+    somebody that a run waits (a `mail` command before it does that today),
+    answering through the REST API, and an approval which survives a restart
+    (see 2.3).
+
+6.12 [M] Commands as plugins - DONE on 2026-10-12
+    A JAR from `libs` brings its own commands: classes which extend
+    `AbstractCommand`, named in a `META-INF/services` file. The schema, the
+    editor, the libraries page and the pipeline view follow. Still missing: a
+    label and a description of its own for a plugin command (the pipeline shows
+    its name and a common text), a rejected command shown on the libraries page
+    instead of in the log only, and the classes of the application published as
+    a plain JAR to compile a plugin against - the released JAR is the
+    executable one.
+
+6.13 [S] Read mail
+    `mail` only sends, though angus-mail, the library it sends with, reads
+    IMAP as well. A `mailRead` command which lists the messages of a folder -
+    the unread ones only, if asked - with their sender, subject, text and
+    attachments, and marks them as read. With 11.3 and 11.4 this is the
+    intake of invoices or tickets which arrive by mail; a trigger on new
+    mail would follow 1.5.
+
+6.14 [M] Wait for a signal
+    `approval` waits for a person, and `waitUntilSubPasses` can only poll. A
+    `signal` command keeps the run where it is until a call to
+    `POST /workflow-runs/{id}/signals/{name}` arrives - a build which is
+    over, the callback of a vendor - and hands its body over as its output;
+    it fails after a timeout. The `CompletableFuture` of `WorkflowRunApproval`
+    is most of it, and like an approval it does not survive a restart (see
+    2.3).
+
+6.15 [S] Named locks
+    1.1 limits the runs of one template and 1.9 the runs of all of them, but
+    nothing keeps two templates off the same resource. A `lock` command with
+    `subcommands`, like `loop`, runs them while it holds a lock of a given
+    name - one deployment to production at a time, whichever template
+    starts it - and waits for the lock otherwise, up to a timeout.
+
+6.16 [S] JSON, CSV and text templates
+    Reading a field of a JSON text, reading or writing a CSV file and filling
+    a mail body from a template each take a script today (`groovy`, `java` or
+    `spel`). Commands which parse and query JSON (JSONPath), read and write
+    CSV, and render a text from a template with the variables of the run;
+    6.8 would do the first for the answer of `httpRequest` only.
+
+
+7. REST API
+-----------
+
+7.1 [M] The rest of the API - DONE on 2026-10-14
+    A run is cancelled, replayed and deleted, its printed values are read, and
+    definitions, templates, parameters and placeholders are created, replaced
+    and deleted - the writes, and anything about parameters and placeholders,
+    by admins only. Still missing: answering an approval (see 6.11), a PATCH
+    which changes one field, and the users, the libraries, import and export
+    and the settings.
+
+7.2 [S] Paging and filters on `/workflow-runs`
+    It returns every run.
+
+7.3 [S] Error answers - DONE on 2026-10-14
+    A refused call gets 400, 403, 404 or 409 and a JSON body (RFC 9457) which
+    says why. Still missing: a 401 and a 403 for a role are answered by the
+    security filters, with the body of the error page, which has no detail.
+
+7.4 [S] Wait for the result
+    `?wait=true` or a callback URL. Starting a template returns no run id.
+
+7.5 [S] OpenAPI description and Swagger UI
+
+
+8. DASHBOARD AND MONITORING
+---------------------------
+
+8.1 [M] A home dashboard
+    `/` redirects to the runs page. Show what is running, the failures of the
+    last 24 hours, the next scheduled runs, and the success rate and duration
+    trend of each template.
+
+8.2 [S] Statistics about workflows
+    The statistics page shows only memory and cache sizes.
+
+8.3 [S] Health and metrics endpoints
+    Actuator health, and Prometheus metrics: runs started and failed,
+    durations, runs in progress.
+
+8.4 [M] Calendar of the coming runs
+
+
+9. OPERATIONS
+-------------
+
+9.1 [S] Docker image and compose file
+    None in the repository. Volumes for `database.db`, `files/` and `libs/`.
+
+9.2 [S] Backup and restore
+    A scheduled copy of the SQLite database, downloadable from Settings.
+
+9.3 [L] Another database
+    PostgreSQL as an option, which is also the way to more than one instance.
+
+9.4 [S] Graceful shutdown
+    Wait for the running workflows, or mark them as interrupted (see 2.3).
+
+9.5 [S] Library management - DONE on 2026-10-12
+    Every library shows its size, date and SHA-256 checksum, and an admin
+    deletes one from its row: the file is removed and the other libraries are
+    loaded again. Still missing: a library uploaded without
+    `reload-after-upload` is not listed before the next restart, and an
+    upload is open to every logged-in user (see 5.3).
+
+9.6 [S] Settings that say when they apply
+    Some are read once at startup, like the capacity of the runs cache. Apply
+    them live or mark them as "needs a restart".
+
+9.7 [S] Automatic dependency updates
+    There is no Dependabot or Renovate configuration in `.github`.
+
+
+10. USER INTERFACE
+------------------
+
+10.1 [S] Light and dark switch
+    The avatar menu holds only Logout.
+
+10.2 [S] More languages
+    Every text already goes through a translation key, but only English is
+    served.
+
+10.3 [M] Search everywhere - DONE on 2026-10-17
+    A search in the header, on every page (/ or Ctrl+K), across definitions
+    (name and script), templates, documentation pages and commands for every
+    user, plus parameters and placeholders (name, and value unless it is a
+    secret) for admins, as only they may open those pages.
+
+10.4 [L] Visual pipeline editor
+    The pipeline view is read-only. Add, reorder and edit commands in forms,
+    with the YAML kept in step.
+
+10.5 [S] Documentation next to a definition
+    Link a documentation page to a definition and show it on the pipeline
+    view.
+
+
+11. AI
+------
+
+Nothing in the application talks to a language model: a workflow reaches
+one only through an `httpRequest` written by hand. 11.1 is what every item
+which calls Claude needs. Where I would start: 11.3, with 11.1 and 11.2
+under it; then 11.6; then 11.12, once 4.9 and 7.4 are done.
+
+11.1 [S] The ground for AI - DONE on 2026-11-08
+    A feature flag, off by default like `restApiEnabled`. The official Java
+    SDK, `com.anthropic:anthropic-java`; its `AnthropicOkHttpClient.fromEnv()`
+    reads the key from `ANTHROPIC_API_KEY`, and that is where it belongs:
+    placeholders and settings are plain text in the database (see 5.1). The
+    client in a holder enum like `EncryptionHolder`, as a command cannot
+    reach a Spring bean. A setting for the default model, `claude-haiku-5-5`,
+    which a command may override. What leaves the server is masked the way
+    prints are, and an admin turns each feature on knowing what it sends.
+    The pom excludes `vaadin-ai-components-flow` from the starter: it is the
+    chat kit of Vaadin (`AIOrchestrator`, `AIMessageList`, `AIInput`), still
+    experimental in 25.2, which talks to the model through Spring AI or
+    LangChain4j rather than the Anthropic SDK. Worth a look before a chat
+    panel is built by hand for 11.6 and 11.7.
+    Done with one switch for Claude, not one per feature, on a new Features
+    page where the REST API and the editor tips are turned on and off too,
+    while the application runs; their properties are read once, by V13.
+    Masking is by name, like the prints, and by the value of every known
+    secret. A declined request falls back on the side of Anthropic (fallbacks).
+
+11.2 [S] What AI costs
+    A template whose cron fires every five minutes and calls Claude is a bill
+    which grows by itself. Record the tokens of every call on its run, add
+    them up by template on the statistics page (see 8.2), and offer a
+    monthly cap past which the AI commands fail with a message instead of
+    calling.
+
+11.3 [M] An `ai` command, with structured output - DONE on 2026-11-09
+    An `ai` command sends a prompt to Claude and returns the text of the
+    answer: what an `sshExec` printed, summed up; the body of a `mail`; the
+    triage of a ticket. Its inputs: `prompt`, `system`, `model`, `maxTokens`,
+    `effort` and `timeout`. With a `schema` input - a JSON schema, written
+    as a map - the answer is held to that schema and comes back as a `Map`:
+    `ifs` and `asserts` read its fields, `outputs` keep them, and the print
+    viewer already shows a map as a tree. An `enum` in the schema makes the
+    command a classifier which the commands after it branch on:
+
+        - name: triage
+          class: ai
+          inputs:
+            - name: ai.prompt
+              class: groovy
+              value: "'Triage this ticket: ' + $(ticketBody)"
+            - name: ai.schema
+              value:
+                type: object
+                properties:
+                  severity: { enum: [low, high, outage] }
+                  summary: { type: string }
+                required: [severity, summary]
+          outputs:
+            - name: triage
+              class: groovy
+              value: output
+
+    A later command which pages somebody runs only when the `groovy`
+    expression `$(triage).severity == 'outage'` of its `ifs` holds. For a
+    nightly loop over hundreds of items, a batch mode (the Message Batches
+    API: half the price, but the answers come later) fits better than a
+    `loop` of single calls.
+    Done with the batch mode as a command of its own, `aiBatch`: a list of
+    prompts in, a list of answers out, in their order. The run waits for
+    the batch - asked about every 30 seconds, a day at most - and cancels
+    it when the run is cancelled. Every object of a schema gets
+    `additionalProperties: false`, which Anthropic asks for. An answer cut
+    at `maxTokens` fails the command, text or JSON. Like any input, a
+    schema stays in the run: `value: {}` asks for a text again.
+
+11.4 [S] PDFs and images for the `ai` command
+    An `ai.files` input which takes the bytes of a PDF or an image from an
+    earlier command - a download (see 6.8), a mail attachment (see 6.13), a
+    file read from disk (see 6.6) - and sends them along with the prompt:
+    "the invoice number, the total and the due date of this PDF", with a
+    `schema`. Needs 11.3.
+
+11.5 [L] An agent step, kept in check by approvals
+    An `aiAgent` command gets a goal and a list of tools, each of them
+    another definition (see 6.1): `readLogs`, `restartService`,
+    `checkHealth`. Claude picks which to run and with what; every call is a
+    run of its own, recorded like any other. It is bounded by `maxSteps`, a
+    token budget and the tools it is given. A tool marked `approve: true`
+    goes through `WorkflowRun.awaitApproval` before it runs, so the approval
+    dialog shows what the agent wants to run and with which parameters: 6.11
+    becomes the human check on an agent. Each tool needs the input schema
+    which declared parameters (see 4.9) would give it. Anthropic's hosted
+    web search and web fetch can be tools too; they run on Anthropic's side,
+    not on the server.
+
+11.6 [M] Explain a failed run, and fix it
+    A failed run keeps its failure, its script (kept only when a run fails),
+    the command it stopped at (`lastSuccessfulIndex`) and its prints. Given
+    these, masked the way prints are, and the command reference, Claude
+    answers with the cause in plain words and a corrected script.
+    `WorkflowRunService.runFrom` already starts a run which is over again
+    from any command, with any script and with what the run held when it
+    ended, so the fix is one button: apply it and run again from the command
+    which failed, without the ones before it. A run of a template belongs to
+    nobody, so it needs 2.6 first. The cause, in a line, can stand next to
+    the failure on the runs page. A failure message can carry a secret of
+    its own - a JDBC URL with its password - which masking by name does not
+    catch: show what is sent before it is sent.
+
+11.7 [M] Write or change a workflow from a description
+    On the development page, a description such as "every morning, mail
+    finance the payments which failed yesterday" becomes a script. Claude
+    gets the command reference, which `CommandTypesToReferenceTransformer`
+    writes already (plugins included), the schema, and the names of the
+    placeholders and parameters, never their values. Its answer goes through
+    `WorkflowDefinitionValidatorService`, and what that finds goes back to
+    Claude for another round before anything is shown; the script then
+    arrives as a difference which the user accepts into the editor, unsaved.
+    The same on a selection: "add a final command which mails me when it
+    fails". The reference is the same text on every call, so prompt caching
+    keeps the calls after the first one cheap.
+
+11.8 [S] A description and a documentation page written from the script
+    Once a definition has a description (see 4.2) and a documentation page
+    of its own (see 10.5), Claude writes a first version of both from the
+    script, for the user to edit.
+
+11.9 [S] A cron from plain words
+    "Every weekday at 7:30, but not in August" becomes a cron expression,
+    shown with the next three times it fires (see 1.3) for the user to check
+    before saving.
+
+11.10 [S] A digest of the failures, grouped by cause
+    Forty runs which failed on the same timeout are one problem, not forty.
+    A daily mail, or a card on the dashboard of 8.1, which groups the
+    failures of every template by their likely cause, a line for each.
+
+11.11 [S] A review on save
+    Next to the checks of 4.5, Claude points at what no schema catches: a
+    password typed into a script where a `$$(PLACEHOLDER)` belongs, a
+    `groovy` command which starts a process (see 5.8). A hint, never a
+    refusal.
+
+11.12 [M] Workflows as tools for agents: an MCP server
+    Claude Code, Claude Desktop or any other agent would list the
+    definitions and templates, start one with parameters, read the run and
+    its prints, and answer an approval, through the Model Context Protocol.
+    Most of it is in the REST API already: `schedule-now` on a definition
+    takes parameters and returns the id of the run, the prints are read
+    masked, and the API tokens of a user authenticate the calls with the
+    role of that user. Instead of SSH and database credentials, an agent
+    gets a few workflows somebody reviewed, with `approval` on the risky
+    ones and every action recorded as a run. Needs 4.9 for the input schema
+    of each tool, 7.4 to hand back a result, and approvals in the API (see
+    6.11).

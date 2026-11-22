@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.5 (2026-11-22)
+
+### Features
+
+* A *Features* page, for admins (`V13` migration adds it to the side menu, right after *Settings*), which turns parts of the application on and off while it runs - no restart, a change counts from the next call on:
+  * *REST API*, off by default: while it is off, every call to `/api/v1` gets `404`, before a token is even read. The profile page says so next to the API tokens and points to the *Features* page.
+  * *Claude*, off by default: the ground of the AI features below. Turning it on asks first, in a dialog which lists what will be sent to Anthropic, what is masked and what is not.
+  * *Editor tips*, on by default: the tips shown on the development page every few seconds.
+  * Every feature shows what turning it on means, what it needs - for Claude, whether `ANTHROPIC_API_KEY` is set and which model is used - and its status: *on*, *off* or, for Claude without a key, *on, no key*. A guide under the grid, folded like on every other page, explains them.
+  * An admin finds the features with the search in the header, by their name and their description.
+* Claude, through `com.anthropic:anthropic-java`:
+  * The API key is read from the `ANTHROPIC_API_KEY` environment variable of the server, never from a setting, as the settings are plain text in the database. Changing it takes a restart.
+  * The model is the new setting *Claude - Model* (`claude-haiku-5-5` by default); a command may name another.
+  * *Test connection* on the *Features* page asks Anthropic about that model with the key of the server. It uses no tokens and works while Claude is off, so the key can be tried first.
+  * Before anything leaves the server, a value under a name which holds `password` is masked, as it is in the prints, and so is every occurrence of the value of a parameter of type password and of a parameter or placeholder whose name holds `password`.
+  * A request which Claude declines is asked again on another Claude model, on Anthropic's side (`fallbacks`).
+  * A failing call says why: Claude turned off, no key, a key or a model Anthropic does not accept, a rate limit, a refusal, an answer cut at the token limit, a timeout, a cancelled run or an unreachable Anthropic.
+* A new `ai` command asks Claude and outputs its answer: `ai.prompt`, `ai.system`, `ai.model`, `ai.maxTokens` (`16000` by default), `ai.effort` (`low` to `max`), `ai.schema` and `ai.timeout` (five minutes by default).
+  * With `ai.schema`, a JSON schema written as a map, the answer is held to the schema and comes back as a `Map`, which `ifs`, `asserts` and `outputs` read and the prints show as a tree. An `enum` makes the command a classifier which the commands after it branch on. Every object of the schema gets `additionalProperties: false`, which Anthropic asks for.
+  * An answer cut at `ai.maxTokens` fails the command, and cancelling the run gives the call up at once.
+* A new `aiBatch` command sends many prompts at once through the Message Batches API, at half the price of as many `ai` commands: `aiBatch.prompts` (a list) plus the inputs of `ai`, the same for every prompt, `aiBatch.timeout` (a day by default) and `aiBatch.failOnError` (`true` by default). It outputs the answers in the order of the prompts.
+  * The run asks how the batch stands every 30 seconds. Cancelling the run, or a batch which outlasts `aiBatch.timeout`, cancels the batch on Anthropic's side too.
+  * A prompt which gets no answer fails the command, which names the first five of them; with `aiBatch.failOnError: false` its answer is `null` and the others are kept. A batch does not fall back to another model.
+* The editor completes the inputs of `ai` and `aiBatch`, the read-only pipeline of a definition draws both, and the README and the samples have an example of each - a ticket triaged by Claude.
+* A run tells the user who started it that it is over, on whichever page they are by then and in every tab they have open: a notification, green or red, with the short id of the run, its template, how long it took and a link to it on the runs page. The development page does not double what it shows for the run it started, and a run of a cron, which belongs to nobody, tells nobody.
+* Downloads (`V14` migration adds the setting *Download - Max size*):
+  * A new `download` command offers a file to download: `download.path`, a file or a directory, or `download.content`, a text of the run saved as `download.fileName`. It outputs the id of the file, `<run id>/<file name>`.
+  * With `download.host`, `download.username`, `download.password`, `download.port` and `download.timeout`, the path is read from another server, over SFTP. It is this server which connects to it, so only SSH between the two has to be open. A server without SFTP is read with `find` and `cat` over SSH instead, binary files included.
+  * A directory is always zipped. A file is zipped with `download.compress: always`, or with `auto`, the default, when it is larger than `download.compressAbove` (10 MB by default) and not compressed already. Zipping uses the JDK alone, and an archive has no password.
+  * What is offered is copied when the command runs, as a file and nothing else: `downloads/<run id>/<file name>`, under `my-workflows.config.download.base-directory`. A second file of a run with the same name is `<name> (2).<extension>`. A file larger than the setting *Download - Max size* (500 MB by default) fails the command, a cancelled run stops the copy, and neither leaves anything behind.
+  * `my-workflows.config.download.allowed-directories` keeps the paths of this server to the directories it lists, where a file really is. None, the default, means anywhere.
+  * The details of a run on the runs page list its files, each with a button, and so does the development page for the run it started, as soon as a file is there. A download is always saved, never opened by the browser.
+  * A file goes away with its run, like a report.
+  * Through the REST API: `GET /workflow-downloads?run=<run id>`, `GET /workflow-downloads/{runId}/{fileName}` and `GET /workflow-downloads/{runId}/{fileName}/content`, which is always an attachment. Like on the runs page, any user downloads what any run offers.
+  * The read-only pipeline of a definition draws the `download` command, the editor completes its inputs, and the README and the samples have an example.
+
+### Changes
+
+* The reports and the downloads share how a file of a run is named (`FileNameUtil`).
+* The properties `my-workflows.config.feature.restApiEnabled` and `my-workflows.config.feature.editorTipSchedulerEnabled` are read once, by the `V13` migration, the first time 2.5 starts: each switch of the *Features* page takes the value its property had. From then on the page decides and the properties are not read anymore.
+* The prints, the variables, the import and export and what is sent to Claude share one rule for what a secret is and how it is masked.
+
+### Dependencies
+
+* Added `com.anthropic:anthropic-java` 3.3.0.
+
 ## 2.4 (2026-10-18)
 
 ### Features

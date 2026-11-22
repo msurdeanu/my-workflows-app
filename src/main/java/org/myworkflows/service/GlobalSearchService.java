@@ -2,6 +2,7 @@ package org.myworkflows.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.myworkflows.domain.Feature;
 import org.myworkflows.domain.WorkflowParameter;
 import org.myworkflows.domain.WorkflowParameterType;
 import org.myworkflows.domain.command.CommandType;
@@ -9,10 +10,12 @@ import org.myworkflows.domain.search.GlobalSearchResult;
 import org.myworkflows.domain.search.GlobalSearchResult.Kind;
 import org.myworkflows.domain.transfer.WorkflowBundle;
 import org.myworkflows.holder.CommandTypeHolder;
+import org.myworkflows.provider.TranslationProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -23,8 +26,9 @@ import static org.myworkflows.serializer.SerializerFactory.toPrettyString;
 /**
  * The search of the header: definitions by their name and their script, templates by their name, the documentation
  * pages by their name and their text and the commands by their name, for everybody - a user who is no admin reads all of
- * them on their pages; parameters and placeholders by their name and their value, for admins only, as only an admin may
- * open their pages. The value of a secret is never searched, so that what a search finds does not tell it either.
+ * them on their pages; parameters and placeholders by their name and their value, and the features by their name and
+ * their description, for admins only, as only an admin may open their pages. The value of a secret is never searched,
+ * so that what a search finds does not tell it either.
  *
  * @author Mihai Surdeanu
  * @since 2.3
@@ -46,6 +50,7 @@ public class GlobalSearchService {
     private final WorkflowPlaceholderService workflowPlaceholderService;
     private final DocPageService docPageService;
     private final UserService userService;
+    private final TranslationProvider translationProvider;
 
     /**
      * Has to be called on the thread serving the user, who is told an admin or not by the database (see
@@ -61,7 +66,7 @@ public class GlobalSearchService {
         var matches = Stream.of(findDefinitions(term), findTemplates(term), findDocPages(term), findCommands(term))
             .flatMap(stream -> stream);
         if (userService.isCurrentUserAnAdmin()) {
-            matches = Stream.concat(matches, Stream.concat(findParameters(term), findPlaceholders(term)));
+            matches = Stream.concat(matches, Stream.of(findParameters(term), findPlaceholders(term), findFeatures(term)).flatMap(stream -> stream));
         }
         return matches
             .sorted(Comparator.comparingInt(Match::rank)
@@ -102,6 +107,15 @@ public class GlobalSearchService {
     private Stream<Match> findPlaceholders(String term) {
         return workflowPlaceholderService.getAllItems().flatMap(placeholder -> match(Kind.PLACEHOLDER, null, placeholder.getName(),
             WorkflowBundle.namesSecret(placeholder.getName()) ? null : placeholder.getValue(), term).stream());
+    }
+
+    private Stream<Match> findFeatures(String term) {
+        return Stream.of(Feature.values()).flatMap(feature -> match(Kind.FEATURE, null, translate(feature.getTranslationPrefix() + ".name"),
+            translate(feature.getTranslationPrefix() + ".description"), term).stream());
+    }
+
+    private String translate(String key) {
+        return translationProvider.getTranslation(key, Locale.ENGLISH);
     }
 
     private static boolean isSecret(WorkflowParameter parameter) {

@@ -6,9 +6,11 @@ import org.myworkflows.domain.RuntimeEvaluator;
 import org.myworkflows.domain.WorkflowDefinitionScript;
 import org.myworkflows.domain.command.AbstractCommand;
 import org.myworkflows.domain.command.AbstractSubCommand;
+import org.myworkflows.domain.command.AiCommand;
 import org.myworkflows.domain.command.ApprovalCommand;
 import org.myworkflows.domain.command.CommandType;
 import org.myworkflows.domain.command.DatabaseCommand;
+import org.myworkflows.domain.command.DownloadCommand;
 import org.myworkflows.domain.command.GroovyCommand;
 import org.myworkflows.domain.command.HttpRequestCommand;
 import org.myworkflows.domain.command.JavaCommand;
@@ -42,8 +44,10 @@ public final class WorkflowDefinitionScriptToPipelineTransformer implements Tran
      * The input which says the most about a command, by the type of the command.
      */
     static final Map<String, String> DETAIL_INPUTS = Map.ofEntries(
+        entry(AiCommand.PREFIX, "prompt"),
         entry(ApprovalCommand.PREFIX, "message"),
         entry(DatabaseCommand.PREFIX, "url"),
+        entry(DownloadCommand.PREFIX, "path"),
         entry(GroovyCommand.PREFIX, "method"),
         entry(HttpRequestCommand.PREFIX, "url"),
         entry(JavaCommand.PREFIX, "method"),

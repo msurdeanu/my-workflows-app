@@ -3,9 +3,12 @@ package org.myworkflows.view.util;
 import de.f0rce.ace.AceEditor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.myworkflows.domain.command.AiBatchCommand;
+import org.myworkflows.domain.command.AiCommand;
 import org.myworkflows.domain.command.ApprovalCommand;
 import org.myworkflows.domain.command.CommandType;
 import org.myworkflows.domain.command.DatabaseCommand;
+import org.myworkflows.domain.command.DownloadCommand;
 import org.myworkflows.domain.command.GroovyCommand;
 import org.myworkflows.domain.command.HttpRequestCommand;
 import org.myworkflows.domain.command.JavaCommand;
@@ -37,8 +40,12 @@ public final class EditorAutoCompleteUtil {
 
     static {
         WORKFLOW_KEYWORDS.addAll(List.of("class", "name", "value", "ifs", "inputs", "asserts", "outputs", "commands", "subcommands", "finallyCommands"));
+        COMMAND_INPUTS_COMPLETER.put(AiCommand.PREFIX, List.of("prompt", "system", "model", "maxTokens", "effort", "schema", "timeout"));
+        COMMAND_INPUTS_COMPLETER.put(AiBatchCommand.PREFIX, List.of("prompts", "system", "model", "maxTokens", "effort", "schema", "timeout", "failOnError"));
         COMMAND_INPUTS_COMPLETER.put(ApprovalCommand.PREFIX, List.of("message", "timeout"));
         COMMAND_INPUTS_COMPLETER.put(DatabaseCommand.PREFIX, List.of("url", "query"));
+        COMMAND_INPUTS_COMPLETER.put(DownloadCommand.PREFIX, List.of("path", "content", "fileName", "compress", "compressAbove", "host", "username",
+            "password", "port", "timeout"));
         COMMAND_INPUTS_COMPLETER.put(MailCommand.PREFIX, List.of("from", "to", "cc", "bcc", "subject", "body", "props", "bodyType", "username", "password"));
         COMMAND_INPUTS_COMPLETER.put(GroovyCommand.PREFIX, List.of("script", "method"));
         COMMAND_INPUTS_COMPLETER.put(HttpRequestCommand.PREFIX, List.of("url", "method", "body", "headers", "timeout"));

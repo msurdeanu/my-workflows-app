@@ -109,12 +109,14 @@ public final class WorkflowRunServiceTest {
     }
 
     @Test
-    public void whenRunIsDeletedThenItsReportsAreDeletedWithIt() {
+    public void whenRunIsDeletedThenItsReportsAndDownloadsAreDeletedWithIt() {
         // given
         final var workflowRunRepository = mock(WorkflowRunRepository.class);
         final var workflowReportService = mock(WorkflowReportService.class);
+        final var workflowDownloadService = mock(WorkflowDownloadService.class);
         when(applicationManager.getBeanOfType(WorkflowRunRepository.class)).thenReturn(workflowRunRepository);
         when(applicationManager.getBeanOfType(WorkflowReportService.class)).thenReturn(workflowReportService);
+        when(applicationManager.getBeanOfType(WorkflowDownloadService.class)).thenReturn(workflowDownloadService);
         final var workflowRun = new WorkflowRun();
 
         // when
@@ -123,15 +125,18 @@ public final class WorkflowRunServiceTest {
         // then
         verify(workflowRunRepository).delete(workflowRun);
         verify(workflowReportService).deleteAllOf(List.of(workflowRun.getId()));
+        verify(workflowDownloadService).deleteAllOf(List.of(workflowRun.getId()));
     }
 
     @Test
-    public void whenOldestRunsAreTrimmedThenTheirReportsAreDeletedWithThem() {
+    public void whenOldestRunsAreTrimmedThenTheirReportsAndDownloadsAreDeletedWithThem() {
         // given
         final var workflowRunRepository = mock(WorkflowRunRepository.class);
         final var workflowReportService = mock(WorkflowReportService.class);
+        final var workflowDownloadService = mock(WorkflowDownloadService.class);
         when(applicationManager.getBeanOfType(WorkflowRunRepository.class)).thenReturn(workflowRunRepository);
         when(applicationManager.getBeanOfType(WorkflowReportService.class)).thenReturn(workflowReportService);
+        when(applicationManager.getBeanOfType(WorkflowDownloadService.class)).thenReturn(workflowDownloadService);
         when(settingProvider.getOrDefault("workflowRunMaxSize", 250)).thenReturn(1);
         final var cutoff = Instant.now();
         final var trimmedRunIds = List.of(UUID.randomUUID(), UUID.randomUUID());
@@ -144,6 +149,7 @@ public final class WorkflowRunServiceTest {
         // then
         verify(workflowRunRepository).deleteAllById(trimmedRunIds);
         verify(workflowReportService).deleteAllOf(trimmedRunIds);
+        verify(workflowDownloadService).deleteAllOf(trimmedRunIds);
     }
 
     @Test

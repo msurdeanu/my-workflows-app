@@ -3,10 +3,9 @@ package org.myworkflows.domain.transfer;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.WorkflowDefinitionScript;
 import org.myworkflows.domain.WorkflowParameterType;
-import org.myworkflows.domain.WorkflowRunPrint;
+import org.myworkflows.util.SecretMasker;
 
 import java.time.Instant;
 import java.util.List;
@@ -48,7 +47,7 @@ public record WorkflowBundle(int format, Origin exported, List<Placeholder> plac
      *     masked with: its name says so.
      */
     public static boolean namesSecret(String name) {
-        return StringUtils.containsIgnoreCase(name, WorkflowRunPrint.PASSWORD);
+        return SecretMasker.isSecretName(name);
     }
 
     private static <T> List<T> withoutNulls(List<T> items) {

@@ -17,6 +17,7 @@ import com.vaadin.flow.router.RouterLink;
 import org.myworkflows.domain.search.GlobalSearchResult;
 import org.myworkflows.service.GlobalSearchService;
 import org.myworkflows.view.DocPageView;
+import org.myworkflows.view.FeatureView;
 import org.myworkflows.view.WorkflowDevelopmentView;
 import org.myworkflows.view.WorkflowParameterView;
 import org.myworkflows.view.WorkflowPlaceholderView;
@@ -226,7 +227,8 @@ public final class GlobalSearch extends NativeButton {
 
     /**
      * Where a result is opened: a definition in the development page, which shows its script - read-only for a user who
-     * is no admin -, a documentation page or the command reference on its tab, and the rest on its own page, filtered.
+     * is no admin -, a documentation page or the command reference on its tab, a feature on the page which lists them all,
+     * and the rest on its own page, filtered.
      * {@link #createLink} goes to the same places.
      */
     private static void navigate(UI ui, GlobalSearchResult result) {
@@ -234,6 +236,7 @@ public final class GlobalSearch extends NativeButton {
             case DEFINITION -> ui.navigate(WorkflowDevelopmentView.class, result.id());
             case TEMPLATE -> ui.navigate(WorkflowTemplateView.class, result.id());
             case DOC_PAGE, COMMAND -> ui.navigate(DocPageView.class, docPageOf(result));
+            case FEATURE -> ui.navigate(FeatureView.class);
             default -> ui.navigate(filteredViewOf(result.kind()), byName(result));
         }
     }
@@ -265,6 +268,7 @@ public final class GlobalSearch extends NativeButton {
             case DEFINITION -> link.setRoute(WorkflowDevelopmentView.class, result.id());
             case TEMPLATE -> link.setRoute(WorkflowTemplateView.class, result.id());
             case DOC_PAGE, COMMAND -> link.setRoute(DocPageView.class, docPageOf(result));
+            case FEATURE -> link.setRoute(FeatureView.class);
             default -> {
                 link.setRoute(filteredViewOf(result.kind()));
                 link.setQueryParameters(byName(result));
@@ -303,6 +307,7 @@ public final class GlobalSearch extends NativeButton {
             case COMMAND -> VaadinIcon.TERMINAL;
             case PARAMETER -> VaadinIcon.OPTIONS;
             case PLACEHOLDER -> VaadinIcon.ARCHIVES;
+            case FEATURE -> VaadinIcon.FLAG;
         };
     }
 

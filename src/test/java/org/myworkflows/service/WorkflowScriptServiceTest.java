@@ -3,11 +3,15 @@ package org.myworkflows.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.myworkflows.ApplicationManager;
 import org.myworkflows.EventBroadcaster;
 import org.myworkflows.domain.WorkflowDefinitionScript;
+import org.myworkflows.domain.WorkflowDownload;
+import org.myworkflows.domain.WorkflowDownloadCompression;
+import org.myworkflows.domain.WorkflowDownloadRequest;
 import org.myworkflows.domain.WorkflowReport;
 import org.myworkflows.domain.WorkflowReportFormat;
 import org.myworkflows.domain.WorkflowRun;
@@ -18,12 +22,14 @@ import org.myworkflows.domain.WorkflowRunPause.Action;
 import org.myworkflows.domain.WorkflowRunPause.Resume;
 import org.myworkflows.domain.WorkflowRunVariable;
 import org.myworkflows.domain.WorkflowRunVariable.Change;
+import org.myworkflows.domain.download.ContentDownloadSource;
 import org.myworkflows.domain.event.Event;
 import org.myworkflows.domain.event.WorkflowDefinitionOnProgressEvent;
 import org.myworkflows.domain.event.WorkflowDefinitionOnSubmitEvent;
 import org.myworkflows.serializer.SerializerFactory;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -123,10 +129,14 @@ public final class WorkflowScriptServiceTest {
     @Mock
     private WorkflowReportService workflowReportService;
 
+    @Mock
+    private WorkflowDownloadService workflowDownloadService;
+
     @BeforeEach
     public void init() {
         // every submitted run is handed the writer of its reports, which only some of the tests use
         lenient().when(applicationManager.getBeanOfType(WorkflowReportService.class)).thenReturn(workflowReportService);
+        lenient().when(applicationManager.getBeanOfType(WorkflowDownloadService.class)).thenReturn(workflowDownloadService);
     }
 
     @Test
@@ -164,6 +174,44 @@ public final class WorkflowScriptServiceTest {
         // then
         assertNull(workflowRun.getFailureMessage());
         assertEquals(workflowReport.id(), workflowRun.getCache().get("reportId"));
+    }
+
+    @Test
+    public void whenRunHasADownloadCommandThenTheFileIsWrittenByTheServiceWithTheDefaultsOfTheCommand() throws Exception {
+        // given
+        final var script = toObject("""
+            commands:
+            - name: Offer it
+              class: download
+              inputs:
+              - name: download.content
+                value: "a;b"
+              - name: download.fileName
+                value: orders.csv
+              outputs:
+              - name: downloadId
+                class: java
+                value: output
+            """, WorkflowDefinitionScript.class);
+        final var executorService = Executors.newSingleThreadExecutor();
+        final var workflowScriptService = new WorkflowScriptService(executorService, applicationManager);
+        when(applicationManager.getBeanOfType(EventBroadcaster.class)).thenReturn(eventBroadcaster);
+        when(applicationManager.getBeanOfType(WorkflowPlaceholderService.class)).thenReturn(workflowPlaceholderService);
+        final var request = ArgumentCaptor.forClass(WorkflowDownloadRequest.class);
+        final var workflowDownload = new WorkflowDownload(UUID.randomUUID(), "orders.csv", 3, Instant.now(), null, null);
+        when(workflowDownloadService.write(any(WorkflowRun.class), request.capture())).thenReturn(workflowDownload);
+
+        // when
+        final var workflowRun = run(workflowScriptService, script, executorService);
+        executorService.shutdown();
+        assertTrue(executorService.awaitTermination(30, TimeUnit.SECONDS));
+
+        // then
+        assertNull(workflowRun.getFailureMessage());
+        assertEquals(workflowDownload.id(), workflowRun.getCache().get("downloadId"));
+        assertEquals(new ContentDownloadSource("a;b", "orders.csv"), request.getValue().source());
+        assertEquals(WorkflowDownloadCompression.AUTO, request.getValue().compression());
+        assertEquals(10L * 1024 * 1024, request.getValue().compressAbove());
     }
 
     @Test

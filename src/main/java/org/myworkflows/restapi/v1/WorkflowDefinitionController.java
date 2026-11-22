@@ -17,7 +17,6 @@ import org.myworkflows.restapi.dto.WorkflowDuplicateRequest;
 import org.myworkflows.service.WorkflowDefinitionService;
 import org.myworkflows.service.WorkflowScriptService;
 import org.myworkflows.util.SecurityUtil;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -49,7 +48,6 @@ import static org.myworkflows.serializer.SerializerFactory.toObject;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "my-workflows.config.feature.restApiEnabled", havingValue = "true")
 public class WorkflowDefinitionController {
 
     private final ApplicationManager applicationManager;

@@ -136,6 +136,14 @@ public class WorkflowRun {
     @Transient
     private volatile WorkflowReportWriter reportWriter;
 
+    /**
+     * Who writes the files its commands offer to download, set when the run is submitted, like the writer of the
+     * reports.
+     */
+    @Setter
+    @Transient
+    private volatile WorkflowDownloadWriter downloadWriter;
+
     public WorkflowRun() {
         this(null, null);
     }
@@ -221,6 +229,19 @@ public class WorkflowRun {
             throw new WorkflowRuntimeException("Workflow run '" + id + "' cannot write reports, as it was not submitted to be run.");
         }
         return writer.write(this, title, format, content);
+    }
+
+    /**
+     * @return the file a command offers to download from this run.
+     * @throws WorkflowRuntimeException when the run cannot write files - it was not submitted - or the file cannot be
+     *     written.
+     */
+    public WorkflowDownload writeDownload(WorkflowDownloadRequest request) {
+        final var writer = downloadWriter;
+        if (writer == null) {
+            throw new WorkflowRuntimeException("Workflow run '" + id + "' cannot offer files to download, as it was not submitted to be run.");
+        }
+        return writer.write(this, request);
     }
 
     public boolean isWaitingForApproval() {

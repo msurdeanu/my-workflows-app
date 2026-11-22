@@ -3,8 +3,9 @@ package org.myworkflows.config;
 import com.vaadin.flow.spring.security.VaadinAwareSecurityContextHolderStrategyConfiguration;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.domain.UserRole;
+import org.myworkflows.restapi.filter.RestApiFeatureFilter;
 import org.myworkflows.restapi.filter.UserTokenFilter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.myworkflows.service.FeatureService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -19,15 +20,19 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.session.DisableEncodeUrlFilter;
 
 /**
+ * The security chain of {@code /api/**}. It is there whether the REST API is turned on or not: its first filter,
+ * {@link RestApiFeatureFilter}, answers {@code 404} while it is off, so that the features page turns it on and off
+ * while the application runs.
+ *
  * @author Mihai Surdeanu
  * @since 1.0
  */
 @Configuration("securityApiConfig")
 @RequiredArgsConstructor
 @Import(VaadinAwareSecurityContextHolderStrategyConfiguration.class)
-@ConditionalOnProperty(name = "my-workflows.config.feature.restApiEnabled", havingValue = "true")
 public class SecurityApiConfig {
 
     private static final String ADMIN = UserRole.ADMIN.getLabel();
@@ -35,7 +40,7 @@ public class SecurityApiConfig {
     @Order(0)
     @Bean
     public SecurityFilterChain securityFilterApi(HttpSecurity http, AuthenticationProvider authenticationProvider,
-                                                 UserTokenFilter userTokenFilter) throws Exception {
+                                                 UserTokenFilter userTokenFilter, FeatureService featureService) throws Exception {
         final var httpSecurity = http
             .securityMatcher("/api/**")
             // A call is authenticated by the token it carries, not by a session cookie, so there is nothing a
@@ -45,7 +50,7 @@ public class SecurityApiConfig {
             // What only an admin may do on a page, only an admin may do here: change a definition or a template, and
             // anything about the parameters and the placeholders, whose pages nobody else opens. Reading and running
             // is left to every user, and so is cancelling, deleting and replaying a run, like on the runs page, and
-            // reading and deleting a report, like on the reports page.
+            // reading and deleting a report, like on the reports page, and downloading what a run offers.
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/workflow-parameters/**", "/api/v1/workflow-placeholders/**").hasAuthority(ADMIN)
                 .requestMatchers(HttpMethod.POST, "/api/v1/workflow-definitions", "/api/v1/workflow-templates",
@@ -54,6 +59,8 @@ public class SecurityApiConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/workflow-definitions/*", "/api/v1/workflow-templates/*").hasAuthority(ADMIN)
                 .requestMatchers("/api/v1/**").authenticated());
 
+        // before anything else of the chain, so that a call to an API which is turned off is not even authenticated
+        http.addFilterBefore(new RestApiFeatureFilter(featureService), DisableEncodeUrlFilter.class);
         http.authenticationProvider(authenticationProvider);
         http.addFilterBefore(userTokenFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.2.0</version>
     </parent>
 
     <properties>
@@ -23,18 +23,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <vaadin.version>25.3.1</vaadin.version>
+        <vaadin.version>25.3.5</vaadin.version>
         <ace.version>5.0.1</ace.version>
         <markdown-editor-addon.version>2.0.3</markdown-editor-addon.version>
-        <commonmark.version>0.30.0</commonmark.version>
+        <commonmark.version>0.33.0</commonmark.version>
         <grid-pagination.version>4.0.1</grid-pagination.version>
         <lombok.version>1.18.48</lombok.version>
         <groovy.version>6.0.0</groovy.version>
         <janino.version>3.1.12</janino.version>
         <maverick-synergy-client.version>3.2.0</maverick-synergy-client.version>
         <angus-mail.version>2.0.5</angus-mail.version>
-        <json-schema-validator.version>3.0.8</json-schema-validator.version>
-        <mockito-junit-jupiter.version>5.24.0</mockito-junit-jupiter.version>
+        <json-schema-validator.version>3.0.9</json-schema-validator.version>
+        <anthropic-java.version>3.12.0</anthropic-java.version>
     </properties>
 
     <scm>
@@ -208,6 +208,11 @@
             <version>${commonmark.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.anthropic</groupId>
+            <artifactId>anthropic-java</artifactId>
+            <version>${anthropic-java.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
@@ -220,7 +225,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockito-junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -304,7 +308,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>14.3.0</version>
+                        <version>14.4.0</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -312,7 +316,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.15</version>
+                <version>0.8.16</version>
                 <configuration>
                     <excludes>
                         <exclude>org/myworkflows/view/**/*</exclude>

@@ -60,9 +60,15 @@ More of the application under [Screenshots](#screenshots).
 * **Reports**: a `report` command writes a Markdown or HTML text, built by the workflow, into a `reports` directory. The
   *Workflow Reports* page lists them, filtered by format, template, run or title, and shows the chosen one next to the
   list, in a frame which runs no script. A report goes away with its run. See [Report command](#report-command).
+* **Downloads**: a `download` command offers a file to download - a text of the run, or a file or a directory of this
+  server or of another one, read over SSH - with a button in the details of the run and on the development page. A
+  directory, or a file large enough, is zipped on the way. See [Download command](#download-command).
 * Each workflow run keeps track of the user who triggered it, and the runs page can be filtered down to your own runs.
 * The runs page follows the runs by itself: a run started by a cron, by another user or through the REST API shows up
   without a reload, and its badge turns into the outcome once it is over.
+* **Tells you when your run is over**: whichever page you are on, a run you started - from a template, a definition or
+  the REST API - ends with a notification which says how it went and links to the run. The development page, which
+  shows the outcome of the run it started, does not double it, and a run of a cron belongs to nobody.
 * Dedicated web pages for managing **workflow placeholders**, **workflow parameters**, **workflow definitions**,
   **workflow templates**, and **workflow runs**.
 * **Import and export**, for admins: templates, definitions, parameters and placeholders are written to a YAML file or
@@ -73,12 +79,12 @@ More of the application under [Screenshots](#screenshots).
   same parameters and cron, starts paused, and gets its own copy of the parameters meant for the original alone
   (`timeout.42` becomes `timeout.57`). On the development page, *Save as copy* saves the editor as a new definition and
   leaves the one it was opened with as it was saved.
-* A **REST API**, off by default: workflow definitions, templates, parameters and placeholders are read, created,
+* A **REST API**, off by default and turned on by an admin on the *Features* page: workflow definitions, templates, parameters and placeholders are read, created,
   updated and deleted, and runs are started, followed, cancelled, replayed and deleted, with their printed values. A
   call has the rights its user has on the pages. See [REST API](#rest-api).
 * The filters of a page live in its URL, like `/workflow/runs?mine=true&template=3`, so a filtered page survives Back and
   can be bookmarked or shared. A chip names each filter in use and removes it with a click.
-* A guide on the runs, reports, templates, definitions, parameters, placeholders, libraries, import and export and
+* A guide on the runs, reports, templates, definitions, parameters, placeholders, libraries, import and export, features and
   development pages: a legend of what the page shows, the steps of its main task and a few things worth knowing. It starts folded
   and is opened page by page.
 * A dedicated web page for managing **Java libraries** at runtime.
@@ -89,6 +95,13 @@ More of the application under [Screenshots](#screenshots).
   type and default value, its output and an example.
 * A dedicated web page for viewing and analyzing **statistics**.
 * A dedicated web page for editing application **settings**.
+* A **Features** page, for admins, which turns the REST API, Claude and the editor tips on and off while the
+  application runs. See [Features page](#features-page).
+* **Claude**, off by default: the ground of the AI features. The API key comes from the `ANTHROPIC_API_KEY`
+  environment variable, the model from the settings, and what is sent is masked first. See [Claude](#claude).
+* An **`ai` command**, which asks Claude and outputs its answer - a text, or, with a JSON schema, a map which the
+  commands after it branch on - and an **`aiBatch`** one, which asks many prompts at once at half the price. See
+  [Claude command](#claude-command).
 
 ## Screenshots
 
@@ -577,6 +590,40 @@ A few rules are worth knowing:
 * **Commands of a library.** A definition which uses a command of a library the other instance does not have is
   imported as it is written, and fails at that command when it runs - until the library is uploaded there.
 
+#### Features page
+
+The *Features* page, for admins, turns parts of the application on and off while it runs - no restart, the change
+counts from the next call on:
+
+| Feature       | Off by default | What turning it on means                                                                  |
+|---------------|----------------|-------------------------------------------------------------------------------------------|
+| REST API      | yes            | Calls to `/api/v1` are answered. While it is off, every call gets `404`, before a token is even read. |
+| Claude        | yes            | The features of the application which call Claude may send what they need to Anthropic.   |
+| Editor tips   | no             | A tip about the editor shows up on the development page every few seconds.                 |
+
+Before version 2.5 the REST API and the tips were turned on by the properties
+`my-workflows.config.feature.restApiEnabled` and `my-workflows.config.feature.editorTipSchedulerEnabled`. The first
+time 2.5 starts, each switch takes the value its property had; from then on the page decides and the properties are not
+read anymore.
+
+#### Claude
+
+Claude is the ground of the AI features of the application: one switch turns all of them on, and nothing is sent to
+Anthropic until an admin turns it on, on the *Features* page. Turning it on asks first, and lists what will be sent.
+What calls it today are the [`ai`](#claude-command) and [`aiBatch`](#claude-batch-command) commands.
+
+* The API key is read from the `ANTHROPIC_API_KEY` environment variable of the server, never from a setting: the
+  settings and placeholders are plain text in the database. Changing it takes a restart. Without it, the page shows
+  *on, no key* and every call fails with a message instead of being made.
+* The model is the setting *Claude - Model* (`claude-haiku-5-5` by default); a command may name another.
+* *Test connection* asks Anthropic about that model with the key of the server. It uses no tokens and works while
+  Claude is off, so the key can be tried first.
+* Before anything leaves the server, a value under a name which holds `password` is masked, as it is in the prints,
+  and so is every occurrence of the value of a parameter of type password and of a parameter or placeholder whose name
+  holds `password`. A secret the application does not know about - a password typed into a JDBC URL - is not.
+* A request which Claude declines is asked again on another Claude model, on Anthropic's side (`fallbacks`). A batch
+  does not take them: a prompt of an `aiBatch` which Claude declines gets no answer.
+
 #### Shortcuts
 
 Keyboard shortcuts are available in several views to make your work faster.
@@ -597,8 +644,8 @@ Keyboard shortcuts are available in several views to make your work faster.
 
 The app also provides a REST API that lets you interact with it programmatically.
 
-The REST API is disabled by default. You can enable it by setting the application config property
-`my-workflows.config.feature.restApiEnabled` to `true`.
+The REST API is turned off by default. An admin turns it on - and off - on the *Features* page, while the
+application runs; see [Features page](#features-page). While it is off, every call gets `404`.
 
 A REST API call is authenticated by an API token (64 random characters). A user creates their tokens on their profile
 page, as many as they need: each one has a name and either expires after 7, 30, 90 or 365 days or works until it is
@@ -728,6 +775,22 @@ A `WorkflowReportResponse` carries the `id` of the report (`<run id>/<file name>
 `workflowTemplateId` and `userId` of the run which wrote it, the `title`, the `format` (`markdown` or `html`), the
 `fileName`, the `size` in bytes and when the file was last written (`created`). Like on the reports page, any user
 reads and deletes any report.
+
+##### `WorkflowDownload` APIs
+
+A file a run offers is told by its run and its name, so `{runId}` is the whole id of the run and `{fileName}` the name
+of the file, URL-encoded.
+
+| Method | URI                                                     | Description                                                                                                                                  |
+|--------|---------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET`  | `/api/v1/workflow-downloads?run=<run id>`               | Returns the files of a run, the oldest first, as a list of `WorkflowDownloadResponse` objects. `run` is the whole UUID, and it is mandatory. |
+| `GET`  | `/api/v1/workflow-downloads/{runId}/{fileName}`         | Returns a single file as a `WorkflowDownloadResponse` object.                                                                                |
+| `GET`  | `/api/v1/workflow-downloads/{runId}/{fileName}/content` | Returns the file itself, as one to save (`Content-Disposition: attachment`, `application/octet-stream`), or `404` when it is gone.          |
+
+A `WorkflowDownloadResponse` carries the `id` of the file (`<run id>/<file name>`), the `workflowRunId`, the
+`fileName`, the `size` in bytes, when it was written (`created`) and, for a zip archive, how many files it holds
+(`zipEntries`) and their size once unpacked (`zipContentSize`). Like on the runs page, any user downloads what any run
+offers.
 
 ##### `WorkflowParameter` APIs
 
@@ -905,6 +968,163 @@ commands:
           sb.toString()
     outputs:
       - name: salesReportId
+        class: groovy
+        value: output
+```
+
+### Download command
+
+Offers a file to download: the details of the run, on the runs page, list it with a button, and so does the development
+page for the run it started, above its prints, as soon as it is there.
+
+| `class`    | Inputs | Output |
+|------------|--------|--------|
+| `download` | <ul><li><em>download.path</em>: A file or a directory. Of this server, unless `download.host` is given.</li><li><em>download.content</em>: A text of the run to offer as a file, instead of a path.</li><li><em>download.fileName</em>: The name of the file to download. Default value: the name of the path. Mandatory with `download.content`.</li><li><em>download.compress</em>: Optional. `auto`, `always` or `never`. Default value: `auto`.</li><li><em>download.compressAbove</em>: Optional. The size in MB above which `auto` zips a file. Default value: `10`.</li><li><em>download.host</em>: Optional. Another server, to read `download.path` from over SSH.</li><li><em>download.username</em>, <em>download.password</em>: Mandatory with `download.host`.</li><li><em>download.port</em>: Optional. Default value: `22`.</li><li><em>download.timeout</em>: Optional. How long to wait for the server to answer, in milliseconds. Default value: `60000`.</li></ul> | The id of the file: `<run id>/<file name>`. |
+
+What is offered is copied when the command runs, into `downloads/<run id>/` under the directory set by
+`my-workflows.config.download.base-directory`, so it can still be downloaded once its source changed or is gone, and
+nothing but that directory is ever served. Like a report, it is a file and nothing else, and it goes away with its run.
+
+* A directory is always zipped, its files under its name (`logs/a.log`, `logs/old/b.log`); the links in it are left
+  out. `never` is refused for a directory.
+* A file is zipped with `always`, and with `auto` when it is larger than `download.compressAbove` and not compressed
+  already - a `.gz`, `.zip`, `.7z`, a picture, a video, a PDF or an Office document is kept as it is. A zipped file
+  gets `.zip` at the end of its name.
+* Zipping uses nothing but the JDK, and a zip archive is not protected by a password.
+* A second file of the run with the same name is `<name> (2).<extension>`.
+* A file larger than the setting *Download - Max size* (500 MB by default) fails the command. It is the size of what
+  is kept, once zipped. A cancelled run stops the copy, and a copy which fails leaves nothing behind.
+* `my-workflows.config.download.allowed-directories` keeps `download.path` on this server to the directories it lists,
+  where the file really is - a link out of them is refused. None, the default, means anywhere.
+* With `download.host`, the server **this application runs on** connects to the other one, over SFTP. The browser of
+  the user only talks to this application, so only the port of SSH between the two servers has to be open: if an
+  `sshExec` command reaches that server, so does a download. A server which runs commands over SSH but does not offer
+  SFTP is read with `find` and `cat` instead, a file being copied as it comes, binary or not.
+* A download is always saved by the browser, never opened in the page.
+
+Like any input, these stay in the run once they are set. A second `download` command gets the `download.path` or the
+`download.host` of the first one, so it sets the ones it does not use to an empty text.
+
+Example commands, which offer the logs of another server as a zip archive and a CSV built by the run:
+
+```yaml
+commands:
+  - name: Offer the logs
+    class: download
+    inputs:
+      - name: download.host
+        value: app-02.internal
+      - name: download.username
+        value: deploy
+      - name: download.password
+        value: $(sshPassword)
+      - name: download.path
+        value: /var/log/app
+  - name: Offer the orders
+    class: download
+    inputs:
+      - name: download.host
+        value: ""
+      - name: download.path
+        value: ""
+      - name: download.content
+        class: groovy
+        value: |
+          "id;total\n" + $(orders:List.class).collect { it.id + ";" + it.total }.join("\n")
+      - name: download.fileName
+        value: orders.csv
+    outputs:
+      - name: ordersFileId
+        class: groovy
+        value: output
+```
+
+### Claude command
+
+Sends a prompt to Claude and outputs its answer: what an `sshExec` printed, summed up; the body of a `mail`; the triage
+of a ticket. Nothing is sent unless Claude is turned on, on the *Features* page, and the server has an API key; the
+prompt and the system text are masked first. See [Claude](#claude).
+
+| `class` | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Output                                                                                                         |
+|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| `ai`    | <ul><li><strong>ai.prompt</strong>: Mandatory. What Claude is asked.</li><li><em>ai.system</em>: Optional. The system text: who Claude is and how it answers.</li><li><em>ai.model</em>: Optional. The model to ask. Default value: the setting <em>Claude - Model</em>.</li><li><em>ai.maxTokens</em>: Optional. The most the answer may take, thinking included. Default value: `16000`.</li><li><em>ai.effort</em>: Optional. How hard Claude thinks: `low`, `medium`, `high`, `xhigh` or `max`. Default value: the default of the model.</li><li><em>ai.schema</em>: Optional. A JSON schema, written as a map, which the answer is held to.</li><li><em>ai.timeout</em>: Optional. How long Claude may take, in milliseconds. Default value: `300000` (five minutes).</li></ul> | The text of the answer, or - with a schema - what the answer says: a `Map` for an object, in the order of its fields. |
+
+With `ai.schema`, the answer is held to the schema and comes back as a `Map`: `ifs` and `asserts` read its fields,
+`outputs` keep them, and the prints show it as a tree. An `enum` in the schema makes the command a classifier which the
+commands after it branch on:
+
+```yaml
+commands:
+  - name: triage
+    class: ai
+    inputs:
+      - name: ai.prompt
+        class: groovy
+        value: "'Triage this ticket: ' + $(ticketBody)"
+      - name: ai.schema
+        value:
+          type: object
+          properties:
+            severity: { enum: [low, high, outage] }
+            summary: { type: string }
+          required: [severity, summary]
+    outputs:
+      - name: triage
+        class: groovy
+        value: output
+  - name: page the on-call engineer
+    class: mail
+    ifs:
+      - name: only for an outage
+        class: groovy
+        value: $(triage).severity == 'outage'
+    # the inputs of the mail
+```
+
+A few rules are worth knowing:
+
+* **What a schema may say.** Anthropic takes an object only when it says that no other field may be added, so every
+  object of the schema which says nothing about it gets `additionalProperties: false`. Types, `enum`, `const`,
+  `anyOf`, `allOf`, `$ref` and the common string formats are taken; numeric and length limits (`minimum`,
+  `maxLength`...) are not, and Anthropic refuses the call with a message which says so.
+* **Inputs stay in the run.** Like any input, `ai.schema` - and `ai.model`, `ai.effort`... - stays in the run once it is
+  set, so a later `ai` command which names no schema is held to the same one. Give it `value: {}` to get a text again.
+* **When the command fails.** When Claude is turned off or there is no key; when Claude declines, and so does the model
+  it falls back to; when the answer reaches `ai.maxTokens` before its end - a text half written, a JSON which cannot be
+  read -; when it takes longer than `ai.timeout`. Cancelling the run gives the call up at once.
+
+### Claude batch command
+
+Sends many prompts to Claude at once, through the Message Batches API: half the price of as many `ai` commands, but the
+answers come when Anthropic is done with all of them - often within minutes, at most within a day - and the run waits
+for them. It fits a nightly loop over hundreds of items better than a `loop` of `ai` commands.
+
+| `class`   | Inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Output                                                                                                           |
+|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| `aiBatch` | <ul><li><strong>aiBatch.prompts</strong>: Mandatory. The prompts, as a list; an item which is not a text is turned into one.</li><li><em>aiBatch.system</em>, <em>aiBatch.model</em>, <em>aiBatch.maxTokens</em>, <em>aiBatch.effort</em>, <em>aiBatch.schema</em>: Optional. As for the `ai` command, the same for every prompt.</li><li><em>aiBatch.timeout</em>: Optional. How long the whole batch may take, in milliseconds. Default value: `86400000` (a day).</li><li><em>aiBatch.failOnError</em>: Optional. Whether a prompt which gets no answer fails the command. Default value: `true`.</li></ul> | A `List` of the answers, in the order of the prompts: texts, or maps with a schema. |
+
+* The run asks how the batch stands every 30 seconds. Cancelling the run, or a batch which outlasts `aiBatch.timeout`,
+  cancels the batch on Anthropic's side too.
+* A prompt which gets no answer - an error, a refusal, an answer cut at `aiBatch.maxTokens` - fails the command, which
+  names the first five of them. With `aiBatch.failOnError` set to `false`, its answer is `null` instead and the others
+  are kept. A batch does not fall back to another model when Claude declines.
+
+```yaml
+commands:
+  - name: triage the tickets of the day
+    class: aiBatch
+    inputs:
+      - name: aiBatch.prompts
+        class: groovy
+        value: |
+          $(tickets).collect { "Triage this ticket: ${it.body}" }
+      - name: aiBatch.schema
+        value:
+          type: object
+          properties:
+            severity: { enum: [low, high, outage] }
+    outputs:
+      - name: triages
         class: groovy
         value: output
 ```

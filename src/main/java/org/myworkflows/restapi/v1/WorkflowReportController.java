@@ -5,7 +5,6 @@ import org.myworkflows.ApplicationManager;
 import org.myworkflows.domain.WorkflowReport;
 import org.myworkflows.restapi.dto.WorkflowReportResponse;
 import org.myworkflows.service.WorkflowReportService;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -34,7 +33,6 @@ import static org.myworkflows.restapi.RestApiUtil.notFound;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "my-workflows.config.feature.restApiEnabled", havingValue = "true")
 public class WorkflowReportController {
 
     private final ApplicationManager applicationManager;
