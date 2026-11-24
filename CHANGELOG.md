@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.6 (2026-11-24)
+
+### Changes
+
+* Claude is called through the HTTP client of the JDK (`AnthropicClient`) instead of `com.anthropic:anthropic-java`: the same requests, the same answers and the same failures, with up to two retries of a request which failed in a way that may pass (no connection, `408`, `409`, `429`, `5xx`), after the delay Anthropic asks for. `ANTHROPIC_BASE_URL` is still read, `ANTHROPIC_CUSTOM_HEADERS` is not anymore.
+* Jackson 3 (`tools.jackson`) reads and writes everything, the scripts included, instead of Jackson 2. A script is written exactly as before - its mapper keeps the defaults of Jackson 2 (`configureForJackson2`) -, but YAML is now read with the JSON schema of YAML 1.2: only `null` is null and only `true` and `false` are booleans, so `~`, `Null`, `NULL`, `True` or `FALSE` in a script are texts.
+* **Breaking for workflows:** Jackson 2 is gone, so a Groovy or Java expression which uses `com.fasterxml.jackson.databind.ObjectMapper` fails. Use `tools.jackson.databind.ObjectMapper` (and `asString()` instead of `asText()`), as the samples now do. The annotations keep their package, `com.fasterxml.jackson.annotation`.
+* The production JAR is about 59 MB smaller: 154 MB in 2.5, about 95 MB now.
+
+### Dependencies
+
+* Removed `com.anthropic:anthropic-java`, and with it Kotlin, OkHttp, OpenTelemetry and the JSON schema generator it brought.
+* Replaced `com.fasterxml.jackson.core:jackson-databind`, `jackson-datatype-jsr310` and `jackson-dataformat-yaml` with `tools.jackson.core:jackson-databind` and `tools.jackson.dataformat:jackson-dataformat-yaml`, which Spring Boot and Flyway brought already.
+* Excluded from Vaadin what no page uses: `vaadin-ai-core-flow` (with `reactor-core`), `collaboration-engine` and `hibernate-validator`.
+
 ## 2.5 (2026-11-22)
 
 ### Features

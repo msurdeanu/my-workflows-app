@@ -1,7 +1,5 @@
 package org.myworkflows.view;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.Error;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -100,6 +98,8 @@ import org.myworkflows.view.util.RequestUtil;
 import org.myworkflows.view.util.ScriptBlockUtil;
 import org.myworkflows.view.util.ScriptCommand;
 import org.myworkflows.view.util.ScriptCommandUtil;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -140,7 +140,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
 
     private static final int REPORT_NOTIFICATION_DURATION = 10_000;
 
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
     private static final String CLEAR_COMMAND_MARK_JS = "this.setDebugCommand && this.setDebugCommand(-1, -1, '')";
     private static final String PAUSED = "paused";
     private static final String FAILED = "failed";
@@ -467,9 +467,9 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
             if (state != null && state.hasNonNull("value")) {
                 final var breakpoints = new ArrayList<Integer>();
                 state.path("breakpoints").forEach(row -> breakpoints.add(row.asInt()));
-                return new EditorState(state.path("value").asText(), state.path("cursor").asInt(NO_ROW), breakpoints);
+                return new EditorState(state.path("value").asString(), state.path("cursor").asInt(NO_ROW), breakpoints);
             }
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             log.warn("The state of the workflow editor could not be read.", exception);
         }
         // the editor is not ready yet: what the server knows about it has to do
@@ -654,7 +654,7 @@ public class WorkflowDevelopmentView extends ResponsiveLayout implements HasDyna
 
     private String describe(WorkflowRuntimeException exception) {
         // a script which cannot be read is the usual reason, and the parser knows where it stopped
-        if (exception.getCause() instanceof JsonProcessingException cause) {
+        if (exception.getCause() instanceof JacksonException cause) {
             final var message = cause.getOriginalMessage();
             // a syntax error names its line by itself, a value of the wrong type does not
             return ofNullable(cause.getLocation())

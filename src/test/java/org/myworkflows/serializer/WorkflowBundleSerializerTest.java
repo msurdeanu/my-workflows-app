@@ -220,7 +220,9 @@ public final class WorkflowBundleSerializerTest {
         assertReason(Reason.FILE_UNREADABLE, new byte[0]);
         // YAML which is something else, like the script of a definition
         assertReason(Reason.FILE_NOT_AN_EXPORT, SLEEP_SCRIPT.getBytes(UTF_8));
-        assertReason(Reason.FILE_NOT_AN_EXPORT, "~".getBytes(UTF_8));
+        assertReason(Reason.FILE_NOT_AN_EXPORT, "null".getBytes(UTF_8));
+        // Jackson 3 reads YAML with the JSON schema of YAML 1.2, where "~" is a text and not null
+        assertReason(Reason.FILE_UNREADABLE, "~".getBytes(UTF_8));
         // an export of a version which came later
         final var exception = assertReason(Reason.FORMAT_NOT_SUPPORTED, "format: 99".getBytes(UTF_8));
         assertArrayEquals(new Object[] {99, WorkflowBundle.FORMAT}, exception.getArguments());

@@ -1,8 +1,5 @@
 package org.myworkflows.view.transformer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.myworkflows.domain.WorkflowRunPrint;
 import org.myworkflows.util.SecretMasker;
@@ -10,6 +7,9 @@ import org.myworkflows.view.transformer.WorkflowPrintValue.JsonLine;
 import org.myworkflows.view.transformer.WorkflowPrintValue.Node;
 import org.myworkflows.view.transformer.WorkflowPrintValue.Source;
 import org.myworkflows.view.transformer.WorkflowPrintValue.Type;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.lang.reflect.Array;
 import java.sql.ResultSet;
@@ -56,7 +56,7 @@ public final class WorkflowRunPrintToValueTransformer implements Transformer<Wor
 
     private static final int MAX_BYTES_AS_HEX = 64;
 
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).build();
 
     @Override
     public WorkflowPrintValue transform(WorkflowRunPrint workflowRunPrint) {
@@ -109,7 +109,7 @@ public final class WorkflowRunPrintToValueTransformer implements Transformer<Wor
         }
         try {
             return of(JSON_MAPPER.readValue(json, Object.class));
-        } catch (JsonProcessingException notJson) {
+        } catch (JacksonException notJson) {
             return empty();
         }
     }

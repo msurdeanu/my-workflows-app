@@ -1,6 +1,5 @@
 package org.myworkflows.restapi.v1;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.networknt.schema.Error;
 import lombok.RequiredArgsConstructor;
 import org.myworkflows.ApplicationManager;
@@ -28,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.JacksonException;
 
 import java.net.URI;
 import java.util.List;
@@ -137,7 +137,7 @@ public class WorkflowDefinitionController {
 
     private String describe(WorkflowRuntimeException exception) {
         // the parser knows where it stopped, but a value of the wrong type does not name its line by itself
-        if (exception.getCause() instanceof JsonProcessingException cause) {
+        if (exception.getCause() instanceof JacksonException cause) {
             final var message = cause.getOriginalMessage();
             return ofNullable(cause.getLocation())
                 .filter(location -> !message.contains("line " + location.getLineNr()))

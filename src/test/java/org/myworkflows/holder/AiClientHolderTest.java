@@ -1,6 +1,5 @@
 package org.myworkflows.holder;
 
-import com.anthropic.client.okhttp.AnthropicOkHttpClient;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterEach;
@@ -14,6 +13,7 @@ import org.myworkflows.exception.AiException.Reason;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayDeque;
@@ -295,11 +295,8 @@ public final class AiClientHolderTest {
                 return Optional.empty();
             }
             clientsBuilt.incrementAndGet();
-            return Optional.of(AnthropicOkHttpClient.builder()
-                .apiKey("sk-ant-test")
-                .baseUrl("http://" + server.getAddress().getHostString() + ":" + server.getAddress().getPort())
-                .maxRetries(0)
-                .build());
+            final var baseUrl = URI.create("http://" + server.getAddress().getHostString() + ":" + server.getAddress().getPort());
+            return Optional.of(new AnthropicClient("sk-ant-test", baseUrl, 0));
         });
     }
 

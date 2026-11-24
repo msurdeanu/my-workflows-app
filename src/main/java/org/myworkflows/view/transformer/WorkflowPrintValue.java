@@ -1,7 +1,7 @@
 package org.myworkflows.view.transformer;
 
-import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import org.apache.commons.lang3.StringUtils;
+import tools.jackson.core.io.JsonStringEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +59,7 @@ public record WorkflowPrintValue(Source source, String text, Node root, List<Str
     }
 
     private static String quote(String text) {
-        return '"' + new String(JsonStringEncoder.getInstance().quoteAsString(text)) + '"';
+        return '"' + new String(JsonStringEncoder.getInstance().quoteAsCharArray(text)) + '"';
     }
 
     /**

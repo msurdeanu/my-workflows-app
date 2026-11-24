@@ -1,7 +1,5 @@
 package org.myworkflows.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.networknt.schema.Error;
 import com.networknt.schema.InputFormat;
 import com.networknt.schema.Schema;
@@ -14,6 +12,8 @@ import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.holder.CommandTypeHolder;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.io.ByteArrayInputStream;
 import java.util.Collection;
@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 @Service
 public final class WorkflowDefinitionValidatorService {
 
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
 
     // The schema names the command types, so it is made again once a library brings or takes away one of them.
     private static final Supplier<Schema> WORKFLOW_SCHEMA = CommandTypeHolder.INSTANCE.derive(WorkflowDefinitionValidatorService::createSchema);

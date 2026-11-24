@@ -34,7 +34,6 @@
         <maverick-synergy-client.version>3.2.0</maverick-synergy-client.version>
         <angus-mail.version>2.0.5</angus-mail.version>
         <json-schema-validator.version>3.0.9</json-schema-validator.version>
-        <anthropic-java.version>3.12.0</anthropic-java.version>
     </properties>
 
     <scm>
@@ -94,6 +93,20 @@
                     <groupId>com.vaadin</groupId>
                     <artifactId>vaadin-ai-components-flow</artifactId>
                 </exclusion>
+                <!-- the AI components of Vaadin, and with them reactor-core: no page uses them -->
+                <exclusion>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>vaadin-ai-core-flow</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>collaboration-engine</artifactId>
+                </exclusion>
+                <!-- no bean validation anywhere: no BeanValidationBinder, no jakarta.validation annotation -->
+                <exclusion>
+                    <groupId>org.hibernate.validator</groupId>
+                    <artifactId>hibernate-validator</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -120,15 +133,11 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
+            <groupId>tools.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <groupId>tools.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
         <dependency>
@@ -206,11 +215,6 @@
             <groupId>org.commonmark</groupId>
             <artifactId>commonmark-ext-gfm-tables</artifactId>
             <version>${commonmark.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.anthropic</groupId>
-            <artifactId>anthropic-java</artifactId>
-            <version>${anthropic-java.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -355,6 +359,18 @@
                         <exclusion>
                             <groupId>com.vaadin</groupId>
                             <artifactId>vaadin-ai-components-flow</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>com.vaadin</groupId>
+                            <artifactId>vaadin-ai-core-flow</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>com.vaadin</groupId>
+                            <artifactId>collaboration-engine</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.hibernate.validator</groupId>
+                            <artifactId>hibernate-validator</artifactId>
                         </exclusion>
                     </exclusions>
                 </dependency>

@@ -1,10 +1,10 @@
 package org.myworkflows.domain.command;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.DatabindContext;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
 import org.myworkflows.holder.CommandTypeHolder;
+import tools.jackson.databind.DatabindContext;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.jsontype.impl.TypeIdResolverBase;
 
 import static java.util.stream.Collectors.joining;
 
@@ -18,13 +18,13 @@ import static java.util.stream.Collectors.joining;
 public final class CommandTypeIdResolver extends TypeIdResolverBase {
 
     @Override
-    public String idFromValue(Object value) {
+    public String idFromValue(DatabindContext context, Object value) {
         return CommandType.nameOf((AbstractCommand) value);
     }
 
     @Override
-    public String idFromValueAndType(Object value, Class<?> suggestedType) {
-        return idFromValue(value);
+    public String idFromValueAndType(DatabindContext context, Object value, Class<?> suggestedType) {
+        return idFromValue(context, value);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package org.myworkflows.holder;
 
-import com.anthropic.client.okhttp.AnthropicOkHttpClient;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -8,6 +7,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayDeque;
@@ -56,11 +56,7 @@ public final class AnthropicStub implements AutoCloseable {
     public static AnthropicStub connect() {
         final var stub = new AnthropicStub();
         AiClientHolder.INSTANCE.configure(() -> true, () -> AiClientHolder.DEFAULT_MODEL, () -> List.of(SECRET),
-            () -> Optional.of(AnthropicOkHttpClient.builder()
-                .apiKey("sk-ant-test")
-                .baseUrl("http://" + stub.server.getAddress().getHostString() + ":" + stub.server.getAddress().getPort())
-                .maxRetries(0)
-                .build()));
+            () -> Optional.of(new AnthropicClient("sk-ant-test", stub.baseUrl(), 0)));
         return stub;
     }
 
@@ -110,6 +106,10 @@ public final class AnthropicStub implements AutoCloseable {
     public AnthropicStub respondByDefault(String body) {
         defaultResponse = new Response(200, body, Duration.ZERO, false);
         return this;
+    }
+
+    public URI baseUrl() {
+        return URI.create("http://" + server.getAddress().getHostString() + ":" + server.getAddress().getPort());
     }
 
     public List<Request> requests() {

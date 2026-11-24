@@ -1,8 +1,5 @@
 package org.myworkflows.view.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.myworkflows.domain.WorkflowDefinitionScript;
 import org.myworkflows.domain.command.AbstractCommand;
@@ -16,6 +13,8 @@ import org.myworkflows.domain.command.api.ExecutionMethod;
 import org.myworkflows.domain.command.api.ExecutionParam;
 import org.myworkflows.holder.CommandTypeHolder;
 import org.myworkflows.serializer.SerializerFactory;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -115,7 +114,7 @@ public final class EditorSnippetUtilTest {
     }
 
     @Test
-    public void whenSnippetsAreHandedOverToAceThenEachIsOfferedUnderTheNameOfItsCommand() throws JsonProcessingException {
+    public void whenSnippetsAreHandedOverToAceThenEachIsOfferedUnderTheNameOfItsCommand() {
         // given
         final var sleepType = CommandType.of(SleepCommand.class, true);
 
@@ -123,7 +122,7 @@ public final class EditorSnippetUtilTest {
         final var json = EditorSnippetUtil.toJson(List.of(sleepType, CommandType.of(NothingCommand.class, true)));
 
         // then
-        final var snippets = new ObjectMapper().readValue(json, new TypeReference<List<Map<String, String>>>() {
+        final var snippets = JsonMapper.builder().build().readValue(json, new TypeReference<List<Map<String, String>>>() {
         });
         assertEquals(2, snippets.size());
         assertEquals(Map.of("name", "sleep", "tabTrigger", "sleep", "content", EditorSnippetUtil.toSnippet(sleepType)), snippets.getFirst());

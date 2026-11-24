@@ -1,9 +1,9 @@
 package org.myworkflows.domain.ai;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.myworkflows.exception.AiException;
 import org.myworkflows.exception.AiException.Reason;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * What Claude answered to an {@link AiCall}.
@@ -19,7 +19,7 @@ public record AiAnswer(String text, String model, long inputTokens, long outputT
 
     public static final String MAX_TOKENS = "max_tokens";
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final JsonMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     /**
      * @return whether the answer was cut because it reached the most tokens the call allowed.
@@ -44,7 +44,7 @@ public record AiAnswer(String text, String model, long inputTokens, long outputT
         }
         try {
             return OBJECT_MAPPER.readValue(text, Object.class);
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             throw new AiException(Reason.FAILED, "the answer is not the JSON its schema asks for.", exception);
         }
     }

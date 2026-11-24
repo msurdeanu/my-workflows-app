@@ -1,26 +1,5 @@
 package org.myworkflows.holder;
 
-import com.anthropic.client.AnthropicClient;
-import com.anthropic.client.okhttp.AnthropicOkHttpClient;
-import com.anthropic.core.JsonValue;
-import com.anthropic.errors.AnthropicIoException;
-import com.anthropic.errors.AnthropicServiceException;
-import com.anthropic.errors.BadRequestException;
-import com.anthropic.errors.NotFoundException;
-import com.anthropic.errors.PermissionDeniedException;
-import com.anthropic.errors.RateLimitException;
-import com.anthropic.errors.UnauthorizedException;
-import com.anthropic.models.messages.JsonOutputFormat;
-import com.anthropic.models.messages.Message;
-import com.anthropic.models.messages.MessageCreateParams;
-import com.anthropic.models.messages.OutputConfig;
-import com.anthropic.models.messages.RefusalStopDetails;
-import com.anthropic.models.messages.StopReason;
-import com.anthropic.models.messages.TextBlock;
-import com.anthropic.models.messages.batches.BatchCreateParams;
-import com.anthropic.models.messages.batches.MessageBatch;
-import com.anthropic.models.messages.batches.MessageBatchResult;
-import com.anthropic.services.async.messages.BatchServiceAsync;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -32,8 +11,11 @@ import org.myworkflows.domain.ai.AiConnectionCheck;
 import org.myworkflows.domain.ai.AiStatus;
 import org.myworkflows.exception.AiException;
 import org.myworkflows.exception.AiException.Reason;
+import org.myworkflows.holder.AnthropicClient.ApiException;
 import org.myworkflows.util.SecretMasker;
+import tools.jackson.databind.JsonNode;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
@@ -42,10 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
@@ -62,7 +42,7 @@ import java.util.stream.IntStream;
  * {@code ANTHROPIC_API_KEY} environment variable, never a setting, as the settings are plain text in the database. The
  * prompt and the system text of a call are masked first (see {@link SecretMasker#maskText}). A request which Claude
  * declines is run again on the model Anthropic recommends for its reason, on Anthropic's side ({@code fallbacks}) - but
- * not in a batch, which does not take them.
+ * not in a batch, which does not take them. What a request holds is written here, and sent by {@link AnthropicClient}.
  *
  * @author Mihai Surdeanu
  * @since 2.5
@@ -95,7 +75,14 @@ public enum AiClientHolder {
 
     static final String BATCH_ID_PREFIX = "item-";
 
+    private static final String MESSAGES_PATH = "/v1/messages";
+    private static final String BATCHES_PATH = MESSAGES_PATH + "/batches";
+    private static final String MODELS_PATH = "/v1/models";
+
     private static final String BETA_HEADER = "anthropic-beta";
+
+    private static final String ENDED = "ended";
+    private static final String REFUSAL = "refusal";
 
     private static final String ADDITIONAL_PROPERTIES = "additionalProperties";
     private static final String OBJECT = "object";
@@ -134,13 +121,10 @@ public enum AiClientHolder {
     }
 
     /**
-     * @return the client which reads the key from {@code ANTHROPIC_API_KEY}, or nothing when that variable is not set.
+     * @return the client which sends the key of {@code ANTHROPIC_API_KEY}, or nothing when that variable is not set.
      */
     public static Optional<AnthropicClient> createFromEnvironment() {
-        if (StringUtils.isBlank(System.getenv(API_KEY_VARIABLE))) {
-            return Optional.empty();
-        }
-        return Optional.of(AnthropicOkHttpClient.builder().fromEnv().build());
+        return AnthropicClient.fromEnvironment();
     }
 
     /**
@@ -179,12 +163,13 @@ public enum AiClientHolder {
         final var params = toParams(call, model, settings.secrets().get());
         final var timeout = Optional.ofNullable(call.timeout()).orElse(DEFAULT_TIMEOUT);
         try {
-            return toAnswer(await(anthropicClient.async().messages().create(params), timeout, timeout, model));
+            return toAnswer(await(() -> anthropicClient.post(MESSAGES_PATH, withFallbacks(params), Map.of(BETA_HEADER, FALLBACK_BETA), timeout),
+                timeout, model));
         } catch (AiException exception) {
             if (isFallbackRefused(exception)) {
                 // a model which does not take the fallbacks is asked again without them, as if they did not exist
                 log.info("The model '{}' does not take a fallback, so it is asked without one.", model);
-                return toAnswer(await(anthropicClient.async().messages().create(withoutFallbacks(params)), timeout, timeout, model));
+                return toAnswer(await(() -> anthropicClient.post(MESSAGES_PATH, params, Map.of(), timeout), timeout, model));
             }
             throw exception;
         }
@@ -214,26 +199,29 @@ public enum AiClientHolder {
         final var total = Optional.ofNullable(timeout).orElse(DEFAULT_BATCH_TIMEOUT);
         final var deadline = System.nanoTime() + total.toNanos();
         final var defaultModel = getDefaultModel();
-        final var batches = anthropicClient.async().messages().batches();
-        var batch = await(batches.create(toBatchParams(calls, defaultModel, settings.secrets().get())), total, total, defaultModel);
-        log.info("Batch '{}' of {} calls to Claude was created.", batch.id(), calls.size());
+        final var body = toBatchParams(calls, defaultModel, settings.secrets().get());
+        var batch = await(() -> anthropicClient.post(BATCHES_PATH, body, Map.of(), total), total, defaultModel);
+        final var batchId = Optional.ofNullable(textOf(batch.path("id")))
+            .orElseThrow(() -> new AiException(Reason.FAILED, "Anthropic created the batch without an id."));
+        final var batchPath = BATCHES_PATH + "/" + AnthropicClient.pathSegment(batchId);
+        log.info("Batch '{}' of {} calls to Claude was created.", batchId, calls.size());
         try {
-            while (!MessageBatch.ProcessingStatus.ENDED.equals(batch.processingStatus())) {
+            while (!ENDED.equals(textOf(batch.path("processing_status")))) {
                 final var left = Duration.ofNanos(deadline - System.nanoTime());
                 if (left.isNegative() || left.isZero()) {
                     throw new AiException(Reason.TIMEOUT, total.toString());
                 }
                 pause(pollInterval.compareTo(left) < 0 ? pollInterval : left);
                 final var stillLeft = Duration.ofNanos(Math.max(1L, deadline - System.nanoTime()));
-                batch = await(batches.retrieve(batch.id()), stillLeft, total, defaultModel);
+                batch = await(() -> anthropicClient.get(batchPath, stillLeft), total, defaultModel);
             }
         } catch (AiException exception) {
             if (exception.getReason() == Reason.TIMEOUT || exception.getReason() == Reason.CANCELLED) {
-                cancel(batches, batch.id());
+                cancel(anthropicClient, batchId, batchPath);
             }
             throw exception;
         }
-        return readResults(anthropicClient, batch.id(), calls.size());
+        return readResults(anthropicClient, batchPath, calls.size());
     }
 
     /**
@@ -247,12 +235,9 @@ public enum AiClientHolder {
         final var anthropicClient = findClient().orElseThrow(() -> new AiException(Reason.NO_KEY));
         final var model = getDefaultModel();
         final var start = System.nanoTime();
-        try {
-            final var info = anthropicClient.models().retrieve(model);
-            return new AiConnectionCheck(info.id(), info.displayName(), Duration.ofNanos(System.nanoTime() - start));
-        } catch (RuntimeException exception) {
-            throw toAiException(exception, model);
-        }
+        final var info = await(() -> anthropicClient.get(MODELS_PATH + "/" + AnthropicClient.pathSegment(model), AnthropicClient.REQUEST_TIMEOUT),
+            AnthropicClient.REQUEST_TIMEOUT, model);
+        return new AiConnectionCheck(textOf(info.path("id")), textOf(info.path("display_name")), Duration.ofNanos(System.nanoTime() - start));
     }
 
     /**
@@ -267,52 +252,54 @@ public enum AiClientHolder {
         }
     }
 
-    static MessageCreateParams toParams(AiCall call, String model, Collection<String> secrets) {
-        final var builder = MessageCreateParams.builder()
-            .model(model)
-            .maxTokens(Optional.ofNullable(call.maxTokens()).orElse(DEFAULT_MAX_TOKENS))
-            .addUserMessage(SecretMasker.maskText(call.prompt(), secrets))
-            .putAdditionalHeader(BETA_HEADER, FALLBACK_BETA)
-            .putAdditionalBodyProperty(FALLBACKS, JsonValue.from(FALLBACKS_DEFAULT));
+    /**
+     * @return the body of a message: without the fallbacks, which only a call made alone asks for (see
+     *     {@link #withFallbacks}).
+     */
+    static Map<String, Object> toParams(AiCall call, String model, Collection<String> secrets) {
+        final var params = new LinkedHashMap<String, Object>();
+        params.put("model", model);
+        params.put("max_tokens", Optional.ofNullable(call.maxTokens()).orElse(DEFAULT_MAX_TOKENS));
+        params.put("messages", List.of(Map.of("role", "user", "content", SecretMasker.maskText(call.prompt(), secrets))));
         if (StringUtils.isNotBlank(call.system())) {
-            builder.system(SecretMasker.maskText(call.system(), secrets));
+            params.put("system", SecretMasker.maskText(call.system(), secrets));
         }
-        toOutputConfig(call).ifPresent(builder::outputConfig);
-        return builder.build();
+        toOutputConfig(call).ifPresent(outputConfig -> params.put("output_config", outputConfig));
+        return params;
+    }
+
+    static Map<String, Object> withFallbacks(Map<String, Object> params) {
+        final var withFallbacks = new LinkedHashMap<>(params);
+        withFallbacks.put(FALLBACKS, FALLBACKS_DEFAULT);
+        return withFallbacks;
     }
 
     /**
      * @return one request per call, each of them named after the index of its call. A batch takes no fallbacks.
      */
-    static BatchCreateParams toBatchParams(List<AiCall> calls, String defaultModel, Collection<String> secrets) {
-        final var builder = BatchCreateParams.builder();
-        IntStream.range(0, calls.size()).forEach(index -> {
-            final var call = calls.get(index);
-            final var params = BatchCreateParams.Request.Params.builder()
-                .model(Optional.ofNullable(call.model()).filter(StringUtils::isNotBlank).map(String::strip).orElse(defaultModel))
-                .maxTokens(Optional.ofNullable(call.maxTokens()).orElse(DEFAULT_MAX_TOKENS))
-                .addUserMessage(SecretMasker.maskText(call.prompt(), secrets));
-            if (StringUtils.isNotBlank(call.system())) {
-                params.system(SecretMasker.maskText(call.system(), secrets));
-            }
-            toOutputConfig(call).ifPresent(params::outputConfig);
-            builder.addRequest(BatchCreateParams.Request.builder().customId(BATCH_ID_PREFIX + index).params(params.build()).build());
-        });
-        return builder.build();
+    static Map<String, Object> toBatchParams(List<AiCall> calls, String defaultModel, Collection<String> secrets) {
+        final var requests = IntStream.range(0, calls.size())
+            .mapToObj(index -> {
+                final var call = calls.get(index);
+                final var model = Optional.ofNullable(call.model()).filter(StringUtils::isNotBlank).map(String::strip).orElse(defaultModel);
+                return Map.of("custom_id", BATCH_ID_PREFIX + index, "params", toParams(call, model, secrets));
+            })
+            .toList();
+        return Map.of("requests", requests);
     }
 
-    static Optional<OutputConfig> toOutputConfig(AiCall call) {
+    static Optional<Map<String, Object>> toOutputConfig(AiCall call) {
         if (call.effort() == null && !call.isStructured()) {
             return Optional.empty();
         }
-        final var builder = OutputConfig.builder();
+        final var outputConfig = new LinkedHashMap<String, Object>();
         if (call.effort() != null) {
-            builder.effort(OutputConfig.Effort.of(call.effort()));
+            outputConfig.put("effort", call.effort());
         }
         if (call.isStructured()) {
-            builder.format(toFormat(call.schema()));
+            outputConfig.put("format", toFormat(call.schema()));
         }
-        return Optional.of(builder.build());
+        return Optional.of(outputConfig);
     }
 
     /**
@@ -320,10 +307,11 @@ public enum AiClientHolder {
      *     other field may be added ({@code additionalProperties: false}), so every object of the schema which says
      *     nothing about it says that.
      */
-    static JsonOutputFormat toFormat(Map<String, ?> schema) {
-        final var schemaBuilder = JsonOutputFormat.Schema.builder();
-        closeObjects(schema).forEach((key, value) -> schemaBuilder.putAdditionalProperty(key, JsonValue.from(value)));
-        return JsonOutputFormat.builder().schema(schemaBuilder.build()).build();
+    static Map<String, Object> toFormat(Map<String, ?> schema) {
+        final var format = new LinkedHashMap<String, Object>();
+        format.put("schema", closeObjects(schema));
+        format.put(TYPE, "json_schema");
+        return format;
     }
 
     static Map<String, Object> closeObjects(Map<?, ?> schema) {
@@ -338,46 +326,57 @@ public enum AiClientHolder {
         return closedSchema;
     }
 
-    static AiBatchResult toBatchResult(MessageBatchResult result) {
-        if (result.isSucceeded()) {
+    /**
+     * @param result the {@code result} of a line of the results of a batch.
+     */
+    static AiBatchResult toBatchResult(JsonNode result) {
+        final var type = textOf(result.path(TYPE));
+        if ("succeeded".equals(type)) {
             try {
-                return AiBatchResult.answered(toAnswer(result.asSucceeded().message()));
+                return AiBatchResult.answered(toAnswer(result.path("message")));
             } catch (AiException exception) {
                 return AiBatchResult.failed(exception.getMessage());
             }
         }
-        final var detail = result.isErrored()
-            ? result.asErrored().error().error().message()
-            : "the batch " + (result.isCanceled() ? "was cancelled" : "expired") + " before this call was answered.";
+        final var detail = switch (StringUtils.defaultString(type)) {
+            case "errored" -> StringUtils.defaultIfBlank(textOf(result.path("error").path("error").path("message")), "an error without a message.");
+            case "canceled" -> "the batch was cancelled before this call was answered.";
+            default -> "the batch expired before this call was answered.";
+        };
         return AiBatchResult.failed(new AiException(Reason.FAILED, detail).getMessage());
     }
 
-    static AiAnswer toAnswer(Message message) {
-        final var stopReason = message.stopReason().orElse(null);
-        if (StopReason.REFUSAL.equals(stopReason)) {
-            throw new AiException(Reason.REFUSED, message.stopDetails().map(AiClientHolder::describe).orElse(null));
+    /**
+     * @param message a message of the API, as JSON.
+     */
+    static AiAnswer toAnswer(JsonNode message) {
+        final var stopReason = textOf(message.path("stop_reason"));
+        if (REFUSAL.equals(stopReason)) {
+            throw new AiException(Reason.REFUSED, describeRefusal(message.path("stop_details")));
         }
-        final var text = message.content().stream()
-            .flatMap(block -> block.text().stream())
-            .map(TextBlock::text)
+        final var text = message.path("content").values().stream()
+            .filter(block -> "text".equals(textOf(block.path(TYPE))))
+            .map(block -> StringUtils.defaultString(textOf(block.path("text"))))
             .collect(Collectors.joining());
-        return new AiAnswer(text, message.model().asString(), message.usage().inputTokens(), message.usage().outputTokens(),
-            stopReason == null ? null : stopReason.asString());
+        final var usage = message.path("usage");
+        return new AiAnswer(text, textOf(message.path("model")), usage.path("input_tokens").asLong(0L),
+            usage.path("output_tokens").asLong(0L), stopReason);
     }
 
-    static AiException toAiException(Throwable failure, String model) {
+    static AiException toAiException(Throwable failure, @Nullable String model) {
         var cause = failure;
         while ((cause instanceof CompletionException || cause instanceof ExecutionException) && cause.getCause() != null) {
             cause = cause.getCause();
         }
         return switch (cause) {
             case AiException aiException -> aiException;
-            case UnauthorizedException exception -> new AiException(Reason.KEY_REJECTED, null, exception);
-            case PermissionDeniedException exception -> new AiException(Reason.KEY_REJECTED, null, exception);
-            case NotFoundException exception -> new AiException(Reason.MODEL_UNKNOWN, model, exception);
-            case RateLimitException exception -> new AiException(Reason.RATE_LIMITED, null, exception);
-            case AnthropicServiceException exception -> new AiException(Reason.FAILED, exception.getMessage(), exception);
-            case AnthropicIoException exception -> new AiException(Reason.UNREACHABLE, null, exception);
+            case ApiException exception -> switch (exception.getStatus()) {
+                case 401, 403 -> new AiException(Reason.KEY_REJECTED, null, exception);
+                case 404 -> new AiException(Reason.MODEL_UNKNOWN, model, exception);
+                case 429 -> new AiException(Reason.RATE_LIMITED, null, exception);
+                default -> new AiException(Reason.FAILED, exception.getMessage(), exception);
+            };
+            case IOException exception -> new AiException(Reason.UNREACHABLE, null, exception);
             default -> new AiException(Reason.FAILED, cause.getMessage(), cause);
         };
     }
@@ -403,20 +402,17 @@ public enum AiClientHolder {
     }
 
     /**
-     * @param wait how long to wait for this future.
      * @param timeout the timeout which the failure names: the one of the call, or of the whole batch.
      */
-    private static <T> T await(CompletableFuture<T> future, Duration wait, Duration timeout, String model) {
+    private static JsonNode await(Exchange exchange, Duration timeout, @Nullable String model) {
         try {
-            return future.get(wait.toMillis(), TimeUnit.MILLISECONDS);
+            return exchange.run();
         } catch (InterruptedException exception) {
-            future.cancel(true);
             Thread.currentThread().interrupt();
             throw new AiException(Reason.CANCELLED, null, exception);
         } catch (TimeoutException exception) {
-            future.cancel(true);
             throw new AiException(Reason.TIMEOUT, timeout.toString(), exception);
-        } catch (ExecutionException exception) {
+        } catch (IOException | RuntimeException exception) {
             throw toAiException(exception, model);
         }
     }
@@ -430,9 +426,9 @@ public enum AiClientHolder {
         }
     }
 
-    private static void cancel(BatchServiceAsync batches, String batchId) {
+    private static void cancel(AnthropicClient anthropicClient, String batchId, String batchPath) {
         // what is left of the batch would be paid for, and nobody would read it
-        batches.cancel(batchId).whenComplete((_, failure) -> {
+        anthropicClient.postAsync(batchPath + "/cancel").whenComplete((_, failure) -> {
             if (failure == null) {
                 log.info("Batch '{}' of calls to Claude was cancelled.", batchId);
             } else {
@@ -441,13 +437,20 @@ public enum AiClientHolder {
         });
     }
 
-    private static List<AiBatchResult> readResults(AnthropicClient anthropicClient, String batchId, int size) {
-        final var results = new HashMap<String, MessageBatchResult>();
-        try (var response = anthropicClient.messages().batches().resultsStreaming(batchId)) {
-            response.stream().forEach(item -> results.put(item.customId(), item.result()));
-        } catch (RuntimeException exception) {
+    private static List<AiBatchResult> readResults(AnthropicClient anthropicClient, String batchPath, int size) {
+        final var results = new HashMap<String, JsonNode>();
+        final List<JsonNode> lines;
+        try {
+            lines = anthropicClient.getLines(batchPath + "/results", AnthropicClient.REQUEST_TIMEOUT);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new AiException(Reason.CANCELLED, null, exception);
+        } catch (TimeoutException exception) {
+            throw new AiException(Reason.TIMEOUT, AnthropicClient.REQUEST_TIMEOUT.toString(), exception);
+        } catch (IOException | RuntimeException exception) {
             throw toAiException(exception, null);
         }
+        lines.forEach(line -> results.put(textOf(line.path("custom_id")), line.path("result")));
         return IntStream.range(0, size)
             .mapToObj(index -> Optional.ofNullable(results.get(BATCH_ID_PREFIX + index))
                 .map(AiClientHolder::toBatchResult)
@@ -456,22 +459,24 @@ public enum AiClientHolder {
     }
 
     private static boolean isFallbackRefused(AiException exception) {
-        return exception.getReason() == Reason.FAILED && exception.getCause() instanceof BadRequestException
-            && Strings.CI.contains(exception.getMessage(), "fallback");
+        return exception.getReason() == Reason.FAILED && exception.getCause() instanceof ApiException apiException
+            && apiException.getStatus() == 400 && Strings.CI.contains(exception.getMessage(), "fallback");
     }
 
-    private static MessageCreateParams withoutFallbacks(MessageCreateParams params) {
-        return params.toBuilder()
-            .removeAdditionalBodyProperty(FALLBACKS)
-            .removeAdditionalHeaders(BETA_HEADER)
-            .build();
-    }
-
-    private static String describe(RefusalStopDetails details) {
+    private static String describeRefusal(JsonNode details) {
+        final var category = textOf(details.path("category"));
         final var parts = List.of(
-            details.category().map(category -> "Category: " + category.asString() + ".").orElse(StringUtils.EMPTY),
-            details.explanation().orElse(StringUtils.EMPTY));
+            category == null ? StringUtils.EMPTY : "Category: " + category + ".",
+            StringUtils.defaultString(textOf(details.path("explanation"))));
         return parts.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining(" "));
+    }
+
+    /**
+     * @return the text of a node, or {@code null} for one which is missing, {@code null} or no text.
+     */
+    @Nullable
+    private static String textOf(JsonNode node) {
+        return node.isString() ? node.stringValue() : null;
     }
 
     private AnthropicClient requireClient() {
@@ -498,6 +503,13 @@ public enum AiClientHolder {
             client.ifPresent(AnthropicClient::close);
             client = null;
         }
+    }
+
+    @FunctionalInterface
+    private interface Exchange {
+
+        JsonNode run() throws IOException, InterruptedException, TimeoutException;
+
     }
 
     private record Settings(BooleanSupplier enabled, Supplier<String> defaultModel, Supplier<? extends Collection<String>> secrets,

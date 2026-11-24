@@ -307,7 +307,7 @@ commands:
   outputs:
   - name: todo
     class: groovy
-    value: new com.fasterxml.jackson.databind.ObjectMapper().readValue(output.getBody(), Map.class)
+    value: new tools.jackson.databind.ObjectMapper().readValue(output.getBody(), Map.class)
   - name: todo.title
     class: groovy
     value: $(todo).title
@@ -343,7 +343,7 @@ commands:
   outputs:
   - name: userIds
     class: groovy
-    value: new com.fasterxml.jackson.databind.ObjectMapper().readValue(output.getBody(), List.class).collect { it.id }
+    value: new tools.jackson.databind.ObjectMapper().readValue(output.getBody(), List.class).collect { it.id }
 - name: Count the open to-do items of every user
   class: loop
   inputs:
@@ -362,7 +362,7 @@ commands:
     outputs:
     - name: openTodos
       class: groovy
-      value: new com.fasterxml.jackson.databind.ObjectMapper().readValue(output.getBody(), List.class).size()
+      value: new tools.jackson.databind.ObjectMapper().readValue(output.getBody(), List.class).size()
 - name: Build a summary
   class: groovy
   inputs:
@@ -547,7 +547,7 @@ commands:
   outputs:
   - name: todoTitle
     class: groovy
-    value: new com.fasterxml.jackson.databind.ObjectMapper().readTree(output.getBody()).get('title').asText()
+    value: new tools.jackson.databind.ObjectMapper().readTree(output.getBody()).get('title').asString()
 - name: Print 'todoId' and 'todoTitle' variables
   class: print
   inputs:

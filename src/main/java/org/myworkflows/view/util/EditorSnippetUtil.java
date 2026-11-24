@@ -1,13 +1,12 @@
 package org.myworkflows.view.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.f0rce.ace.AceEditor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.myworkflows.config.SnippetConfig;
 import org.myworkflows.domain.command.CommandType;
 import org.myworkflows.holder.CommandTypeHolder;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,7 +25,7 @@ import java.util.function.UnaryOperator;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class EditorSnippetUtil {
 
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
 
     private static final String NAME_HINT = "name";
 
@@ -48,11 +47,7 @@ public final class EditorSnippetUtil {
         final var snippets = commandTypes.stream()
             .map(commandType -> Map.of("name", commandType.name(), "tabTrigger", commandType.name(), "content", toSnippet(commandType)))
             .toList();
-        try {
-            return JSON_MAPPER.writeValueAsString(snippets);
-        } catch (JsonProcessingException exception) {
-            throw new IllegalStateException(exception);
-        }
+        return JSON_MAPPER.writeValueAsString(snippets);
     }
 
     /**

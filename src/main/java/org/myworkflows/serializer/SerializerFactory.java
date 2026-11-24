@@ -1,15 +1,6 @@
 package org.myworkflows.serializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
-import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +8,15 @@ import org.myworkflows.domain.command.AbstractCommand;
 import org.myworkflows.domain.command.UnknownCommand;
 import org.myworkflows.exception.WorkflowRuntimeException;
 import org.myworkflows.holder.CommandTypeHolder;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.deser.DeserializationProblemHandler;
+import tools.jackson.databind.jsontype.TypeIdResolver;
+import tools.jackson.dataformat.yaml.YAMLMapper;
+import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 
-import java.io.IOException;
 import java.util.function.Supplier;
 
 /**
@@ -31,15 +29,11 @@ public final class SerializerFactory {
 
     // A mapper remembers the class it found behind the "class" field of a command, so it is made again once the command
     // types change: a library which is loaded later, or loaded again, is then taken into account.
-    private static final Supplier<YAMLMapper> MAPPER = CommandTypeHolder.INSTANCE.derive(_ -> createMapper());
+    private static final Supplier<YAMLMapper> MAPPER = CommandTypeHolder.INSTANCE.derive(_ -> createMapper().build());
 
-    private static final Supplier<YAMLMapper> MAPPER_KEEPING_UNKNOWN_COMMANDS = CommandTypeHolder.INSTANCE.derive(_ -> {
-        final var mapper = createMapper();
-        mapper.addHandler(new UnknownCommandHandler());
-        return mapper;
-    });
-
-    private static final DefaultPrettyPrinter PRETTY_PRINTER = new DefaultPrettyPrinter();
+    private static final Supplier<YAMLMapper> MAPPER_KEEPING_UNKNOWN_COMMANDS = CommandTypeHolder.INSTANCE.derive(_ -> createMapper()
+        .addHandler(new UnknownCommandHandler())
+        .build());
 
     public static <T> T toObject(String content, Class<T> clazz) {
         return WorkflowRuntimeException.wrap(() -> MAPPER.get().readValue(content, clazz));
@@ -56,7 +50,7 @@ public final class SerializerFactory {
     public static String toString(Object object, String defaultValue) {
         try {
             return MAPPER.get().writeValueAsString(object);
-        } catch (IOException exception) {
+        } catch (JacksonException exception) {
             return defaultValue;
         }
     }
@@ -67,22 +61,24 @@ public final class SerializerFactory {
             if (object instanceof String objectAsString) {
                 newObject = MAPPER.get().readTree(objectAsString);
             }
-            return MAPPER.get().writer(PRETTY_PRINTER).writeValueAsString(newObject);
-        } catch (IOException exception) {
+            return MAPPER.get().writerWithDefaultPrettyPrinter().writeValueAsString(newObject);
+        } catch (JacksonException exception) {
             return defaultValue;
         }
     }
 
-    private static YAMLMapper createMapper() {
-        final var mapper = new YAMLMapper();
-        mapper.registerModule(new JavaTimeModule());
-
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
-        mapper.disable(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID);
-        mapper.enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return mapper;
+    /**
+     * @return a mapper which reads and writes as the one of Jackson 2 did - the fields of a command in the order of
+     *     their declaration, among others -, so that a script is written as it always was.
+     */
+    private static YAMLMapper.Builder createMapper() {
+        return YAMLMapper.builder()
+            .configureForJackson2()
+            .changeDefaultPropertyInclusion(inclusion -> inclusion.withValueInclusion(JsonInclude.Include.NON_NULL))
+            .disable(YAMLWriteFeature.WRITE_DOC_START_MARKER)
+            .disable(YAMLWriteFeature.USE_NATIVE_TYPE_ID)
+            .enable(YAMLWriteFeature.MINIMIZE_QUOTES)
+            .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     /**
